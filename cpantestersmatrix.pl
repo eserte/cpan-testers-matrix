@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.6 2007/11/30 23:00:37 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.7 2007/11/30 23:00:40 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -37,11 +37,18 @@ my $q = CGI->new;
 my $dist = $q->param("dist");
 my $error;
 
+my $dist_version;
+my %other_dist_versions;
+
 if ($dist) {
     eval {
-	$dist = basename $dist;
-
 	my $data;
+
+	$dist = basename $dist;
+	if ($dist =~ m{^(.*)[- ]([\d\._]+)$}) {
+	    ($dist, $dist_version) = ($1, $2);
+	}
+
 
 	(my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
 	($safe_dist) = $safe_dist =~ m{^(.*)$};
@@ -55,7 +62,7 @@ if ($dist) {
 		die <<EOF
 Distribution results for <$dist> at <$url> not found.
 Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
-Maybe you added a version or author name to the distribution string?
+Maybe you added the author name to the distribution string?
 EOF
 	    }
 	    $data = Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
@@ -72,10 +79,15 @@ EOF
 	my %osname;
 	my %action;
 
-	my $max_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
+	if (!$dist_version) {
+	    $dist_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
+	}
 
 	for my $r (@$data) {
-	    next if $r->{version} ne $max_version;
+	    if ($r->{version} ne $dist_version) {
+		$other_dist_versions{$r->{version}}++;
+		next;
+	    }
 	    my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
 	    die "$r->{perl} couldn't be parsed" if !defined $perl;
 	    $perl{$perl}++;
@@ -124,8 +136,8 @@ EOF
 	    #$table->setColAlign($_, 'center') for (1 .. $cols);
 	}
 
-	$title .= ": $dist $max_version";
-	$ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$max_version";
+	$title .= ": $dist $dist_version";
+	$ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
     };
     $error = $@;
 }
@@ -170,6 +182,20 @@ print <<EOF;
 EOF
 if ($table) {
     $table->print;
+}
+if (%other_dist_versions) {
+    print <<EOF;
+<h2>Other versions</h2>
+<ul>
+EOF
+    for my $version (sort { CPAN::Version->vcmp($b, $a) } keys %other_dist_versions) {
+	my $qq = CGI->new($q);
+	$qq->param(dist => "$dist $version");
+	print qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>\n};
+    }
+    print <<EOF;
+</ul>
+EOF
 }
 print <<EOF;
  </body>
