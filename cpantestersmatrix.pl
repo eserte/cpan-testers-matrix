@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.5 2007/11/30 23:00:32 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.6 2007/11/30 23:00:37 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -14,12 +14,14 @@
 #
 
 use strict;
-use CGI;
+use CGI qw(escapeHTML);
 use File::Basename qw(basename);
 use HTML::Table;
+use LWP 5.808; # bugs in decoded_content
 use LWP::UserAgent;
 use List::Util qw(reduce);
-use YAML::Syck qw(LoadFile Load);
+#use YAML::Syck qw(LoadFile Load);
+use YAML qw(LoadFile Load);
 use CPAN::Version;
 
 my $cache = "/tmp/cpantesters_cache_$<";
@@ -44,13 +46,17 @@ if ($dist) {
 	(my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
 	($safe_dist) = $safe_dist =~ m{^(.*)$};
 	my $cachefile = $cache."/".$safe_dist.".yaml";
-	if (!-r $cachefile || -M $cachefile > 1) {
+	if (!-r $cachefile || -M $cachefile > 0.1) {
 	    my $ua = LWP::UserAgent->new;
 	    my $url = "http://cpantesters.perl.org/show/$dist.yaml";
 	    my $resp = $ua->get($url);
 	    if (!$resp->is_success) {
 		warn $resp->as_string;
-		die "Distribution results at <$url> not found";
+		die <<EOF
+Distribution results for <$dist> at <$url> not found.
+Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
+Maybe you added a version or author name to the distribution string?
+EOF
 	    }
 	    $data = Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
 	    open my $fh, ">", "$cachefile.$$" or do { warn $!; die "Internal error (open)" };
@@ -154,12 +160,12 @@ print <<EOF;
 EOF
 if ($error) {
     print <<EOF;
-An error was encountered: $error
+An error was encountered: @{[ escapeHTML($error) ]}
 EOF
 }
 print <<EOF;
   <form>
-   Distribution: <input name="dist" /> <input type="submit" />
+   Distribution (e.g. DBI, CPAN-Reporter, YAML-Syck): <input name="dist" /> <input type="submit" />
   </form>
 EOF
 if ($table) {
