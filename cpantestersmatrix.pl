@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.15 2007/11/30 23:01:14 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.16 2007/11/30 23:01:19 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -119,18 +119,17 @@ EOF
 EOF
 }
 
+print "<ul>";
 if (!$q->param("maxver")) {
-    print <<EOF;
-<h2>Max passed version</h2>
-EOF
     my $qq = CGI->new($q);
     $qq->param("maxver" => 1);
-    print qq{<a href="@{[ $qq->self_url ]}">$dist (max passed version)</a>\n};
+    print qq{<li><a href="@{[ $qq->self_url ]}">Max passed version</a>\n};
 } else {
     my $qq = CGI->new($q);
     $qq->param("maxver" => 0);
-    print qq{<a href="@{[ $qq->self_url ]}">Back to normal view</a>\n};
+    print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
 }
+print "</ul>";
 
 
 print <<EOF;
