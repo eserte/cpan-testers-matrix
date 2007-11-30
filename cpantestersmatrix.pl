@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.10 2007/11/30 23:00:50 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.11 2007/11/30 23:00:54 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -49,7 +49,7 @@ if ($dist) {
 	if ($dist =~ m{^(.*)[- ]([\d\._]+)$}) {
 	    ($dist, $dist_version) = ($1, $2);
 	}
-
+	$dist =~ s{::}{-}g; # common error: module -> dist
 
 	(my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
 	($safe_dist) = $safe_dist =~ m{^(.*)$};
