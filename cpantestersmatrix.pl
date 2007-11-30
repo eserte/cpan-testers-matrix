@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.26 2007/11/30 23:02:05 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.27 2007/11/30 23:02:08 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -460,9 +460,14 @@ sub build_author_table ($$) {
     my($author, $author_dist) = @_;
     my @tables;
     for my $dist (sort keys %$author_dist) {
-	push @tables, build_success_table($author_dist->{$dist}, $dist,
-					  $author_dist->{$dist}->[0]->{version},
-					 );
+	my $dist_version = $author_dist->{$dist}->[0]->{version};
+	my $r = build_success_table($author_dist->{$dist},
+				    $dist,
+				    $dist_version,
+				   );
+	my $qq = CGI->new({dist => "$dist $dist_version"});
+	$r->{ct_link} = $q->url(-relative => 1) . "?" . $qq->query_string;
+	push @tables, $r;
     }
     return { tables => \@tables,
 	     title => $author,
