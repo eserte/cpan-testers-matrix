@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.9 2007/11/30 23:00:46 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.10 2007/11/30 23:00:50 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -165,12 +165,6 @@ print <<EOF;
   body		  { font-family:sans-serif; }
 
   .bt th,td	  { border:none; height:20px; }
-
-  .bar { 
-    display: block;
-    position: relative;
-    height: 20px; 
-  }
 
   --></style>
  </head>
