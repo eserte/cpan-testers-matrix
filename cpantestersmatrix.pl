@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.22 2007/11/30 23:01:47 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.23 2007/11/30 23:01:52 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -18,12 +18,8 @@ use CGI qw(escapeHTML);
 use CPAN::Version;
 use File::Basename qw(basename);
 use HTML::Table;
-use LWP 5.808; # bugs in decoded_content
-use LWP::UserAgent;
 use List::Util qw(reduce);
-#use YAML::Syck qw(LoadFile Load);
 use Storable qw(lock_nstore lock_retrieve);
-use YAML qw(Load);
 
 sub fetch_data ($);
 sub build_success_table ($$$);
@@ -175,6 +171,12 @@ sub fetch_data ($) {
     if (!-r $cachefile || -M $cachefile > 1 ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
+	require LWP;
+	LWP->VERSION(5.808); # bugs in decoded_content
+	require LWP::UserAgent;
+	require YAML;
+	#use YAML::Syck qw(LoadFile Load);
+
 	my $ua = LWP::UserAgent->new;
 	my $url = "http://cpantesters.perl.org/show/$dist.yaml";
 	my $resp = $ua->get($url);
@@ -187,7 +189,7 @@ Maybe you added the author name to the distribution string?
 Note that the distribution name is case-sensitive.
 EOF
 	}
-	$data = Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
+	$data = YAML::Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
 	eval {
 	    lock_nstore($data, $cachefile);
 	};
