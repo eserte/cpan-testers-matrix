@@ -1,8 +1,8 @@
-#!/usr/bin/perl -wT
+#!/usr/local/bin/perl5.10.0 -wT
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.2 2007/11/30 23:00:20 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.3 2007/11/30 23:00:24 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -14,6 +14,7 @@
 #
 
 use strict;
+use diagnostics;
 use CGI;
 use File::Basename qw(basename);
 use HTML::Table;
@@ -39,7 +40,9 @@ if ($dist) {
 
     my $data;
 
-    my $cachefile = $cache."/".$dist.".yaml";
+    (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
+    ($safe_dist) = $safe_dist =~ m{^(.*)$};
+    my $cachefile = $cache."/".$safe_dist.".yaml";
     if (!-r $cachefile || -M $cachefile > 1) {
 	my $ua = LWP::UserAgent->new;
 	my $resp = $ua->get("http://cpantesters.perl.org/show/$dist.yaml");
