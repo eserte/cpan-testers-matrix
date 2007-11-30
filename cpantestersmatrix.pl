@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.23 2007/11/30 23:01:52 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.24 2007/11/30 23:01:56 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -22,45 +22,66 @@ use List::Util qw(reduce);
 use Storable qw(lock_nstore lock_retrieve);
 
 sub fetch_data ($);
+sub fetch_author_data ($);
 sub build_success_table ($$$);
 sub build_maxver_table ($$);
+sub build_author_table ($$);
 
 my $cache = "/tmp/cpantesters_cache_$<";
 mkdir $cache, 0755 if !-d $cache;
+my $author_cache = "/tmp/cpantesters_author_cache_$<";
+mkdir $author_cache, 0755 if !-d $author_cache;
 
 # XXX hmm, some globals ...
 my $title = "CPAN Testers";
 my $ct_link = "http://cpantesters.perl.org";
 my $table;
+my $tables;
 my $cachefile;
 
 my $q = CGI->new;
 
 my $dist = $q->param("dist");
+my $author = $q->param("author");
+
 my $error;
 
 my $dist_version;
 my %other_dist_versions;
 
-if ($dist) {
+if ($author) {
     eval {
 	my $r;
 
+	$r = fetch_author_data($author);
+	my $author_dist;
+	($author, $author_dist, $cachefile) = @{$r}{qw(author author_dist cachefile)};
+	$r = build_author_table($author, $author_dist);
+	$tables = $r->{tables};
+	$ct_link = $r->{ct_link};
+	$title = "CPAN Testers: $r->{title}";
+    };
+    $error = $@;
+} elsif ($dist) {
+    eval {
+	my $r;
+	
 	$r = fetch_data($dist);
 	my $data;
 	($dist, $data, $cachefile) = @{$r}{qw(dist data cachefile)};
 
 	if ($q->param("maxver")) {
 	    $r = build_maxver_table($data, $dist);
-	    $table = $r->{table};
 	} else {
 	    # Get newest version
 	    if (!$dist_version) {
 		$dist_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
 	    }
 	    $r = build_success_table($data, $dist, $dist_version);
-	    $table = $r->{table};
 	}
+	$table = $r->{table};
+	$ct_link = $r->{ct_link};
+	$title = "CPAN Testers: $r->{title}";
     };
     $error = $@;
 }
@@ -94,44 +115,61 @@ if ($error) {
 An error was encountered:<br/>$html_error<br/>
 EOF
 }
+
 print <<EOF;
   <form>
    Distribution (e.g. DBI, CPAN-Reporter, YAML-Syck): <input name="dist" /> <input type="submit" />
    <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
   </form>
+
+  <form>
+   CPAN User ID: <input name="author" /> <input type="submit" />
+  </form>
 EOF
 
-if ($table) {
-    $table->print;
-}
+if ($author) {
 
-if ($table) {
-    print "<ul>";
-    if (!$q->param("maxver")) {
-	my $qq = CGI->new($q);
-	$qq->param("maxver" => 1);
-	print qq{<li><a href="@{[ $qq->self_url ]}">Max version with a PASS</a>\n};
-    } else {
-	my $qq = CGI->new($q);
-	$qq->param("maxver" => 0);
-	print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
+    if ($tables) {
+	for my $r (@$tables) {
+	    print qq{<h2><a href="$r->{ct_link}">$r->{title}</a></h2>};
+	    print $r->{table};
+	}
     }
-    print "</ul>";
-}
 
-if (%other_dist_versions) {
-    print <<EOF;
+} else {
+
+    if ($table) {
+	$table->print;
+    }
+
+    if ($table) {
+	print "<ul>";
+	if (!$q->param("maxver")) {
+	    my $qq = CGI->new($q);
+	    $qq->param("maxver" => 1);
+	    print qq{<li><a href="@{[ $qq->self_url ]}">Max version with a PASS</a>\n};
+	} else {
+	    my $qq = CGI->new($q);
+	    $qq->param("maxver" => 0);
+	    print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
+	}
+	print "</ul>";
+    }
+
+    if (%other_dist_versions) {
+	print <<EOF;
 <h2>Other versions</h2>
 <ul>
 EOF
-    for my $version (sort { CPAN::Version->vcmp($b, $a) } keys %other_dist_versions) {
-	my $qq = CGI->new($q);
-	$qq->param(dist => "$dist $version");
-	print qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>\n};
-    }
-    print <<EOF;
+	for my $version (sort { CPAN::Version->vcmp($b, $a) } keys %other_dist_versions) {
+	    my $qq = CGI->new($q);
+	    $qq->param(dist => "$dist $version");
+	    print qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>\n};
+	}
+	print <<EOF;
 </ul>
 EOF
+    }
 }
 
 print "<hr>";
@@ -206,6 +244,83 @@ EOF
 	   };
 }
 
+sub fetch_author_data ($) {
+    my($author) = @_;
+    $author = uc $author;
+    ($author) = $author =~ m{([A-Z]+)};
+
+    my $author_dist = {};
+
+    my $cachefile = $author_cache."/".$author.".st";
+    if (!-r $cachefile || -M $cachefile > 1 ||
+	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
+       ) {
+	require LWP;
+	LWP->VERSION(5.808); # bugs in decoded_content
+	require LWP::UserAgent;
+	require XML::LibXML;
+	require CPAN::DistnameInfo;
+
+	my $ua = LWP::UserAgent->new;
+#	my $url = "http://cpantesters.perl.org/author/$author.rss";
+	my $url = "file:///home/e/eserte/trash/SREZIC.rss";
+	my $resp = $ua->get($url);
+	if (!$resp->is_success) {
+	    warn "No success fetching <$url>: " . $resp->status_line;
+	    die <<EOF
+No results for CPAN id <$author> found.
+EOF
+	}
+
+	my $p = XML::LibXML->new;
+	my $doc = eval {
+	    $p->parse_string($resp->decoded_content);
+	};
+	if ($@) {
+	    warn $@;
+	    die "Error parsing rss feed from <$url>";
+	}
+	my $root = $doc->documentElement;
+	#$root->setNamespaceDeclURI(undef, undef); # sigh, not available in older XML::LibXML's
+	for my $node ($root->childNodes) {
+	    next if $node->nodeName ne 'item';
+	    for my $node2 ($node->childNodes) {
+		if ($node2->nodeName eq 'title') {
+		    my $report_line = $node2->textContent;
+		    if (my($action, $dist_plus_ver, $perl, $osname) = $report_line =~ m{^(\S+)\s+(\S+)\s+(\S+(?:\s+patch \d+)?)\s+on\s+(\S+)}) {
+			my $d = CPAN::DistnameInfo->new("$author/$dist_plus_ver.tar.gz");
+			my $dist = $d->dist;
+			my $version = $d->version;
+			push @{$author_dist->{$dist}}, { dist => $dist,
+							 version => $version,
+							 action => $action,
+							 perl => $perl,
+							 osname => $osname,
+						       };
+		    } else {
+			warn "Cannot parse report line <$report_line>";
+		    }
+		    last;
+		}
+	    }
+	}
+	eval {
+	    lock_nstore($author_dist, $cachefile);
+	};
+	if ($@) {
+	    warn $!;
+	    die "Internal error (nstore)";
+	};
+    } else {
+	$author_dist = lock_retrieve($cachefile) or die "Could not load cached data";
+    }
+
+    return { author_dist => $author_dist,
+	     author => $author,
+	     cachefile => $cachefile,
+	   }
+}
+
 sub build_success_table ($$$) {
     my($data, $dist, $dist_version) = @_;
 
@@ -269,10 +384,13 @@ sub build_success_table ($$$) {
 	#$table->setColAlign($_, 'center') for (1 .. $cols);
     }
 
-    $title .= ": $dist $dist_version";
-    $ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
+    my $title = "$dist $dist_version";
+    my $ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
 
-    return { table => $table };
+    return { table => $table,
+	     title => "$dist $dist_version",
+	     ct_link => $ct_link,
+	   };
 }
 
 sub build_maxver_table ($$) {
@@ -332,10 +450,24 @@ sub build_maxver_table ($$) {
 	#$table->setColAlign($_, 'center') for (1 .. $cols);
     }
 
-    $title .= ": $dist (max version with a PASS)";
-    $ct_link = "http://cpantesters.perl.org/show/$dist.html";
+    return { table => $table,
+	     title => "$dist (max version with a PASS)",
+	     ct_link => "http://cpantesters.perl.org/show/$dist.html",
+	   };
+}
 
-    return { table => $table };
+sub build_author_table ($$) {
+    my($author, $author_dist) = @_;
+    my @tables;
+    for my $dist (sort keys %$author_dist) {
+	push @tables, build_success_table($author_dist->{$dist}, $dist,
+					  $author_dist->{$dist}->[0]->{version},
+					 );
+    }
+    return { tables => \@tables,
+	     title => $author,
+	     ct_link => "http://cpantesters.perl.org/author/$author.html",
+	   };
 }
 
 sub get_perl_and_patch ($) {
@@ -349,6 +481,12 @@ __END__
 
 =pod
 
+Stable:
+
   rsync -av -e 'ssh -p 5022' ~/devel/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix.pl
+
+Devel:
+
+  rsync -av -e 'ssh -p 5022' ~/devel/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix2.pl
 
 =cut
