@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.24 2007/11/30 23:01:56 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.25 2007/11/30 23:02:00 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -101,7 +101,7 @@ print <<EOF;
   th,td           { border:1px solid black; }
   body		  { font-family:sans-serif; }
 
-  .bt th,td	  { border:none; height:20px; }
+  .bt th,td	  { border:none; height:2.2ex; }
 
   --></style>
  </head>
@@ -262,8 +262,8 @@ sub fetch_author_data ($) {
 	require CPAN::DistnameInfo;
 
 	my $ua = LWP::UserAgent->new;
-#	my $url = "http://cpantesters.perl.org/author/$author.rss";
-	my $url = "file:///home/e/eserte/trash/SREZIC.rss";
+	my $url = "http://cpantesters.perl.org/author/$author.rss";
+	#my $url = "file:///home/e/eserte/trash/SREZIC.rss";
 	my $resp = $ua->get($url);
 	if (!$resp->is_success) {
 	    warn "No success fetching <$url>: " . $resp->status_line;
