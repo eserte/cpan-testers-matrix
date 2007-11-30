@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.17 2007/11/30 23:01:26 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.18 2007/11/30 23:01:30 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -36,6 +36,7 @@ mkdir $cache, 0755 if !-d $cache;
 my $title = "CPAN Testers";
 my $ct_link = "http://cpantesters.perl.org";
 my $table;
+my $cachefile;
 
 my $q = CGI->new;
 
@@ -51,7 +52,7 @@ if ($dist) {
 
 	$r = fetch_data($dist);
 	my $data;
-	($dist, $data) = @{$r}{qw(dist data)};
+	($dist, $data, $cachefile) = @{$r}{qw(dist data cachefile)};
 
 	if ($q->param("maxver")) {
 	    $r = build_maxver_table($data, $dist);
@@ -131,8 +132,22 @@ if (!$q->param("maxver")) {
 }
 print "</ul>";
 
+print "<hr>";
+
+if ($cachefile) {
+    my $file = basename $cachefile;
+    my $datum = scalar localtime ((stat($cachefile))[9]);
+    print <<EOF;
+  <div>
+   <i>$file</i> as of <i>$datum</i>
+  </div>
+EOF
+}
 
 print <<EOF;
+  <div>
+   by <a href="mailto:srezic\@cpan.org">Slaven Rezi&#x0107;</a>
+  </div>
  </body>
 </html>
 EOF
@@ -178,6 +193,7 @@ EOF
     }
     return { data => $data,
 	     dist => $dist,
+	     cachefile => $cachefile,
 	   };
 }
 
