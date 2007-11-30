@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.14 2007/11/30 23:01:10 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.15 2007/11/30 23:01:14 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -286,7 +286,7 @@ sub build_maxver_table ($$) {
 	    if (!$hasreport{$perl}->{$osname}) {
 		push @row, "-";
 	    } elsif (!exists $maxver{$perl}->{$osname}) {
-		push @row, qq{<div style="background:red;"></div>};
+		push @row, qq{<div style="background:red;">&nbsp;</div>};
 	    } elsif ($maxver{$perl}->{$osname} ne $maxver) {
 		push @row, qq{<div style="background:lightgreen;">$maxver{$perl}->{$osname}</div>};
 	    } else {
