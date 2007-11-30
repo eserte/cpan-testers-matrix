@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.16 2007/11/30 23:01:19 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.17 2007/11/30 23:01:26 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -151,7 +151,7 @@ sub fetch_data ($) {
     (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
     ($safe_dist) = $safe_dist =~ m{^(.*)$};
     my $cachefile = $cache."/".$safe_dist.".st";
-    if (!-r $cachefile || -M $cachefile > 0.1 ||
+    if (!-r $cachefile || -M $cachefile > 1 ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
 	my $ua = LWP::UserAgent->new;
