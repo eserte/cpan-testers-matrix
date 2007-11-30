@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.21 2007/11/30 23:01:43 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.22 2007/11/30 23:01:47 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -109,7 +109,7 @@ if ($table) {
     $table->print;
 }
 
-if ($dist) {
+if ($table) {
     print "<ul>";
     if (!$q->param("maxver")) {
 	my $qq = CGI->new($q);
