@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.20 2007/11/30 23:01:39 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.21 2007/11/30 23:01:43 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -92,8 +92,10 @@ print <<EOF;
   <h1><a href="$ct_link">$title</a></h1>
 EOF
 if ($error) {
+    my $html_error = escapeHTML($error);
+    $html_error =~ s{\n}{<br/>\n}g;
     print <<EOF;
-An error was encountered: @{[ escapeHTML($error) ]}
+An error was encountered:<br/>$html_error<br/>
 EOF
 }
 print <<EOF;
@@ -177,11 +179,12 @@ sub fetch_data ($) {
 	my $url = "http://cpantesters.perl.org/show/$dist.yaml";
 	my $resp = $ua->get($url);
 	if (!$resp->is_success) {
-	    warn $resp->as_string;
+	    warn "No success fetching <$url>: " . $resp->status_line;
 	    die <<EOF
 Distribution results for <$dist> at <$url> not found.
 Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
 Maybe you added the author name to the distribution string?
+Note that the distribution name is case-sensitive.
 EOF
 	}
 	$data = Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
