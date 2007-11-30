@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.19 2007/11/30 23:01:34 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.20 2007/11/30 23:01:39 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -102,21 +102,24 @@ print <<EOF;
    <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
   </form>
 EOF
+
 if ($table) {
     $table->print;
 }
 
-print "<ul>";
-if (!$q->param("maxver")) {
-    my $qq = CGI->new($q);
-    $qq->param("maxver" => 1);
-    print qq{<li><a href="@{[ $qq->self_url ]}">Max version with a PASS</a>\n};
-} else {
-    my $qq = CGI->new($q);
-    $qq->param("maxver" => 0);
-    print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
+if ($dist) {
+    print "<ul>";
+    if (!$q->param("maxver")) {
+	my $qq = CGI->new($q);
+	$qq->param("maxver" => 1);
+	print qq{<li><a href="@{[ $qq->self_url ]}">Max version with a PASS</a>\n};
+    } else {
+	my $qq = CGI->new($q);
+	$qq->param("maxver" => 0);
+	print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
+    }
+    print "</ul>";
 }
-print "</ul>";
 
 if (%other_dist_versions) {
     print <<EOF;
