@@ -1,8 +1,8 @@
-#!/usr/local/bin/perl5.10.0 -wT
+#!/usr/bin/perl -wT
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.4 2007/11/30 23:00:28 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.5 2007/11/30 23:00:32 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -171,3 +171,9 @@ print <<EOF;
 EOF
 
 __END__
+
+=pod
+
+  rsync -av -e 'ssh -p 5022' ~/devel/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix.pl
+
+=cut
