@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.27 2007/11/30 23:02:08 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.28 2007/11/30 23:02:15 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -26,6 +26,8 @@ sub fetch_author_data ($);
 sub build_success_table ($$$);
 sub build_maxver_table ($$);
 sub build_author_table ($$);
+
+my $cache_days = 1/4;
 
 my $cache = "/tmp/cpantesters_cache_$<";
 mkdir $cache, 0755 if !-d $cache;
@@ -206,7 +208,7 @@ sub fetch_data ($) {
     (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
     ($safe_dist) = $safe_dist =~ m{^(.*)$};
     my $cachefile = $cache."/".$safe_dist.".st";
-    if (!-r $cachefile || -M $cachefile > 1 ||
+    if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
 	require LWP;
@@ -252,7 +254,7 @@ sub fetch_author_data ($) {
     my $author_dist = {};
 
     my $cachefile = $author_cache."/".$author.".st";
-    if (!-r $cachefile || -M $cachefile > 1 ||
+    if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
 	require LWP;
