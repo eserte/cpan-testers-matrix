@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.28 2007/11/30 23:02:15 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.29 2007/11/30 23:02:23 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -19,6 +19,7 @@ use CPAN::Version;
 use File::Basename qw(basename);
 use HTML::Table;
 use List::Util qw(reduce);
+use POSIX qw(strftime);
 use Storable qw(lock_nstore lock_retrieve);
 
 sub fetch_data ($);
@@ -178,7 +179,7 @@ print "<hr>";
 
 if ($cachefile) {
     my $file = basename $cachefile;
-    my $datum = scalar localtime ((stat($cachefile))[9]);
+    my $datum = strftime("%F %T UTC", gmtime ((stat($cachefile))[9]));
     print <<EOF;
   <div>
    <i>$file</i> as of <i>$datum</i>
