@@ -1,8 +1,8 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -wT
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.1 2007/11/30 23:00:13 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.2 2007/11/30 23:00:20 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -14,6 +14,7 @@
 #
 
 use strict;
+use CGI;
 use File::Basename qw(basename);
 use HTML::Table;
 use LWP::UserAgent;
@@ -24,90 +25,102 @@ use version;
 my $cache = "/tmp/cpantesters_cache";
 mkdir $cache, 0755 if !-d $cache;
 
-my $dist = shift;
-$dist = basename $dist;
+my $title = "CPAN Testers";
+my $ct_link = "http://cpantesters.perl.org";
 
-my $data;
+my $table;
 
-my $cachefile = $cache."/".$dist.".yaml";
-if (!-r $cachefile || -M $cachefile > 1) {
-    my $ua = LWP::UserAgent->new;
-    my $resp = $ua->get("http://cpantesters.perl.org/show/$dist.yaml");
-    if (!$resp->is_success) {
-	die $resp->as_string;
-    }
-    $data = Load($resp->decoded_content) or die;
-    open my $fh, ">", "$cachefile.$$" or die $!;
-    print $fh $resp->decoded_content;
-    close $fh;
-    rename "$cachefile.$$", $cachefile or die $!;
-} else {
-    $data = LoadFile($cachefile) or die;
-}
+my $q = CGI->new;
 
-my %perl;
-my %perl_patches;
-my %osname;
-my %action;
+my $dist = $q->param("dist");
 
-my $max_version = reduce { $a gt $b ? $a : $b } map { version->new($_->{version}) } @$data;
+if ($dist) {
+    $dist = basename $dist;
 
-for my $r (@$data) {
-    next if version->new($r->{version}) ne $max_version;
-    my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
-    die "$r->{perl} couldn't be parsed" if !defined $perl;
-    $perl{$perl}++;
-    $perl_patches{$perl}->{$patch}++ if $patch;
-    $osname{$r->{osname}}++;
+    my $data;
 
-    $action{$perl}->{$r->{osname}}->{$r->{action}}++;
-    $action{$perl}->{$r->{osname}}->{__TOTAL__}++;
-}
-
-my @perls   = sort { $b cmp $a } map { version->new($_) } keys %perl;
-my @osnames = sort { $a cmp $b } keys %osname;
-my @actions = qw(PASS NA UNKNOWN FAIL);
-
-my @matrix;
-for my $perl (@perls) {
-    my @row;
-    for my $osname (@osnames) {
-	my $acts = $action{$perl}->{$osname};
-	if ($acts) {
-	    my @cell;
-
-	    my $top = 0;
-	    my $left = 0;
-	    for my $act (@actions) {
-		#push @cell, qq{<span class="action_$act">} . ($acts->{$act}||0) . qq{</span>};
-		my $percent = int(100*($acts->{$act}||0)/$acts->{__TOTAL__});
-		push @cell, qq{<span class="bar action_$act" style="top:${top}px;left:${left}%; width:${percent}%;"></span>};
-		$left += $percent;
-		$top -= 20; # XXX bar height
-	    }
-	    push @row, join(" ", @cell);
-	} else {
-	    push @row, "&nbsp;";
+    my $cachefile = $cache."/".$dist.".yaml";
+    if (!-r $cachefile || -M $cachefile > 1) {
+	my $ua = LWP::UserAgent->new;
+	my $resp = $ua->get("http://cpantesters.perl.org/show/$dist.yaml");
+	if (!$resp->is_success) {
+	    die $resp->as_string;
 	}
+	$data = Load($resp->decoded_content) or die;
+	open my $fh, ">", "$cachefile.$$" or die $!;
+	print $fh $resp->decoded_content;
+	close $fh;
+	rename "$cachefile.$$", $cachefile or die $!;
+    } else {
+	$data = LoadFile($cachefile) or die;
     }
-    unshift @row, $perl;
-    push @matrix, \@row;
+
+    my %perl;
+    my %perl_patches;
+    my %osname;
+    my %action;
+
+    my $max_version = reduce { $a gt $b ? $a : $b } map { version->new($_->{version}) } @$data;
+
+    for my $r (@$data) {
+	next if version->new($r->{version}) ne $max_version;
+	my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
+	die "$r->{perl} couldn't be parsed" if !defined $perl;
+	$perl{$perl}++;
+	$perl_patches{$perl}->{$patch}++ if $patch;
+	$osname{$r->{osname}}++;
+
+	$action{$perl}->{$r->{osname}}->{$r->{action}}++;
+	$action{$perl}->{$r->{osname}}->{__TOTAL__}++;
+    }
+
+    my @perls   = sort { $b cmp $a } map { version->new($_) } keys %perl;
+    my @osnames = sort { $a cmp $b } keys %osname;
+    my @actions = qw(PASS NA UNKNOWN FAIL);
+
+    my @matrix;
+    for my $perl (@perls) {
+	my @row;
+	for my $osname (@osnames) {
+	    my $acts = $action{$perl}->{$osname};
+	    if ($acts) {
+		my @cell;
+
+		for my $act (@actions) {
+		    if ($acts->{$act}) {
+			my $percent = int(100*($acts->{$act}||0)/$acts->{__TOTAL__});
+			push @cell, qq{<td width="${percent}%" class="action_$act"></td>};
+		    }
+		}
+		push @row, qq{<table class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table>};
+	    } else {
+		push @row, "&nbsp;";
+	    }
+	}
+	unshift @row, $perl;
+	push @matrix, \@row;
+    }
+
+    $table = HTML::Table->new(-data => \@matrix,
+			      -head => ["", @osnames],
+			      -spacing => 0,
+			     );
+    $table->setColHead(1);
+    {
+	my $cols = @osnames+1;
+	$table->setColWidth($_, int(100/$cols)."%") for (1 .. $cols);
+	#$table->setColAlign($_, 'center') for (1 .. $cols);
+    }
+
+    $title .= ": $dist $max_version";
+    $ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$max_version";
 }
 
-my $table = HTML::Table->new(-data => \@matrix,
-			     -head => ["", @osnames],
-			     -spacing => 0,
-			    );
-$table->setColHead(1);
-{
-    my $cols = @osnames+1;
-    $table->setColWidth($_, int(100/$cols)."%") for (1 .. $cols);
-    #$table->setColAlign($_, 'center') for (1 .. $cols);
-}
+print $q->header;
 
 print <<EOF;
 <html>
- <head><title>$dist $max_version</title>
+ <head><title>$title</title>
   <style type="text/css"><!--
   .action_PASS    { background:green; }
   .action_NA      { background:orange; }
@@ -118,7 +131,7 @@ print <<EOF;
   th,td           { border:1px solid black; }
   body		  { font-family:sans-serif; }
 
-  .bt th,td	  { border:none; }
+  .bt th,td	  { border:none; height:20px; }
 
   .bar { 
     display: block;
@@ -129,9 +142,14 @@ print <<EOF;
   --></style>
  </head>
  <body>
-  <h1><a href="http://cpantesters.perl.org/show/$dist.html#$dist-$max_version">$dist $max_version</a></h1>
+  <h1><a href="$ct_link">$title</a></h1>
+  <form>
+   Distribution: <input name="dist" /> <submit />
+  </form>
 EOF
-$table->print;
+if ($table) {
+    $table->print;
+}
 print <<EOF;
  </body>
 </html>
