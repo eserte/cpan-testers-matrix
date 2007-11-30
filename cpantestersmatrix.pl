@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.25 2007/11/30 23:02:00 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.26 2007/11/30 23:02:05 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -247,7 +247,7 @@ EOF
 sub fetch_author_data ($) {
     my($author) = @_;
     $author = uc $author;
-    ($author) = $author =~ m{([A-Z]+)};
+    ($author) = $author =~ m{([A-Z-]+)};
 
     my $author_dist = {};
 
