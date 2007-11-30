@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.11 2007/11/30 23:00:54 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.12 2007/11/30 23:01:01 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -54,7 +54,9 @@ if ($dist) {
 	(my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
 	($safe_dist) = $safe_dist =~ m{^(.*)$};
 	my $cachefile = $cache."/".$safe_dist.".st";
-	if (!-r $cachefile || -M $cachefile > 0.1) {
+	if (!-r $cachefile || -M $cachefile > 0.1 ||
+	    ($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
+	   ) {
 	    my $ua = LWP::UserAgent->new;
 	    my $url = "http://cpantesters.perl.org/show/$dist.yaml";
 	    my $resp = $ua->get($url);
