@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.18 2007/11/30 23:01:30 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.19 2007/11/30 23:01:34 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -105,6 +105,19 @@ EOF
 if ($table) {
     $table->print;
 }
+
+print "<ul>";
+if (!$q->param("maxver")) {
+    my $qq = CGI->new($q);
+    $qq->param("maxver" => 1);
+    print qq{<li><a href="@{[ $qq->self_url ]}">Max version with a PASS</a>\n};
+} else {
+    my $qq = CGI->new($q);
+    $qq->param("maxver" => 0);
+    print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
+}
+print "</ul>";
+
 if (%other_dist_versions) {
     print <<EOF;
 <h2>Other versions</h2>
@@ -119,18 +132,6 @@ EOF
 </ul>
 EOF
 }
-
-print "<ul>";
-if (!$q->param("maxver")) {
-    my $qq = CGI->new($q);
-    $qq->param("maxver" => 1);
-    print qq{<li><a href="@{[ $qq->self_url ]}">Max passed version</a>\n};
-} else {
-    my $qq = CGI->new($q);
-    $qq->param("maxver" => 0);
-    print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
-}
-print "</ul>";
 
 print "<hr>";
 
@@ -323,7 +324,7 @@ sub build_maxver_table ($$) {
 	#$table->setColAlign($_, 'center') for (1 .. $cols);
     }
 
-    $title .= ": $dist (max passed version)";
+    $title .= ": $dist (max version with a PASS)";
     $ct_link = "http://cpantesters.perl.org/show/$dist.html";
 
     return { table => $table };
