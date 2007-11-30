@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.13 2007/11/30 23:01:06 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.14 2007/11/30 23:01:10 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -27,6 +27,7 @@ use YAML qw(Load);
 
 sub fetch_data ($);
 sub build_success_table ($$$);
+sub build_maxver_table ($$);
 
 my $cache = "/tmp/cpantesters_cache_$<";
 mkdir $cache, 0755 if !-d $cache;
@@ -52,13 +53,17 @@ if ($dist) {
 	my $data;
 	($dist, $data) = @{$r}{qw(dist data)};
 
-	# Get newest version
-	if (!$dist_version) {
-	    $dist_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
+	if ($q->param("maxver")) {
+	    $r = build_maxver_table($data, $dist);
+	    $table = $r->{table};
+	} else {
+	    # Get newest version
+	    if (!$dist_version) {
+		$dist_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
+	    }
+	    $r = build_success_table($data, $dist, $dist_version);
+	    $table = $r->{table};
 	}
-	
-	$r = build_success_table($data, $dist, $dist_version);
-	$table = $r->{table};
     };
     $error = $@;
 }
@@ -93,6 +98,7 @@ EOF
 print <<EOF;
   <form>
    Distribution (e.g. DBI, CPAN-Reporter, YAML-Syck): <input name="dist" /> <input type="submit" />
+   <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
   </form>
 EOF
 if ($table) {
@@ -112,6 +118,21 @@ EOF
 </ul>
 EOF
 }
+
+if (!$q->param("maxver")) {
+    print <<EOF;
+<h2>Max passed version</h2>
+EOF
+    my $qq = CGI->new($q);
+    $qq->param("maxver" => 1);
+    print qq{<a href="@{[ $qq->self_url ]}">$dist (max passed version)</a>\n};
+} else {
+    my $qq = CGI->new($q);
+    $qq->param("maxver" => 0);
+    print qq{<a href="@{[ $qq->self_url ]}">Back to normal view</a>\n};
+}
+
+
 print <<EOF;
  </body>
 </html>
@@ -174,8 +195,7 @@ sub build_success_table ($$$) {
 	    $other_dist_versions{$r->{version}}++;
 	    next;
 	}
-	my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
-	die "$r->{perl} couldn't be parsed" if !defined $perl;
+	my($perl, $patch) = get_perl_and_patch($r);
 	$perl{$perl}++;
 	$perl_patches{$perl}->{$patch}++ if $patch;
 	$osname{$r->{osname}}++;
@@ -229,6 +249,76 @@ sub build_success_table ($$$) {
     $ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
 
     return { table => $table };
+}
+
+sub build_maxver_table ($$) {
+    my($data, $dist) = @_;
+
+    my %perl;
+    my %osname;
+    my %maxver;
+    my %hasreport;
+    my $maxver;
+
+    for my $r (@$data) {
+	my($perl, undef) = get_perl_and_patch($r);
+	$perl{$perl}++;
+	$osname{$r->{osname}}++;
+
+	$hasreport{$perl}->{$r->{osname}}++;
+	if ($r->{action} eq 'PASS' &&
+	    (!$maxver{$perl}->{$r->{osname}} || CPAN::Version->vgt($r->{version}, $maxver{$perl}->{$r->{osname}}))
+	   ) {
+	    $maxver{$perl}->{$r->{osname}} = $r->{version};
+	}
+	if (!$maxver || CPAN::Version->vgt($r->{version}, $maxver)) {
+	    $maxver = $r->{version};
+	}
+    }
+
+    my @perls   = sort { CPAN::Version->vcmp($b, $a) } keys %perl;
+    my @osnames = sort { $a cmp $b } keys %osname;
+
+    my @matrix;
+    for my $perl (@perls) {
+	my @row;
+	for my $osname (@osnames) {
+	    if (!$hasreport{$perl}->{$osname}) {
+		push @row, "-";
+	    } elsif (!exists $maxver{$perl}->{$osname}) {
+		push @row, qq{<div style="background:red;"></div>};
+	    } elsif ($maxver{$perl}->{$osname} ne $maxver) {
+		push @row, qq{<div style="background:lightgreen;">$maxver{$perl}->{$osname}</div>};
+	    } else {
+		push @row, qq{<div style="background:green;">$maxver</div>};
+	    }
+	}
+	unshift @row, $perl;
+	push @matrix, \@row;
+    }
+
+    my $table = HTML::Table->new(-data => \@matrix,
+				 -head => ["", @osnames],
+				 -spacing => 0,
+				);
+    $table->setColHead(1);
+    {
+	my $cols = @osnames+1;
+	$table->setColWidth($_, int(100/$cols)."%") for (1 .. $cols);
+	#$table->setColAlign($_, 'center') for (1 .. $cols);
+    }
+
+    $title .= ": $dist (max passed version)";
+    $ct_link = "http://cpantesters.perl.org/show/$dist.html";
+
+    return { table => $table };
+}
+
+sub get_perl_and_patch ($) {
+    my($r) = @_;
+    my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
+    die "$r->{perl} couldn't be parsed" if !defined $perl;
+    ($perl, $patch);
 }
 
 __END__
