@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.12 2007/11/30 23:01:01 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.13 2007/11/30 23:01:06 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -25,12 +25,15 @@ use List::Util qw(reduce);
 use Storable qw(lock_nstore lock_retrieve);
 use YAML qw(Load);
 
+sub fetch_data ($);
+sub build_success_table ($$$);
+
 my $cache = "/tmp/cpantesters_cache_$<";
 mkdir $cache, 0755 if !-d $cache;
 
+# XXX hmm, some globals ...
 my $title = "CPAN Testers";
 my $ct_link = "http://cpantesters.perl.org";
-
 my $table;
 
 my $q = CGI->new;
@@ -43,110 +46,19 @@ my %other_dist_versions;
 
 if ($dist) {
     eval {
+	my $r;
+
+	$r = fetch_data($dist);
 	my $data;
+	($dist, $data) = @{$r}{qw(dist data)};
 
-	$dist = basename $dist;
-	if ($dist =~ m{^(.*)[- ]([\d\._]+)$}) {
-	    ($dist, $dist_version) = ($1, $2);
-	}
-	$dist =~ s{::}{-}g; # common error: module -> dist
-
-	(my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
-	($safe_dist) = $safe_dist =~ m{^(.*)$};
-	my $cachefile = $cache."/".$safe_dist.".st";
-	if (!-r $cachefile || -M $cachefile > 0.1 ||
-	    ($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
-	   ) {
-	    my $ua = LWP::UserAgent->new;
-	    my $url = "http://cpantesters.perl.org/show/$dist.yaml";
-	    my $resp = $ua->get($url);
-	    if (!$resp->is_success) {
-		warn $resp->as_string;
-		die <<EOF
-Distribution results for <$dist> at <$url> not found.
-Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
-Maybe you added the author name to the distribution string?
-EOF
-	    }
-	    $data = Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
-	    eval {
-		lock_nstore($data, $cachefile);
-	    };
-	    if ($@) {
-		warn $!;
-		die "Internal error (nstore)";
-	    };
-	} else {
-	    $data = lock_retrieve($cachefile) or die "Could not load cached data";
-	}
-
-	my %perl;
-	my %perl_patches;
-	my %osname;
-	my %action;
-
+	# Get newest version
 	if (!$dist_version) {
 	    $dist_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
 	}
-
-	for my $r (@$data) {
-	    if ($r->{version} ne $dist_version) {
-		$other_dist_versions{$r->{version}}++;
-		next;
-	    }
-	    my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
-	    die "$r->{perl} couldn't be parsed" if !defined $perl;
-	    $perl{$perl}++;
-	    $perl_patches{$perl}->{$patch}++ if $patch;
-	    $osname{$r->{osname}}++;
-
-	    $action{$perl}->{$r->{osname}}->{$r->{action}}++;
-	    $action{$perl}->{$r->{osname}}->{__TOTAL__}++;
-	}
-
-	my @perls   = sort { CPAN::Version->vcmp($b, $a) } keys %perl;
-	my @osnames = sort { $a cmp $b } keys %osname;
-	my @actions = qw(PASS NA UNKNOWN FAIL);
-
-	my @matrix;
-	for my $perl (@perls) {
-	    my @row;
-	    for my $osname (@osnames) {
-		my $acts = $action{$perl}->{$osname};
-		if ($acts) {
-		    my @cell;
-
-		    my @title;
-		    for my $act (@actions) {
-			if ($acts->{$act}) {
-			    my $percent = int(100*($acts->{$act}||0)/$acts->{__TOTAL__});
-			    push @cell, qq{<td width="${percent}%" class="action_$act"></td>};
-			    push @title, $act.":".$acts->{$act};
-			}
-		    }
-		    my $title = join(" ", @title);
-		    push @row, qq{<table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table>};
-		} else {
-		    push @row, "&nbsp;";
-		}
-	    }
-	    unshift @row, $perl;
-	    push @matrix, \@row;
-	}
-
-	$table = HTML::Table->new(-data => \@matrix,
-				  -head => ["", @osnames],
-				  -spacing => 0,
-				 );
-	$table->setColHead(1);
-	{
-	    my $cols = @osnames+1;
-	    $table->setColWidth($_, int(100/$cols)."%") for (1 .. $cols);
-	    #$table->setColAlign($_, 'center') for (1 .. $cols);
-	}
-
-	$title .= ": $dist $dist_version";
-	$ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
+	
+	$r = build_success_table($data, $dist, $dist_version);
+	$table = $r->{table};
     };
     $error = $@;
 }
@@ -204,6 +116,120 @@ print <<EOF;
  </body>
 </html>
 EOF
+
+sub fetch_data ($) {
+    my($raw_dist) = @_;
+
+    my $data;
+
+    my $dist = basename $raw_dist;
+    if ($dist =~ m{^(.*)[- ]([\d\._]+)$}) {
+	($dist, $dist_version) = ($1, $2);
+    }
+    $dist =~ s{::}{-}g; # common error: module -> dist
+
+    (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
+    ($safe_dist) = $safe_dist =~ m{^(.*)$};
+    my $cachefile = $cache."/".$safe_dist.".st";
+    if (!-r $cachefile || -M $cachefile > 0.1 ||
+	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
+       ) {
+	my $ua = LWP::UserAgent->new;
+	my $url = "http://cpantesters.perl.org/show/$dist.yaml";
+	my $resp = $ua->get($url);
+	if (!$resp->is_success) {
+	    warn $resp->as_string;
+	    die <<EOF
+Distribution results for <$dist> at <$url> not found.
+Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
+Maybe you added the author name to the distribution string?
+EOF
+	}
+	$data = Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
+	eval {
+	    lock_nstore($data, $cachefile);
+	};
+	if ($@) {
+	    warn $!;
+	    die "Internal error (nstore)";
+	};
+    } else {
+	$data = lock_retrieve($cachefile) or die "Could not load cached data";
+    }
+    return { data => $data,
+	     dist => $dist,
+	   };
+}
+
+sub build_success_table ($$$) {
+    my($data, $dist, $dist_version) = @_;
+
+    my %perl;
+    my %perl_patches;
+    my %osname;
+    my %action;
+
+    for my $r (@$data) {
+	if ($r->{version} ne $dist_version) {
+	    $other_dist_versions{$r->{version}}++;
+	    next;
+	}
+	my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
+	die "$r->{perl} couldn't be parsed" if !defined $perl;
+	$perl{$perl}++;
+	$perl_patches{$perl}->{$patch}++ if $patch;
+	$osname{$r->{osname}}++;
+
+	$action{$perl}->{$r->{osname}}->{$r->{action}}++;
+	$action{$perl}->{$r->{osname}}->{__TOTAL__}++;
+    }
+
+    my @perls   = sort { CPAN::Version->vcmp($b, $a) } keys %perl;
+    my @osnames = sort { $a cmp $b } keys %osname;
+    my @actions = qw(PASS NA UNKNOWN FAIL);
+
+    my @matrix;
+    for my $perl (@perls) {
+	my @row;
+	for my $osname (@osnames) {
+	    my $acts = $action{$perl}->{$osname};
+	    if ($acts) {
+		my @cell;
+
+		my @title;
+		for my $act (@actions) {
+		    if ($acts->{$act}) {
+			my $percent = int(100*($acts->{$act}||0)/$acts->{__TOTAL__});
+			push @cell, qq{<td width="${percent}%" class="action_$act"></td>};
+			push @title, $act.":".$acts->{$act};
+		    }
+		}
+		my $title = join(" ", @title);
+		push @row, qq{<table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table>};
+	    } else {
+		push @row, "&nbsp;";
+	    }
+	}
+	unshift @row, $perl;
+	push @matrix, \@row;
+    }
+
+    my $table = HTML::Table->new(-data => \@matrix,
+				 -head => ["", @osnames],
+				 -spacing => 0,
+				);
+    $table->setColHead(1);
+    {
+	my $cols = @osnames+1;
+	$table->setColWidth($_, int(100/$cols)."%") for (1 .. $cols);
+	#$table->setColAlign($_, 'center') for (1 .. $cols);
+    }
+
+    $title .= ": $dist $dist_version";
+    $ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
+
+    return { table => $table };
+}
 
 __END__
 
