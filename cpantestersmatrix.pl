@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.7 2007/11/30 23:00:40 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.8 2007/11/30 23:00:43 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -15,14 +15,15 @@
 
 use strict;
 use CGI qw(escapeHTML);
+use CPAN::Version;
 use File::Basename qw(basename);
 use HTML::Table;
 use LWP 5.808; # bugs in decoded_content
 use LWP::UserAgent;
 use List::Util qw(reduce);
 #use YAML::Syck qw(LoadFile Load);
-use YAML qw(LoadFile Load);
-use CPAN::Version;
+use Storable qw(lock_nstore lock_retrieve);
+use YAML qw(Load);
 
 my $cache = "/tmp/cpantesters_cache_$<";
 mkdir $cache, 0755 if !-d $cache;
@@ -52,7 +53,7 @@ if ($dist) {
 
 	(my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
 	($safe_dist) = $safe_dist =~ m{^(.*)$};
-	my $cachefile = $cache."/".$safe_dist.".yaml";
+	my $cachefile = $cache."/".$safe_dist.".st";
 	if (!-r $cachefile || -M $cachefile > 0.1) {
 	    my $ua = LWP::UserAgent->new;
 	    my $url = "http://cpantesters.perl.org/show/$dist.yaml";
@@ -66,12 +67,15 @@ Maybe you added the author name to the distribution string?
 EOF
 	    }
 	    $data = Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
-	    open my $fh, ">", "$cachefile.$$" or do { warn $!; die "Internal error (open)" };
-	    print $fh $resp->decoded_content;
-	    close $fh;
-	    rename "$cachefile.$$", $cachefile or do { warn $!; die "Internal error (rename)" };
+	    eval {
+		lock_nstore($data, $cachefile);
+	    };
+	    if ($@) {
+		warn $!;
+		die "Internal error (nstore)";
+	    };
 	} else {
-	    $data = LoadFile($cachefile) or die "Could not load cached YAML data";
+	    $data = lock_retrieve($cachefile) or die "Could not load cached data";
 	}
 
 	my %perl;
