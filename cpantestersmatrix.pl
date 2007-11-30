@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.8 2007/11/30 23:00:43 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.9 2007/11/30 23:00:46 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -114,13 +114,16 @@ EOF
 		if ($acts) {
 		    my @cell;
 
+		    my @title;
 		    for my $act (@actions) {
 			if ($acts->{$act}) {
 			    my $percent = int(100*($acts->{$act}||0)/$acts->{__TOTAL__});
 			    push @cell, qq{<td width="${percent}%" class="action_$act"></td>};
+			    push @title, $act.":".$acts->{$act};
 			}
 		    }
-		    push @row, qq{<table class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table>};
+		    my $title = join(" ", @title);
+		    push @row, qq{<table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table>};
 		} else {
 		    push @row, "&nbsp;";
 		}
