@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.29 2007/11/30 23:02:23 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.30 2007/12/11 20:18:20 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -84,7 +84,7 @@ if ($author) {
 	}
 	$table = $r->{table};
 	$ct_link = $r->{ct_link};
-	$title = "CPAN Testers: $r->{title}";
+	$title = "CPAN Testers Matrix: $r->{title}";
     };
     $error = $@;
 }
@@ -204,6 +204,7 @@ sub fetch_data ($) {
     if ($dist =~ m{^(.*)[- ]([\d\._]+)$}) {
 	($dist, $dist_version) = ($1, $2);
     }
+    my $orig_dist = $dist;
     $dist =~ s{::}{-}g; # common error: module -> dist
 
     (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
@@ -219,10 +220,34 @@ sub fetch_data ($) {
 	#use YAML::Syck qw(LoadFile Load);
 
 	my $ua = LWP::UserAgent->new;
-	my $url = "http://cpantesters.perl.org/show/$dist.yaml";
-	my $resp = $ua->get($url);
+	my $url;
+
+	my $fetch_dist_data = sub {
+	    my($dist) = @_;
+	    $url = "http://cpantesters.perl.org/show/$dist.yaml";
+	    my $resp = $ua->get($url);
+	    $resp;
+	};
+
+	my $resp = $fetch_dist_data->($dist);
 	if (!$resp->is_success) {
 	    warn "No success fetching <$url>: " . $resp->status_line;
+	    eval {
+		require CPAN;
+		require CPAN::DistnameInfo;
+		$CPAN::Be_Silent = $CPAN::Be_Silent = 1;
+		my $mo = CPAN::Shell->expand("Module", $orig_dist);
+		my $try_dist = CPAN::DistnameInfo->new($mo->cpan_file)->dist;
+		$resp = $fetch_dist_data->($try_dist);
+		if (!$resp->is_success) {
+		    die "No success fetching <$url>: " . $resp->status_line;
+		} else {
+		    $dist = $try_dist;
+		}
+	    };
+	    warn $@ if $@;
+	}
+	if (!$resp->is_success) {
 	    die <<EOF
 Distribution results for <$dist> at <$url> not found.
 Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
@@ -491,10 +516,10 @@ __END__
 
 Stable:
 
-  rsync -av -e 'ssh -p 5022' ~/devel/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix.pl
+  rsync -av -e 'ssh -p 5022' ~/work/srezic-misc/cgi/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix.pl
 
 Devel:
 
-  rsync -av -e 'ssh -p 5022' ~/devel/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix2.pl
+  rsync -av -e 'ssh -p 5022' ~/work/srezic-misc/cgi/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix2.pl
 
 =cut
