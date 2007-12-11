@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.32 2007/12/11 20:43:42 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.33 2007/12/11 20:54:21 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -161,6 +161,7 @@ if ($author) {
 
     if (%other_dist_versions) {
 	print <<EOF;
+<div style="float:left;">
 <h2>Other versions</h2>
 <ul>
 EOF
@@ -171,11 +172,24 @@ EOF
 	}
 	print <<EOF;
 </ul>
+</div>
 EOF
     }
+
+    (my $faked_module = $dist) =~ s{-}{::}g;
+    print <<EOF;
+<div style="float:left; margin-left:3em;">
+<h2>Other links</h2>
+<ul>
+<li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
+<li><a href="http://cpantesters.perl.org/show/$dist.html">CPAN Testers</a>
+<li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
+</ul>
+</div>
+EOF
 }
 
-print "<hr>";
+print '<hr style="clear:left;">';
 
 if ($cachefile) {
     my $file = basename $cachefile;
@@ -298,6 +312,8 @@ EOF
 	};
     } else {
 	$data = lock_retrieve($cachefile) or die "Could not load cached data";
+	# Fix distribution name
+	eval { $dist = $data->[-1]->{distribution} };
     }
     return { data => $data,
 	     dist => $dist,
