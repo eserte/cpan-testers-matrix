@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.30 2007/12/11 20:18:20 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.31 2007/12/11 20:41:39 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -235,7 +235,7 @@ sub fetch_data ($) {
 	    eval {
 		require CPAN;
 		require CPAN::DistnameInfo;
-		$CPAN::Be_Silent = $CPAN::Be_Silent = 1;
+		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
 		my $mo = CPAN::Shell->expand("Module", $orig_dist);
 		my $try_dist = CPAN::DistnameInfo->new($mo->cpan_file)->dist;
 		$resp = $fetch_dist_data->($try_dist);
@@ -243,6 +243,38 @@ sub fetch_data ($) {
 		    die "No success fetching <$url>: " . $resp->status_line;
 		} else {
 		    $dist = $try_dist;
+		}
+	    };
+	    warn $@ if $@;
+	}
+	# XXX hmmm, hack for CPAN.pm problems
+	if (!$resp->is_success) {
+	    eval {
+		require CPAN;
+		require CPAN::DistnameInfo;
+		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
+		CPAN::HandleConfig->load;
+		my $pkgdetails = "$CPAN::Config->{keep_source_where}/modules/02packages.details.txt.gz";
+		local $ENV{PATH} = "/usr/bin:/bin";
+		open my $pkgfh, "-|", "zcat", $pkgdetails
+		    or die "Cannot zcat $pkgdetails: $!";
+		# overread header
+		while(<$pkgfh>) {
+		    chomp;
+		    last if ($_ eq '');
+		}
+		while(<$pkgfh>) {
+		    my($module,undef,$cpan_file) = split /\s+/;
+		    if ($module eq $orig_dist) {
+			my $try_dist = CPAN::DistnameInfo->new($cpan_file)->dist;
+			$resp = $fetch_dist_data->($try_dist);
+			if (!$resp->is_success) {
+			    die "No success fetching <$url>: " . $resp->status_line;
+			} else {
+			    $dist = $try_dist;
+			}
+			last;
+		    }
 		}
 	    };
 	    warn $@ if $@;
