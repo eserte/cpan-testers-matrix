@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.33 2007/12/11 20:54:21 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.34 2007/12/11 21:00:29 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -36,7 +36,7 @@ my $author_cache = "/tmp/cpantesters_author_cache_$<";
 mkdir $author_cache, 0755 if !-d $author_cache;
 
 # XXX hmm, some globals ...
-my $title = "CPAN Testers";
+my $title = "CPAN Testers Matrix";
 my $ct_link = "http://cpantesters.perl.org";
 my $table;
 my $tables;
@@ -62,7 +62,7 @@ if ($author) {
 	$r = build_author_table($author, $author_dist);
 	$tables = $r->{tables};
 	$ct_link = $r->{ct_link};
-	$title = "CPAN Testers: $r->{title}";
+	$title = "CPAN Testers Matrix: $r->{title}";
     };
     $error = $@;
 } elsif ($dist) {
@@ -139,6 +139,16 @@ if ($author) {
 	}
     }
 
+    print <<EOF;
+<div>
+<h2>Other links</h2>
+<ul>
+<li><a href="$ct_link">CPAN Testers</a>
+<li><a href="http://search.cpan.org/~$author/">search.cpan.org</a>
+</ul>
+</div>
+EOF
+
 } else {
 
     if ($table) {
@@ -182,7 +192,7 @@ EOF
 <h2>Other links</h2>
 <ul>
 <li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
-<li><a href="http://cpantesters.perl.org/show/$dist.html">CPAN Testers</a>
+<li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
 </ul>
 </div>
