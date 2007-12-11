@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.31 2007/12/11 20:41:39 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.32 2007/12/11 20:43:42 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -254,6 +254,7 @@ sub fetch_data ($) {
 		require CPAN::DistnameInfo;
 		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
 		CPAN::HandleConfig->load;
+		%CPAN::Config = %CPAN::Config; # cease -w
 		my $pkgdetails = "$CPAN::Config->{keep_source_where}/modules/02packages.details.txt.gz";
 		local $ENV{PATH} = "/usr/bin:/bin";
 		open my $pkgfh, "-|", "zcat", $pkgdetails
