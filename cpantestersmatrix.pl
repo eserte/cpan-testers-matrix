@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.34 2007/12/11 21:00:29 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.35 2007/12/27 00:30:39 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -194,6 +194,7 @@ EOF
 <li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
+<li><a href="http://rt.cpan.org/NoAuth/Bugs.html?Dist=$dist">RT</a>
 </ul>
 </div>
 EOF
