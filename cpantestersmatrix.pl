@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.35 2007/12/27 00:30:39 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.36 2007/12/30 10:39:47 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -149,7 +149,7 @@ if ($author) {
 </div>
 EOF
 
-} else {
+} elsif ($dist) {
 
     if ($table) {
 	$table->print;
