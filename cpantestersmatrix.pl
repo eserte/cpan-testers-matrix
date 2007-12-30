@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.36 2007/12/30 10:39:47 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.37 2007/12/30 10:45:53 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -375,7 +375,7 @@ EOF
 	    for my $node2 ($node->childNodes) {
 		if ($node2->nodeName eq 'title') {
 		    my $report_line = $node2->textContent;
-		    if (my($action, $dist_plus_ver, $perl, $osname) = $report_line =~ m{^(\S+)\s+(\S+)\s+(\S+(?:\s+patch \d+)?)\s+on\s+(\S+)}) {
+		    if (my($action, $dist_plus_ver, $perl, $osname) = $report_line =~ m{^(\S+)\s+(\S+)\s+(\S+(?:\s+patch(?:level)? \d+)?)\s+on\s+(\S+)}) {
 			my $d = CPAN::DistnameInfo->new("$author/$dist_plus_ver.tar.gz");
 			my $dist = $d->dist;
 			my $version = $d->version;
