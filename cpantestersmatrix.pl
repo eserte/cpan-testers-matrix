@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.37 2007/12/30 10:45:53 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.38 2007/12/30 10:51:03 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -10,10 +10,13 @@
 # modify it under the same terms as Perl itself.
 #
 # Mail: slaven@rezic.de
-# WWW:  http://www.rezic.de/eserte/
+# WWW:  http://srezic.sf.net/
 #
 
 use strict;
+use vars qw($VERSION);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.38 $ =~ /(\d+)\.(\d+)/);
+
 use CGI qw(escapeHTML);
 use CPAN::Version;
 use File::Basename qw(basename);
@@ -214,6 +217,7 @@ EOF
 
 print <<EOF;
   <div>
+   <a href="http://srezic.cvs.sourceforge.net/*checkout*/srezic/srezic-misc/cgi/cpantestersmatrix.pl">cpantestersmatrix.pl</a> $VERSION
    by <a href="mailto:srezic\@cpan.org">Slaven Rezi&#x0107;</a>
   </div>
  </body>
@@ -565,7 +569,7 @@ sub build_author_table ($$) {
 
 sub get_perl_and_patch ($) {
     my($r) = @_;
-    my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch\s+(\S+))?};
+    my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch(?:level)?\s+(\S+))?};
     die "$r->{perl} couldn't be parsed" if !defined $perl;
     ($perl, $patch);
 }
