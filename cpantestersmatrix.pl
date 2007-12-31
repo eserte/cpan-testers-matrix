@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.38 2007/12/30 10:51:03 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.39 2007/12/31 16:25:57 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -15,7 +15,7 @@
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.38 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.39 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CPAN::Version;
@@ -27,16 +27,23 @@ use Storable qw(lock_nstore lock_retrieve);
 
 sub fetch_data ($);
 sub fetch_author_data ($);
+sub fetch_meta_yml ($);
 sub build_success_table ($$$);
 sub build_maxver_table ($$);
 sub build_author_table ($$);
+sub get_cache_filename_from_dist ($$);
+sub meta_url ($);
 
 my $cache_days = 1/4;
 
-my $cache = "/tmp/cpantesters_cache_$<";
-mkdir $cache, 0755 if !-d $cache;
-my $author_cache = "/tmp/cpantesters_author_cache_$<";
+my $cache_root = "/tmp/cpantesters_cache_$<";
+mkdir $cache_root, 0755 if !-d $cache_root;
+my $dist_cache = "$cache_root/dist";
+mkdir $dist_cache, 0755 if !-d $dist_cache;
+my $author_cache = "$cache_root/author";
 mkdir $author_cache, 0755 if !-d $author_cache;
+my $meta_cache = "$cache_root/meta";
+mkdir $meta_cache, 0755 if !-d $meta_cache;
 
 # XXX hmm, some globals ...
 my $title = "CPAN Testers Matrix";
@@ -54,6 +61,8 @@ my $error;
 
 my $dist_version;
 my %other_dist_versions;
+my $is_latest_version;
+my $latest_version;
 
 if ($author) {
     eval {
@@ -83,6 +92,13 @@ if ($author) {
 	    if (!$dist_version) {
 		$dist_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
 	    }
+	    eval {
+		my $r = fetch_meta_yml($dist);
+		my $meta = $r->{meta};
+		$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
+		$is_latest_version = $latest_version eq $dist_version;
+	    };
+	    warn $@ if $@;
 	    $r = build_success_table($data, $dist, $dist_version);
 	}
 	$table = $r->{table};
@@ -93,6 +109,8 @@ if ($author) {
 }
 
 print $q->header;
+
+my $latest_distribution_string = $is_latest_version ? " (latest distribution)" : "";
 
 print <<EOF;
 <html>
@@ -109,10 +127,13 @@ print <<EOF;
 
   .bt th,td	  { border:none; height:2.2ex; }
 
+  .warn           { color:red; font-weight:bold; }
+  .sml            { font-size: x-small; }
+
   --></style>
  </head>
  <body>
-  <h1><a href="$ct_link">$title</a></h1>
+  <h1><a href="$ct_link">$title</a>$latest_distribution_string</h1>
 EOF
 if ($error) {
     my $html_error = escapeHTML($error);
@@ -176,15 +197,33 @@ EOF
 	print <<EOF;
 <div style="float:left;">
 <h2>Other versions</h2>
-<ul>
 EOF
+	my $html = "<ul>";
+	my $seen_latest_version;
+	my $possibly_outdated_meta;
 	for my $version (sort { CPAN::Version->vcmp($b, $a) } keys %other_dist_versions) {
 	    my $qq = CGI->new($q);
 	    $qq->param(dist => "$dist $version");
-	    print qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>\n};
+	    $html .= qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>};
+	    if (defined $latest_version && $latest_version eq $version) {
+		$html .= qq{ <span class="sml"> (latest distribution according to <a href="} . meta_url($dist) . qq{">META.yml</a>)</span>};
+		$seen_latest_version++;
+	    }
+	    if (defined $latest_version && CPAN::Version->vcmp($version, $latest_version) > 0) {
+		$possibly_outdated_meta++;
+	    }
+	    $html .= "\n";
 	}
+## XXX yes? no?
+# 	if ($possibly_outdated_meta) {
+# 	    print qq{<div class="warn">NOTE: the latest <a href="} . meta_url($dist) .qq{">META.yml</a>};
+# 	}
+	if ($latest_version && !$seen_latest_version) {
+	    print qq{<div class="warn">NOTE: no report for latest version $latest_version</div>};
+	}
+	$html .= "</ul>\n";
+	print $html;
 	print <<EOF;
-</ul>
 </div>
 EOF
     }
@@ -224,6 +263,43 @@ print <<EOF;
 </html>
 EOF
 
+sub fetch_meta_yml ($) {
+    my($dist) = @_;
+
+    my $meta;
+
+    my $cachefile = get_cache_filename_from_dist($meta_cache, $dist);
+    if (!-r $cachefile || -M $cachefile > $cache_days ||
+	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
+       ) {
+	require LWP;
+	LWP->VERSION(5.808); # bugs in decoded_content
+	require LWP::UserAgent;
+	require YAML;
+
+	my $ua = LWP::UserAgent->new;
+	my $url = meta_url($dist);
+	my $resp = $ua->get($url);
+	if (!$resp->is_success) {
+	    warn "No success fetching <$url>: " . $resp->status_line;
+	} else {
+	    eval {
+		$meta = YAML::Load($resp->decoded_content);
+		lock_nstore($meta, $cachefile);
+	    };
+	    if ($@) {
+		warn "While loading and storing meta data from $url: $!";
+	    }
+	}
+    } else {
+	$meta = lock_retrieve($cachefile)
+	    or warn "Could not load cached meta data";
+    }
+    return { meta => $meta,
+	     cachefile => $cachefile,
+	   };
+}
+
 sub fetch_data ($) {
     my($raw_dist) = @_;
 
@@ -236,9 +312,7 @@ sub fetch_data ($) {
     my $orig_dist = $dist;
     $dist =~ s{::}{-}g; # common error: module -> dist
 
-    (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
-    ($safe_dist) = $safe_dist =~ m{^(.*)$};
-    my $cachefile = $cache."/".$safe_dist.".st";
+    my $cachefile = get_cache_filename_from_dist($dist_cache, $dist);
     if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
@@ -572,6 +646,19 @@ sub get_perl_and_patch ($) {
     my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch(?:level)?\s+(\S+))?};
     die "$r->{perl} couldn't be parsed" if !defined $perl;
     ($perl, $patch);
+}
+
+sub get_cache_filename_from_dist ($$) {
+    my($cachedir, $dist) = @_;
+    (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
+    ($safe_dist) = $safe_dist =~ m{^(.*)$};
+    my $cachefile = $cachedir."/".$safe_dist.".st";
+    $cachefile;
+}
+
+sub meta_url ($) {
+    my $dist = shift;
+    "http://search.cpan.org/meta/$dist/META.yml";
 }
 
 __END__
