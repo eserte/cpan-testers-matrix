@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.39 2007/12/31 16:25:57 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.40 2008/01/01 23:39:40 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007 Slaven Rezic. All rights reserved.
@@ -15,7 +15,7 @@
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.39 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.40 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CPAN::Version;
@@ -199,7 +199,7 @@ EOF
 <h2>Other versions</h2>
 EOF
 	my $html = "<ul>";
-	my $seen_latest_version;
+	my $seen_latest_version = $latest_version eq $dist_version;
 	my $possibly_outdated_meta;
 	for my $version (sort { CPAN::Version->vcmp($b, $a) } keys %other_dist_versions) {
 	    my $qq = CGI->new($q);
