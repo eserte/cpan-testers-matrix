@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.41 2008/01/26 16:12:55 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.42 2008/01/26 18:54:04 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -15,7 +15,7 @@
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.41 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.42 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CPAN::Version;
@@ -453,7 +453,13 @@ EOF
 	    for my $node2 ($node->childNodes) {
 		if ($node2->nodeName eq 'title') {
 		    my $report_line = $node2->textContent;
-		    if (my($action, $dist_plus_ver, $perl, $osname) = $report_line =~ m{^(\S+)\s+(\S+)\s+(\S+(?:\s+patch(?:level)? \d+)?)\s+on\s+(\S+)}) {
+		    if (my($action, $dist_plus_ver, $perl, $osname)
+			= $report_line =~ m{^
+					    (\S+)\s+ # action (PASS, FAIL ...)
+					    (\S+)\s+ # distribution+version
+					    (\S+(?:\s+patch(?:level)? \d+|RC\d+)?)\s+ # patchlevel/RC...
+					    on\s+(\S+) # OS
+				           }x) {
 			my $d = CPAN::DistnameInfo->new("$author/$dist_plus_ver.tar.gz");
 			my $dist = $d->dist;
 			my $version = $d->version;
