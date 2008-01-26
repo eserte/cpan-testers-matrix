@@ -2,10 +2,10 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.40 2008/01/01 23:39:40 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.41 2008/01/26 16:12:55 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -15,7 +15,7 @@
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.40 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.41 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CPAN::Version;
@@ -663,14 +663,30 @@ sub meta_url ($) {
 
 __END__
 
-=pod
+=head1 NAME
 
-Stable:
+cpantestersmatrix.pl - present the CPAN testers results in a OS-perl version matrix
 
-  rsync -av -e 'ssh -p 5022' ~/work/srezic-misc/cgi/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix.pl
+=head1 INSTALLATION
 
-Devel:
+This is a CGI script. See below the PREREQUISITES section for required non-standard perl modules.
+The script creates a predictable directory /tmp/cpantesters_cache_$<
 
-  rsync -av -e 'ssh -p 5022' ~/work/srezic-misc/cgi/cpantestersmatrix.pl root@bbbike2.radzeit.de:/home/slaven/cpantestersmatrix2.pl
+=head1 PREREQUISITES
+
+HTML::Table, LWP, XML::LibXML, CPAN::DistnameInfo, YAML.
+
+=head1 SCRIPT CATEGORIES
+
+CPAN
+
+=head1 AUTHOR
+
+Slaven ReziE<0x107>
+
+=head1 SEE ALSO
+
+L<http://cpandeps.cantrell.org.uk/>,
+L<http://cpantesters.perl.org/>
 
 =cut
