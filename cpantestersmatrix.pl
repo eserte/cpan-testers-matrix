@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.42 2008/01/26 18:54:04 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.43 2008/01/27 08:07:00 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -15,7 +15,7 @@
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.42 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.43 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CPAN::Version;
@@ -90,7 +90,7 @@ if ($author) {
 	} else {
 	    # Get newest version
 	    if (!$dist_version) {
-		$dist_version = reduce { CPAN::Version->vgt($a, $b) ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
+		$dist_version = reduce { cmp_version($a,$b) > 0 ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
 	    }
 	    eval {
 		my $r = fetch_meta_yml($dist);
@@ -131,8 +131,18 @@ print <<EOF;
   .sml            { font-size: x-small; }
 
   --></style>
+  <script type="text/javascript">
+  <!-- Hide script
+  function focus_first() {
+    var frm = document.forms[0];
+    if (frm && frm["dist"] && typeof frm["dist"].focus == "function") {
+      frm["dist"].focus();
+    }
+  }
+  // End script hiding -->
+  </script>
  </head>
- <body>
+ <body onload="focus_first();">
   <h1><a href="$ct_link">$title</a>$latest_distribution_string</h1>
 EOF
 if ($error) {
@@ -201,7 +211,7 @@ EOF
 	my $html = "<ul>";
 	my $seen_latest_version = $latest_version eq $dist_version;
 	my $possibly_outdated_meta;
-	for my $version (sort { CPAN::Version->vcmp($b, $a) } keys %other_dist_versions) {
+	for my $version (sort { cmp_version($b, $a) } keys %other_dist_versions) {
 	    my $qq = CGI->new($q);
 	    $qq->param(dist => "$dist $version");
 	    $html .= qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>};
@@ -209,7 +219,7 @@ EOF
 		$html .= qq{ <span class="sml"> (latest distribution according to <a href="} . meta_url($dist) . qq{">META.yml</a>)</span>};
 		$seen_latest_version++;
 	    }
-	    if (defined $latest_version && CPAN::Version->vcmp($version, $latest_version) > 0) {
+	    if (defined $latest_version && cmp_version($version, $latest_version) > 0) {
 		$possibly_outdated_meta++;
 	    }
 	    $html .= "\n";
@@ -307,6 +317,8 @@ sub fetch_data ($) {
 
     my $dist = basename $raw_dist;
     if ($dist =~ m{^(.*)[- ]([\d\._]+)$}) {
+	($dist, $dist_version) = ($1, $2);
+    } elsif ($dist =~ m{^(.*) (.*)}) {
 	($dist, $dist_version) = ($1, $2);
     }
     my $orig_dist = $dist;
@@ -581,11 +593,11 @@ sub build_maxver_table ($$) {
 
 	$hasreport{$perl}->{$r->{osname}}++;
 	if ($r->{action} eq 'PASS' &&
-	    (!$maxver{$perl}->{$r->{osname}} || CPAN::Version->vgt($r->{version}, $maxver{$perl}->{$r->{osname}}))
+	    (!$maxver{$perl}->{$r->{osname}} || cmp_version($r->{version}, $maxver{$perl}->{$r->{osname}}) > 0)
 	   ) {
 	    $maxver{$perl}->{$r->{osname}} = $r->{version};
 	}
-	if (!$maxver || CPAN::Version->vgt($r->{version}, $maxver)) {
+	if (!$maxver || cmp_version($r->{version}, $maxver) > 0) {
 	    $maxver = $r->{version};
 	}
     }
@@ -666,6 +678,34 @@ sub meta_url ($) {
     my $dist = shift;
     "http://search.cpan.org/meta/$dist/META.yml";
 }
+
+BEGIN {
+    if (eval { require version; 1 }) {
+	*cmp_version = sub {
+	    local $^W;
+	    version->new($_[0]) <=> version->new($_[1]);
+	};
+    } else {
+	*cmp_version = sub {
+	    CPAN::Version->vcmp($_[0], $_[1]);
+	};
+    }
+}
+
+## Did not help:
+# sub cmp_version {
+#     my($a, $b) = @_;
+#     my $cmp = CPAN::Version->vcmp($a, $b);
+#     "$a $b $cmp";
+#     if ($cmp == 0 && $a ne $b) {
+# 	if ($a =~ /_/) {
+# 	    $cmp = -1;
+# 	} elsif ($b =~ /_/) {
+# 	    $cmp = +1;
+# 	}
+#     }
+#     $cmp;
+# }
 
 __END__
 
