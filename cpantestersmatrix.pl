@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.43 2008/01/27 08:07:00 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.44 2008/02/01 07:40:42 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -15,9 +15,10 @@
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.43 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.44 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
+use CGI::Carp qw();
 use CPAN::Version;
 use File::Basename qw(basename);
 use HTML::Table;
