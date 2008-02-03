@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.44 2008/02/01 07:40:42 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.45 2008/02/03 09:41:00 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -13,9 +13,12 @@
 # WWW:  http://srezic.sf.net/
 #
 
+package # not official yet
+    CPAN::Testers::Matrix;
+
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.44 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.45 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
