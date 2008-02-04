@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.45 2008/02/03 09:41:00 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.46 2008/02/04 21:23:26 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.45 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.46 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -473,7 +473,7 @@ EOF
 			= $report_line =~ m{^
 					    (\S+)\s+ # action (PASS, FAIL ...)
 					    (\S+)\s+ # distribution+version
-					    (\S+(?:\s+patch(?:level)? \d+|RC\d+)?)\s+ # patchlevel/RC...
+					    (\S+(?:\s+patch(?:level)?\s+\d+|RC\d+)?)\s+ # patchlevel/RC...
 					    on\s+(\S+) # OS
 				           }x) {
 			my $d = CPAN::DistnameInfo->new("$author/$dist_plus_ver.tar.gz");
