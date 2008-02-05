@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.47 2008/02/05 21:04:15 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.48 2008/02/05 21:58:09 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.47 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.48 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -159,14 +159,28 @@ EOF
 
 print <<EOF;
   <form>
-   Distribution (e.g. DBI, CPAN-Reporter, YAML-Syck): <input name="dist" /> <input type="submit" />
-   <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
+   <div>
+    Distribution (e.g. DBI, CPAN-Reporter, YAML-Syck): <input name="dist" /> <input type="submit" />
+    <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
+   </div>
   </form>
 
   <form>
-   CPAN User ID: <input name="author" /> <input type="submit" />
+   <div>
+    CPAN User ID: <input name="author" /> <input type="submit" />
+   </div>
   </form>
 EOF
+
+if ($author && eval { require Gravatar::URL; 1 }) {
+    my $author_image_url = Gravatar::URL::gravatar_url(email => lc($author) . '@cpan.org',
+						    default => 'http://bbbike.radzeit.de/BBBike/images/px_1t.gif');
+    print <<EOF;
+  <div style="position:absolute; right:10px; top:10px;">
+    <img border="0" src="$author_image_url" />
+  </div>
+EOF
+}
 
 if ($author) {
 
