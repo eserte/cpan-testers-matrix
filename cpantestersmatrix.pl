@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.46 2008/02/04 21:23:26 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.47 2008/02/05 21:04:15 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.46 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.47 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -295,7 +295,11 @@ sub fetch_meta_yml ($) {
 	my $url = meta_url($dist);
 	my $resp = $ua->get($url);
 	if (!$resp->is_success) {
-	    warn "No success fetching <$url>: " . $resp->status_line;
+	    if ($resp->code == 500) {
+		# it happens often, ignore it...
+	    } else {
+		warn "No success fetching <$url>: " . $resp->status_line;
+	    }
 	} else {
 	    eval {
 		$meta = YAML::Load($resp->decoded_content);
