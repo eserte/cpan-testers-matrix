@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.48 2008/02/05 21:58:09 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.49 2008/02/05 22:02:18 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.48 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.49 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -100,7 +100,7 @@ if ($author) {
 		my $r = fetch_meta_yml($dist);
 		my $meta = $r->{meta};
 		$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
-		$is_latest_version = $latest_version eq $dist_version;
+		$is_latest_version = defined $latest_version && $latest_version eq $dist_version;
 	    };
 	    warn $@ if $@;
 	    $r = build_success_table($data, $dist, $dist_version);
@@ -172,7 +172,8 @@ print <<EOF;
   </form>
 EOF
 
-if ($author && eval { require Gravatar::URL; 1 }) {
+# XXX Not yet, not satisfied with positioning!
+if (0 && $author && eval { require Gravatar::URL; 1 }) {
     my $author_image_url = Gravatar::URL::gravatar_url(email => lc($author) . '@cpan.org',
 						    default => 'http://bbbike.radzeit.de/BBBike/images/px_1t.gif');
     print <<EOF;
@@ -227,7 +228,7 @@ EOF
 <h2>Other versions</h2>
 EOF
 	my $html = "<ul>";
-	my $seen_latest_version = $latest_version eq $dist_version;
+	my $seen_latest_version = defined $latest_version && $latest_version eq $dist_version;
 	my $possibly_outdated_meta;
 	for my $version (sort { cmp_version($b, $a) } keys %other_dist_versions) {
 	    my $qq = CGI->new($q);
