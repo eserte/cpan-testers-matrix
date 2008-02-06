@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.49 2008/02/05 22:02:18 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.50 2008/02/06 21:07:12 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.49 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.50 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -375,12 +375,14 @@ sub fetch_data ($) {
 		require CPAN::DistnameInfo;
 		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
 		my $mo = CPAN::Shell->expand("Module", $orig_dist);
-		my $try_dist = CPAN::DistnameInfo->new($mo->cpan_file)->dist;
-		$resp = $fetch_dist_data->($try_dist);
-		if (!$resp->is_success) {
-		    die "No success fetching <$url>: " . $resp->status_line;
-		} else {
-		    $dist = $try_dist;
+		if ($mo) {
+		    my $try_dist = CPAN::DistnameInfo->new($mo->cpan_file)->dist;
+		    $resp = $fetch_dist_data->($try_dist);
+		    if (!$resp->is_success) {
+			die "No success fetching <$url>: " . $resp->status_line;
+		    } else {
+			$dist = $try_dist;
+		    }
 		}
 	    };
 	    warn $@ if $@;
