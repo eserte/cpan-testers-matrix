@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.51 2008/02/11 20:42:16 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.52 2008/02/19 20:32:01 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.51 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.52 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -119,6 +119,7 @@ my $latest_distribution_string = $is_latest_version ? " (latest distribution)" :
 print <<EOF;
 <html>
  <head><title>$title</title>
+  <link type="image/ico" rel="shortcut icon" href="http://www.perlfoundation.org/static/images/foundation/favicon.ico" />
   <style type="text/css"><!--
   .action_PASS    { background:green; }
   .action_NA      { background:orange; }
