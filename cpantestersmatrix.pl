@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.52 2008/02/19 20:32:01 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.53 2008/02/23 16:47:56 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.52 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.53 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -709,7 +709,18 @@ BEGIN {
     if (eval { require version; 1 }) {
 	*cmp_version = sub {
 	    local $^W;
-	    version->new($_[0]) <=> version->new($_[1]);
+	    safe_version($_[0]) <=> safe_version($_[1]);
+	};
+	*safe_version = sub {
+	    my $version_string = shift;
+	    while(length $version_string) {
+		my $version = eval { version->new($version_string) };
+		if (!$@) {
+		    return $version;
+		}
+		$version_string = substr($version_string,0,-1);
+	    }
+	    "0";
 	};
     } else {
 	*cmp_version = sub {
