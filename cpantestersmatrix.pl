@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.53 2008/02/23 16:47:56 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.54 2008/03/01 22:30:09 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.53 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.54 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -407,7 +407,7 @@ sub fetch_data ($) {
 		}
 		while(<$pkgfh>) {
 		    my($module,undef,$cpan_file) = split /\s+/;
-		    if ($module eq $orig_dist) {
+		    if (lc $module eq lc $orig_dist) { # allow lowercase written modules
 			my $try_dist = CPAN::DistnameInfo->new($cpan_file)->dist;
 			$resp = $fetch_dist_data->($try_dist);
 			if (!$resp->is_success) {
