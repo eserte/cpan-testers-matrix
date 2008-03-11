@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.55 2008/03/11 20:55:59 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.56 2008/03/11 20:59:28 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.55 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.56 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -209,7 +209,7 @@ if ($author) {
     }
 
     print <<EOF;
-<div>
+<div style="float:left;">
 <h2>Other links</h2>
 <ul>
 <li><a href="$ct_link">CPAN Testers</a>
@@ -217,6 +217,10 @@ if ($author) {
 </ul>
 </div>
 EOF
+
+    if ($tables) {
+	show_legend();
+    }
 
 } elsif ($dist) {
 
@@ -624,7 +628,7 @@ sub build_success_table ($$$) {
 
 sub show_legend {
  	print <<EOF;
-<div style="float:left; margin-left:3em;">
+<div style="float:left; margin-left:3em; margin-bottom:5px;">
   <h2>Legend</h2>
   <table>
 EOF
