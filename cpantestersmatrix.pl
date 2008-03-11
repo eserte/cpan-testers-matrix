@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.56 2008/03/11 20:59:28 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.57 2008/03/11 21:12:40 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.56 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.57 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -775,8 +775,8 @@ sub stylesheet_hicontrast {
     print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
     print <<EOF;
   .action_PASS    { background:#00ff00; }
-  .action_NA      { background:#ffff00; }
-  .action_UNKNOWN { background:#ffff00; }
+  .action_NA      { background:#0000c0; }
+  .action_UNKNOWN { background:#0000c0; }
   .action_FAIL    { background:#800000; }
 EOF
 }
