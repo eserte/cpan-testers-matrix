@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.54 2008/03/01 22:30:09 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.55 2008/03/11 20:55:59 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.54 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.55 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -58,6 +58,18 @@ my $cachefile;
 
 my $q = CGI->new;
 
+{
+    my $get_stylesheet = $q->param("get_stylesheet");
+    if ($get_stylesheet) {
+	if ($get_stylesheet eq 'hicontrast') {
+	    stylesheet_hicontrast();
+	} else {
+	    die "Unhandled value <$get_stylesheet>";
+	}
+	exit;
+    }
+}
+
 my $dist = $q->param("dist");
 my $author = $q->param("author");
 
@@ -67,6 +79,8 @@ my $dist_version;
 my %other_dist_versions;
 my $is_latest_version;
 my $latest_version;
+
+my @actions = qw(PASS NA UNKNOWN FAIL);
 
 if ($author) {
     eval {
@@ -121,10 +135,10 @@ print <<EOF;
  <head><title>$title</title>
   <link type="image/ico" rel="shortcut icon" href="http://www.perlfoundation.org/static/images/foundation/favicon.ico" />
   <style type="text/css"><!--
-  .action_PASS    { background:green; }
+  .action_PASS    { background:green;  }
   .action_NA      { background:orange; }
   .action_UNKNOWN { background:orange; }
-  .action_FAIL    { background:red; }
+  .action_FAIL    { background:red;    }
 
   table		  { border-collapse:collapse; }
   th,td           { border:1px solid black; }
@@ -136,6 +150,7 @@ print <<EOF;
   .sml            { font-size: x-small; }
 
   --></style>
+  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=hicontrast" ]}" title="High contrast">
   <script type="text/javascript">
   <!-- Hide script
   function focus_first() {
@@ -270,6 +285,11 @@ EOF
 </ul>
 </div>
 EOF
+
+    if ($table) {
+	show_legend();
+    }
+
 }
 
 print '<hr style="clear:left;">';
@@ -555,7 +575,6 @@ sub build_success_table ($$$) {
 
     my @perls   = sort { CPAN::Version->vcmp($b, $a) } keys %perl;
     my @osnames = sort { $a cmp $b } keys %osname;
-    my @actions = qw(PASS NA UNKNOWN FAIL);
 
     my @matrix;
     for my $perl (@perls) {
@@ -601,6 +620,25 @@ sub build_success_table ($$$) {
 	     title => "$dist $dist_version",
 	     ct_link => $ct_link,
 	   };
+}
+
+sub show_legend {
+ 	print <<EOF;
+<div style="float:left; margin-left:3em;">
+  <h2>Legend</h2>
+  <table>
+EOF
+	for my $act (@actions) {
+	    print <<EOF;
+    <tr>
+      <td width="50" class="action_$act"></td><td>$act</td>
+    </tr>
+EOF
+	}
+	print <<EOF;
+  </table>
+</div>
+EOF
 }
 
 sub build_maxver_table ($$) {
@@ -727,6 +765,16 @@ BEGIN {
 	    CPAN::Version->vcmp($_[0], $_[1]);
 	};
     }
+}
+
+sub stylesheet_hicontrast {
+    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
+    print <<EOF;
+  .action_PASS    { background:#00ff00; }
+  .action_NA      { background:#ffff00; }
+  .action_UNKNOWN { background:#ffff00; }
+  .action_FAIL    { background:#800000; }
+EOF
 }
 
 ## Did not help:
