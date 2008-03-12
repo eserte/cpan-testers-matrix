@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.57 2008/03/11 21:12:40 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.58 2008/03/12 10:31:45 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.57 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.58 $ =~ /(\d+)\.(\d+)/);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -63,6 +63,8 @@ my $q = CGI->new;
     if ($get_stylesheet) {
 	if ($get_stylesheet eq 'hicontrast') {
 	    stylesheet_hicontrast();
+	} elsif ($get_stylesheet eq 'cpantesters') {
+	    stylesheet_cpantesters();
 	} else {
 	    die "Unhandled value <$get_stylesheet>";
 	}
@@ -151,6 +153,7 @@ print <<EOF;
 
   --></style>
   <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=hicontrast" ]}" title="High contrast">
+  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=cpantesters" ]}" title="Same colors like \@cpantesters.perl.org">
   <script type="text/javascript">
   <!-- Hide script
   function focus_first() {
@@ -778,6 +781,16 @@ sub stylesheet_hicontrast {
   .action_NA      { background:#0000c0; }
   .action_UNKNOWN { background:#0000c0; }
   .action_FAIL    { background:#800000; }
+EOF
+}
+
+sub stylesheet_cpantesters {
+    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
+    print <<EOF;
+  .action_PASS    { background:#5ad742; }
+  .action_NA      { background:#d6d342; }
+  .action_UNKNOWN { background:#d6d342; }
+  .action_FAIL    { background:#d63c39; }
 EOF
 }
 
