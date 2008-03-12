@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.58 2008/03/12 10:31:45 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.59 2008/03/12 21:26:08 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,9 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.58 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.59 $ =~ /(\d+)\.(\d+)/);
+
+use vars qw($UA);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
@@ -37,6 +39,7 @@ sub build_maxver_table ($$);
 sub build_author_table ($$);
 sub get_cache_filename_from_dist ($$);
 sub meta_url ($);
+sub get_ua ();
 
 my $cache_days = 1/4;
 
@@ -329,12 +332,9 @@ sub fetch_meta_yml ($) {
     if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
-	require LWP;
-	LWP->VERSION(5.808); # bugs in decoded_content
-	require LWP::UserAgent;
 	require YAML;
 
-	my $ua = LWP::UserAgent->new;
+	my $ua = get_ua;
 	my $url = meta_url($dist);
 	my $resp = $ua->get($url);
 	if (!$resp->is_success) {
@@ -379,13 +379,10 @@ sub fetch_data ($) {
     if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
-	require LWP;
-	LWP->VERSION(5.808); # bugs in decoded_content
-	require LWP::UserAgent;
 	require YAML;
 	#use YAML::Syck qw(LoadFile Load);
 
-	my $ua = LWP::UserAgent->new;
+	my $ua = get_ua;
 	my $url;
 
 	my $fetch_dist_data = sub {
@@ -486,17 +483,19 @@ sub fetch_author_data ($) {
     if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
-	require LWP;
-	LWP->VERSION(5.808); # bugs in decoded_content
-	require LWP::UserAgent;
 	require XML::LibXML;
 	require CPAN::DistnameInfo;
 
-	my $ua = LWP::UserAgent->new;
+	my $ua = get_ua;
 	my $url = "http://cpantesters.perl.org/author/$author.rss";
 	#my $url = "file:///home/e/eserte/trash/SREZIC.rss";
 	my $resp = $ua->get($url);
 	if (!$resp->is_success) {
+	    if ($resp->status_line =~ /timeout/i) {
+		die <<EOF;
+Timeout while fetching data from cpantesters.perl.org.
+EOF
+	    }
 	    warn "No success fetching <$url>: " . $resp->status_line;
 	    die <<EOF
 No results for CPAN id <$author> found.
@@ -748,6 +747,16 @@ sub get_cache_filename_from_dist ($$) {
 sub meta_url ($) {
     my $dist = shift;
     "http://search.cpan.org/meta/$dist/META.yml";
+}
+
+sub get_ua () {
+    require LWP;
+    LWP->VERSION(5.808); # bugs in decoded_content
+    require LWP::UserAgent;
+    return $UA if $UA;
+    $UA = LWP::UserAgent->new;
+    $UA->timeout(30);
+    $UA;
 }
 
 BEGIN {
