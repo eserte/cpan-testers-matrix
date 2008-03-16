@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.60 2008/03/16 10:58:02 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.61 2008/03/16 20:38:49 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.60 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.61 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -40,7 +40,7 @@ sub build_author_table ($$);
 sub get_cache_filename_from_dist ($$);
 sub meta_url ($);
 sub get_ua ();
-sub timeout_check ($);
+sub fetch_error_check ($);
 
 my $cache_days = 1/4;
 
@@ -395,7 +395,7 @@ sub fetch_data ($) {
 
 	my $resp = $fetch_dist_data->($dist);
 	if (!$resp->is_success) {
-	    timeout_check($resp);
+	    fetch_error_check($resp);
 	    warn "No success fetching <$url>: " . $resp->status_line;
 	    eval {
 		require CPAN;
@@ -493,7 +493,7 @@ sub fetch_author_data ($) {
 	#my $url = "file:///home/e/eserte/trash/SREZIC.rss";
 	my $resp = $ua->get($url);
 	if (!$resp->is_success) {
-	    timeout_check($resp);
+	    fetch_error_check($resp);
 	    warn "No success fetching <$url>: " . $resp->status_line;
 	    die <<EOF
 No results for CPAN id <$author> found.
@@ -757,11 +757,15 @@ sub get_ua () {
     $UA;
 }
 
-sub timeout_check ($) {
+sub fetch_error_check ($) {
     my $resp = shift;
     if ($resp->status_line =~ /timeout/i) {
 	die <<EOF;
 Timeout while fetching data from cpantesters.perl.org.
+EOF
+    } elsif ($resp->code == 500) {
+	die <<EOF;
+Error while fetching data from cpantesters.perl.org: <@{[ $resp->status_line ]}>
 EOF
     }
 }
