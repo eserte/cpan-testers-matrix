@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.62 2008/03/17 21:36:54 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.63 2008/03/17 21:45:05 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.62 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.63 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -408,10 +408,14 @@ sub fetch_data ($) {
 	last GET_DATA if $resp->is_success;
 
 	$error = fetch_error_check($resp);
-	if ($error && -r $cachefile) {
-	    $error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
-	    $good_cachefile = $cachefile;
-	    last GET_DATA;
+	if ($error) {
+	    if (-r $cachefile) {
+		$error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+		$good_cachefile = $cachefile;
+		last GET_DATA;
+	    } else {
+		die $error;
+	    }
 	}
 
 	warn "No success fetching <$url>: " . $resp->status_line;
@@ -529,11 +533,15 @@ sub fetch_author_data ($) {
 	last GET_DATA if $resp->is_success;
 
 	$error = fetch_error_check($resp);
-	if ($error && -r $cachefile) {
-	    warn "No success fetching <$url>: " . $resp->status_line;
-	    $error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
-	    $good_cachefile = $cachefile;
-	    last GET_DATA;
+	if ($error) {
+	    if (-r $cachefile) {
+		warn "No success fetching <$url>: " . $resp->status_line;
+		$error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+		$good_cachefile = $cachefile;
+		last GET_DATA;
+	    } else {
+		die $error;
+	    }
 	}
 
 	die <<EOF;
