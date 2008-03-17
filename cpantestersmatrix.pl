@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.61 2008/03/16 20:38:49 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.62 2008/03/17 21:36:54 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.61 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.62 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -94,20 +94,20 @@ if ($author) {
 
 	$r = fetch_author_data($author);
 	my $author_dist;
-	($author, $author_dist, $cachefile) = @{$r}{qw(author author_dist cachefile)};
+	($author, $author_dist, $cachefile, $error) = @{$r}{qw(author author_dist cachefile error)};
 	$r = build_author_table($author, $author_dist);
 	$tables = $r->{tables};
 	$ct_link = $r->{ct_link};
 	$title = "CPAN Testers Matrix: $r->{title}";
     };
-    $error = $@;
+    $error = $@ if $@;
 } elsif ($dist) {
     eval {
 	my $r;
 	
 	$r = fetch_data($dist);
 	my $data;
-	($dist, $data, $cachefile) = @{$r}{qw(dist data cachefile)};
+	($dist, $data, $cachefile, $error) = @{$r}{qw(dist data cachefile error)};
 
 	if ($q->param("maxver")) {
 	    $r = build_maxver_table($data, $dist);
@@ -129,7 +129,7 @@ if ($author) {
 	$ct_link = $r->{ct_link};
 	$title = "CPAN Testers Matrix: $r->{title}";
     };
-    $error = $@;
+    $error = $@ if $@;
 }
 
 print $q->header;
@@ -176,7 +176,9 @@ if ($error) {
     my $html_error = escapeHTML($error);
     $html_error =~ s{\n}{<br/>\n}g;
     print <<EOF;
-An error was encountered:<br/>$html_error<br/>
+<div class="warn">
+  An error was encountered:<br/>$html_error<br/>
+</div>
 EOF
 }
 
@@ -376,15 +378,24 @@ sub fetch_data ($) {
     my $orig_dist = $dist;
     $dist =~ s{::}{-}g; # common error: module -> dist
 
+    my $resp;
+    my $good_cachefile;
+    my $url;
     my $cachefile = get_cache_filename_from_dist($dist_cache, $dist);
-    if (!-r $cachefile || -M $cachefile > $cache_days ||
-	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
-       ) {
+    my $error;
+
+ GET_DATA: {
+	if (!(!-r $cachefile || -M $cachefile > $cache_days ||
+	      ($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
+	     )) {
+	    $good_cachefile = $cachefile;
+	    last GET_DATA;
+	}
+
 	require YAML;
 	#use YAML::Syck qw(LoadFile Load);
 
 	my $ua = get_ua;
-	my $url;
 
 	my $fetch_dist_data = sub {
 	    my($dist) = @_;
@@ -393,69 +404,84 @@ sub fetch_data ($) {
 	    $resp;
 	};
 
-	my $resp = $fetch_dist_data->($dist);
-	if (!$resp->is_success) {
-	    fetch_error_check($resp);
-	    warn "No success fetching <$url>: " . $resp->status_line;
-	    eval {
-		require CPAN;
-		require CPAN::DistnameInfo;
-		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
-		my $mo = CPAN::Shell->expand("Module", $orig_dist);
-		if ($mo) {
-		    my $try_dist = CPAN::DistnameInfo->new($mo->cpan_file)->dist;
+	$resp = $fetch_dist_data->($dist);
+	last GET_DATA if $resp->is_success;
+
+	$error = fetch_error_check($resp);
+	if ($error && -r $cachefile) {
+	    $error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+	    $good_cachefile = $cachefile;
+	    last GET_DATA;
+	}
+
+	warn "No success fetching <$url>: " . $resp->status_line;
+	eval {
+	    require CPAN;
+	    require CPAN::DistnameInfo;
+	    local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
+	    my $mo = CPAN::Shell->expand("Module", $orig_dist);
+	    if ($mo) {
+		my $try_dist = CPAN::DistnameInfo->new($mo->cpan_file)->dist;
+		$resp = $fetch_dist_data->($try_dist);
+		if (!$resp->is_success) {
+		    die "No success fetching <$url>: " . $resp->status_line;
+		} else {
+		    $dist = $try_dist;
+		}
+	    }
+	};
+	warn $@ if $@;
+	last GET_DATA if $resp->is_success;
+
+	# XXX hmmm, hack for CPAN.pm problems
+	eval {
+	    require CPAN;
+	    require CPAN::DistnameInfo;
+	    local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
+	    CPAN::HandleConfig->load;
+	    %CPAN::Config = %CPAN::Config; # cease -w
+	    my $pkgdetails = "$CPAN::Config->{keep_source_where}/modules/02packages.details.txt.gz";
+	    local $ENV{PATH} = "/usr/bin:/bin";
+	    open my $pkgfh, "-|", "zcat", $pkgdetails
+		or die "Cannot zcat $pkgdetails: $!";
+	    # overread header
+	    while(<$pkgfh>) {
+		chomp;
+		last if ($_ eq '');
+	    }
+	    while(<$pkgfh>) {
+		my($module,undef,$cpan_file) = split /\s+/;
+		if (lc $module eq lc $orig_dist) { # allow lowercase written modules
+		    my $try_dist = CPAN::DistnameInfo->new($cpan_file)->dist;
 		    $resp = $fetch_dist_data->($try_dist);
 		    if (!$resp->is_success) {
 			die "No success fetching <$url>: " . $resp->status_line;
 		    } else {
 			$dist = $try_dist;
 		    }
+		    last;
 		}
-	    };
-	    warn $@ if $@;
-	}
-	# XXX hmmm, hack for CPAN.pm problems
-	if (!$resp->is_success) {
-	    eval {
-		require CPAN;
-		require CPAN::DistnameInfo;
-		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
-		CPAN::HandleConfig->load;
-		%CPAN::Config = %CPAN::Config; # cease -w
-		my $pkgdetails = "$CPAN::Config->{keep_source_where}/modules/02packages.details.txt.gz";
-		local $ENV{PATH} = "/usr/bin:/bin";
-		open my $pkgfh, "-|", "zcat", $pkgdetails
-		    or die "Cannot zcat $pkgdetails: $!";
-		# overread header
-		while(<$pkgfh>) {
-		    chomp;
-		    last if ($_ eq '');
-		}
-		while(<$pkgfh>) {
-		    my($module,undef,$cpan_file) = split /\s+/;
-		    if (lc $module eq lc $orig_dist) { # allow lowercase written modules
-			my $try_dist = CPAN::DistnameInfo->new($cpan_file)->dist;
-			$resp = $fetch_dist_data->($try_dist);
-			if (!$resp->is_success) {
-			    die "No success fetching <$url>: " . $resp->status_line;
-			} else {
-			    $dist = $try_dist;
-			}
-			last;
-		    }
-		}
-	    };
-	    warn $@ if $@;
-	}
-	if (!$resp->is_success) {
-	    die <<EOF
+	    }
+	};
+	warn $@ if $@;
+	last if $resp->is_success;
+
+	die <<EOF
 Distribution results for <$dist> at <$url> not found.
 Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
 Maybe you added the author name to the distribution string?
 Note that the distribution name is case-sensitive.
 EOF
-	}
-	$data = YAML::Load($resp->decoded_content) or die "Could not load YAML data from <$url>";
+    }
+
+    if ($good_cachefile) {
+	$data = lock_retrieve($cachefile)
+	    or die "Could not load cached data";
+	# Fix distribution name
+	eval { $dist = $data->[-1]->{distribution} };
+    } elsif ($resp && $resp->is_success) {
+	$data = YAML::Load($resp->decoded_content)
+	    or die "Could not load YAML data from <$url>";
 	eval {
 	    lock_nstore($data, $cachefile);
 	};
@@ -463,14 +489,12 @@ EOF
 	    warn $!;
 	    die "Internal error (nstore)";
 	};
-    } else {
-	$data = lock_retrieve($cachefile) or die "Could not load cached data";
-	# Fix distribution name
-	eval { $dist = $data->[-1]->{distribution} };
     }
+
     return { data => $data,
 	     dist => $dist,
 	     cachefile => $cachefile,
+	     error => $error,
 	   };
 }
 
@@ -481,10 +505,20 @@ sub fetch_author_data ($) {
 
     my $author_dist = {};
 
+    my $resp;
+    my $good_cachefile;
+    my $url;
     my $cachefile = $author_cache."/".$author.".st";
-    if (!-r $cachefile || -M $cachefile > $cache_days ||
-	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
-       ) {
+    my $error;
+
+ GET_DATA: {
+	if (!(!-r $cachefile || -M $cachefile > $cache_days ||
+	      ($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
+	     )) {
+	    $good_cachefile = $cachefile;
+	    last GET_DATA;
+	}
+
 	require XML::LibXML;
 	require CPAN::DistnameInfo;
 
@@ -492,14 +526,25 @@ sub fetch_author_data ($) {
 	my $url = "http://cpantesters.perl.org/author/$author.rss";
 	#my $url = "file:///home/e/eserte/trash/SREZIC.rss";
 	my $resp = $ua->get($url);
-	if (!$resp->is_success) {
-	    fetch_error_check($resp);
+	last GET_DATA if $resp->is_success;
+
+	$error = fetch_error_check($resp);
+	if ($error && -r $cachefile) {
 	    warn "No success fetching <$url>: " . $resp->status_line;
-	    die <<EOF
-No results for CPAN id <$author> found.
-EOF
+	    $error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+	    $good_cachefile = $cachefile;
+	    last GET_DATA;
 	}
 
+	die <<EOF;
+No results for CPAN id <$author> found.
+EOF
+    }
+
+    if ($good_cachefile) {
+	$author_dist = lock_retrieve($cachefile)
+	    or die "Could not load cached data";
+    } elsif ($resp && $resp->is_success) {
 	my $p = XML::LibXML->new;
 	my $doc = eval {
 	    $p->parse_string($resp->decoded_content);
@@ -545,13 +590,12 @@ EOF
 	    warn $!;
 	    die "Internal error (nstore)";
 	};
-    } else {
-	$author_dist = lock_retrieve($cachefile) or die "Could not load cached data";
     }
 
     return { author_dist => $author_dist,
 	     author => $author,
 	     cachefile => $cachefile,
+	     error => $error,
 	   }
 }
 
@@ -760,13 +804,15 @@ sub get_ua () {
 sub fetch_error_check ($) {
     my $resp = shift;
     if ($resp->status_line =~ /timeout/i) {
-	die <<EOF;
+	<<EOF;
 Timeout while fetching data from cpantesters.perl.org.
 EOF
     } elsif ($resp->code == 500) {
-	die <<EOF;
+	<<EOF;
 Error while fetching data from cpantesters.perl.org: <@{[ $resp->status_line ]}>
 EOF
+    } else {
+	"";
     }
 }
 
