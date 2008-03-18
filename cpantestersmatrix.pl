@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.63 2008/03/17 21:45:05 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.64 2008/03/18 06:48:44 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.63 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.64 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -385,9 +385,9 @@ sub fetch_data ($) {
     my $error;
 
  GET_DATA: {
-	if (!(!-r $cachefile || -M $cachefile > $cache_days ||
-	      ($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
-	     )) {
+	if (-r $cachefile && -M $cachefile < $cache_days &&
+	    (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache')
+	   ) {
 	    $good_cachefile = $cachefile;
 	    last GET_DATA;
 	}
@@ -516,9 +516,9 @@ sub fetch_author_data ($) {
     my $error;
 
  GET_DATA: {
-	if (!(!-r $cachefile || -M $cachefile > $cache_days ||
-	      ($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
-	     )) {
+	if (-r $cachefile && -M $cachefile < $cache_days &&
+	    (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache')
+	   ) {
 	    $good_cachefile = $cachefile;
 	    last GET_DATA;
 	}
@@ -527,9 +527,9 @@ sub fetch_author_data ($) {
 	require CPAN::DistnameInfo;
 
 	my $ua = get_ua;
-	my $url = "http://cpantesters.perl.org/author/$author.rss";
+	$url = "http://cpantesters.perl.org/author/$author.rss";
 	#my $url = "file:///home/e/eserte/trash/SREZIC.rss";
-	my $resp = $ua->get($url);
+	$resp = $ua->get($url);
 	last GET_DATA if $resp->is_success;
 
 	$error = fetch_error_check($resp);
