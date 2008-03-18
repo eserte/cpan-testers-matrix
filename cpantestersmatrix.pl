@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.64 2008/03/18 06:48:44 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.65 2008/03/18 06:59:55 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.64 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.65 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -53,14 +53,17 @@ mkdir $author_cache, 0755 if !-d $author_cache;
 my $meta_cache = "$cache_root/meta";
 mkdir $meta_cache, 0755 if !-d $meta_cache;
 
+my $q = CGI->new;
+
 # XXX hmm, some globals ...
 my $title = "CPAN Testers Matrix";
+if ($q->script_name =~ /cpantestersmatrix2/) {
+    $title .= " (beta)";
+}
 my $ct_link = "http://cpantesters.perl.org";
 my $table;
 my $tables;
 my $cachefile;
-
-my $q = CGI->new;
 
 {
     my $get_stylesheet = $q->param("get_stylesheet");
@@ -98,7 +101,7 @@ if ($author) {
 	$r = build_author_table($author, $author_dist);
 	$tables = $r->{tables};
 	$ct_link = $r->{ct_link};
-	$title = "CPAN Testers Matrix: $r->{title}";
+	$title .= ": $r->{title}";
     };
     $error = $@ if $@;
 } elsif ($dist) {
@@ -127,7 +130,7 @@ if ($author) {
 	}
 	$table = $r->{table};
 	$ct_link = $r->{ct_link};
-	$title = "CPAN Testers Matrix: $r->{title}";
+	$title .= ": $r->{title}";
     };
     $error = $@ if $@;
 }
