@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.66 2008/04/06 19:47:55 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.67 2008/04/06 20:08:37 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.66 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.67 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -66,6 +66,7 @@ my $ct_link = "http://cpantesters.perl.org";
 my $table;
 my $tables;
 my $cachefile;
+my $reports_header;
 
 {
     my $get_stylesheet = $q->param("get_stylesheet");
@@ -98,16 +99,27 @@ if ($reports) {
     my $want_perl = $q->param("perl");
     my $want_os = $q->param("os");
     my $sort_column = $q->param("sort") || "action";
+
+    if (defined $want_perl || defined $want_os) {
+	$reports_header = "Reports filtered for ";
+	if (defined $want_perl) {
+	    $reports_header .= "perl=$want_perl ";
+	}
+	if (defined $want_os) {
+	    $reports_header .= "os=$want_os";
+	}
+    }
+
     eval {
 	my $r = fetch_data($dist);
 	set_newest_dist_version($r->{data});
 	my @reports;
 	for my $rec (@{ $r->{data} }) {
-	    next if $rec->{version} ne $dist_version;
+	    next if defined $dist_version && $rec->{version} ne $dist_version;
 	    my($perl) = eval { get_perl_and_patch($rec) };
 	    next if !$perl;
-	    next if $perl ne $want_perl;
-	    next if $rec->{osname}  ne $want_os;
+	    next if defined $want_perl && $perl ne $want_perl;
+	    next if defined $want_os && $rec->{osname} ne $want_os;
 	    push @reports, $rec;
 	}
 	my $last_action;
@@ -118,6 +130,9 @@ if ($reports) {
 			    qq{<a href="$rec->{url}">$rec->{id}</a>},
 			    $rec->{osvers},
 			    $rec->{archname},
+			    (!defined $dist_version ? $rec->{version} : ()),
+			    (!defined $want_perl    ? $rec->{perl} : ()),
+			    (!defined $want_os      ? $rec->{osname} : ()),
 			  ];
 	}
 	my $sort_href = sub {
@@ -130,6 +145,9 @@ if ($reports) {
 					       $sort_href->("Id", "id"),
 					       $sort_href->("OS vers", "osvers"),
 					       $sort_href->("archname", "archname"),
+					       (!defined $dist_version ? $sort_href->("Dist version", "version") : ()),
+					       (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
+					       (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
 					      ],
 				  -spacing => 0,
 				  -data    => \@matrix,
@@ -202,8 +220,8 @@ print <<EOF;
 
   .bt th,td	  { border:none; height:2.2ex; }
 
-  .reports th	  { border:2px solid black; }
-  .reports td	  { border:1px solid black; }
+  .reports th	  { border:2px solid black; padding-left:3px; padding-right:3px; }
+  .reports td	  { border:1px solid black; padding-left:3px; padding-right:3px; }
 
   .warn           { color:red; font-weight:bold; }
   .sml            { font-size: x-small; }
@@ -262,6 +280,26 @@ EOF
 }
 
 if ($reports) {
+    {
+	my $qq = CGI->new($q);
+	$qq->delete("reports");
+	$qq->delete("os");
+	$qq->delete("perl");
+    print <<EOF;
+<div style="margin-bottom:0.5cm;">
+  <a href="@{[ $qq->self_url ]}">Back to matrix</a>
+</div>
+EOF
+    }
+
+    if (defined $reports_header) {
+	print <<EOF;
+<div style="margin-bottom:0.5cm;">
+$reports_header	
+</div>
+EOF
+    }
+
     if ($table) {
 	$table->print;
     }
@@ -680,6 +718,16 @@ sub build_success_table ($$$) {
     my @perls   = sort { CPAN::Version->vcmp($b, $a) } keys %perl;
     my @osnames = sort { $a cmp $b } keys %osname;
 
+    my $reports_param = sub {
+	my $qq = CGI->new($q);
+	$qq->param("reports", 1);
+	if ($qq->param("author")) {
+	    $qq->delete("author");
+	    $qq->param("dist", "$dist $dist_version");
+	}
+	$qq;
+    };
+
     my @matrix;
     for my $perl (@perls) {
 	my @row;
@@ -697,25 +745,35 @@ sub build_success_table ($$$) {
 		    }
 		}
 		my $title = join(" ", @title);
-		my $qq = CGI->new($q);
-		$qq->param("reports", 1);
+		my $qq = $reports_param->();
 		$qq->param("os", $osname);
 		$qq->param("perl", $perl);
-		if ($qq->param("author")) {
-		    $qq->delete("author");
-		    $qq->param("dist", "$dist $dist_version");
-		}
 		push @row, qq{<a href="@{[ $qq->self_url ]}"><table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table></a>};
 	    } else {
 		push @row, "&nbsp;";
 	    }
 	}
-	unshift @row, $perl;
+	{
+	    my $qq = $reports_param->();
+	    $qq->param("perl", $perl);
+	    unshift @row, qq{<a href="@{[ $qq->self_url ]}">$perl</a>};
+	}
 	push @matrix, \@row;
     }
 
     my $table = HTML::Table->new(-data => \@matrix,
-				 -head => ["", @osnames],
+				 -head => [
+					   do {
+					       my $qq = $reports_param->();
+					       qq{<a href="@{[ $qq->self_url ]}">ALL</a>};
+					   },
+					   (map {
+					       my $osname = $_;
+					       my $qq = $reports_param->();
+					       $qq->param("os", $osname);
+					       qq{<a href="@{[ $qq->self_url ]}">$osname</a>};
+					   } @osnames),
+					  ],
 				 -spacing => 0,
 				);
     $table->setColHead(1);
