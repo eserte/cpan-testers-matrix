@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.67 2008/04/06 20:08:37 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.68 2008/04/06 20:20:14 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.67 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.68 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -98,7 +98,8 @@ my @actions = qw(PASS NA UNKNOWN FAIL);
 if ($reports) {
     my $want_perl = $q->param("perl");
     my $want_os = $q->param("os");
-    my $sort_column = $q->param("sort") || "action";
+    my @sort_columns = $q->param("sort");
+    @sort_columns = "action" if !@sort_columns;
 
     if (defined $want_perl || defined $want_os) {
 	$reports_header = "Reports filtered for ";
@@ -124,8 +125,21 @@ if ($reports) {
 	}
 	my $last_action;
 	my @matrix;
-	# By chance, lexical ordering fits: FAIL is first.
-	for my $rec (sort { $a->{$sort_column} cmp $b->{$sort_column} } @reports) {
+	# By chance, lexical ordering fits for sort=action: FAIL is first.
+	for my $rec (sort {
+	    my $res = 0;
+	    for my $sort_column (@sort_columns) {
+		if ($sort_column =~ m{^(osvers|perl)$}) {
+		    $res = cmp_version($a->{$sort_column}, $b->{$sort_column});
+		} elsif ($sort_column eq 'id') {
+		    $res = $a->{$sort_column} <=> $b->{$sort_column};
+		} else {
+		    $res = $a->{$sort_column} cmp $b->{$sort_column};
+		}
+		last if $res != 0;
+	    }
+	    $res;
+	} @reports) {
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
 			    qq{<a href="$rec->{url}">$rec->{id}</a>},
 			    $rec->{osvers},
@@ -138,7 +152,8 @@ if ($reports) {
 	my $sort_href = sub {
 	    my($label, $column) = @_;
 	    my $qq = CGI->new($q);
-	    $qq->param("sort", $column);
+	    my @new_sort_columns = ($column, grep { $_ ne $column } @sort_columns);
+	    $qq->param("sort", @new_sort_columns);
 	    qq{<a href="@{[ $qq->self_url ]}">$label</a>};
 	};
 	$table = HTML::Table->new(-head    => [$sort_href->("Result", "action"),
