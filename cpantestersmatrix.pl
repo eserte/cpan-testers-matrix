@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.65 2008/03/18 06:59:55 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.66 2008/04/06 19:47:55 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.65 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.66 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -41,6 +41,8 @@ sub get_cache_filename_from_dist ($$);
 sub meta_url ($);
 sub get_ua ();
 sub fetch_error_check ($);
+sub set_dist_and_version ($);
+sub get_perl_and_patch ($);
 
 my $cache_days = 1/4;
 
@@ -81,6 +83,7 @@ my $cachefile;
 
 my $dist = $q->param("dist");
 my $author = $q->param("author");
+my $reports = $q->param("reports");
 
 my $error;
 
@@ -91,11 +94,55 @@ my $latest_version;
 
 my @actions = qw(PASS NA UNKNOWN FAIL);
 
-if ($author) {
+if ($reports) {
+    my $want_perl = $q->param("perl");
+    my $want_os = $q->param("os");
+    my $sort_column = $q->param("sort") || "action";
     eval {
-	my $r;
-
-	$r = fetch_author_data($author);
+	my $r = fetch_data($dist);
+	set_newest_dist_version($r->{data});
+	my @reports;
+	for my $rec (@{ $r->{data} }) {
+	    next if $rec->{version} ne $dist_version;
+	    my($perl) = eval { get_perl_and_patch($rec) };
+	    next if !$perl;
+	    next if $perl ne $want_perl;
+	    next if $rec->{osname}  ne $want_os;
+	    push @reports, $rec;
+	}
+	my $last_action;
+	my @matrix;
+	# By chance, lexical ordering fits: FAIL is first.
+	for my $rec (sort { $a->{$sort_column} cmp $b->{$sort_column} } @reports) {
+	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
+			    qq{<a href="$rec->{url}">$rec->{id}</a>},
+			    $rec->{osvers},
+			    $rec->{archname},
+			  ];
+	}
+	my $sort_href = sub {
+	    my($label, $column) = @_;
+	    my $qq = CGI->new($q);
+	    $qq->param("sort", $column);
+	    qq{<a href="@{[ $qq->self_url ]}">$label</a>};
+	};
+	$table = HTML::Table->new(-head    => [$sort_href->("Result", "action"),
+					       $sort_href->("Id", "id"),
+					       $sort_href->("OS vers", "osvers"),
+					       $sort_href->("archname", "archname"),
+					      ],
+				  -spacing => 0,
+				  -data    => \@matrix,
+				  -class   => 'reports',
+				 );
+	$table->setColHead(1);
+	$title .= ": $dist $dist_version";
+	$ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
+    };
+    $error = $@ if $@;
+} elsif ($author) {
+    eval {
+	my $r = fetch_author_data($author);
 	my $author_dist;
 	($author, $author_dist, $cachefile, $error) = @{$r}{qw(author author_dist cachefile error)};
 	$r = build_author_table($author, $author_dist);
@@ -106,19 +153,14 @@ if ($author) {
     $error = $@ if $@;
 } elsif ($dist) {
     eval {
-	my $r;
-	
-	$r = fetch_data($dist);
+	my $r = fetch_data($dist);
 	my $data;
 	($dist, $data, $cachefile, $error) = @{$r}{qw(dist data cachefile error)};
 
 	if ($q->param("maxver")) {
 	    $r = build_maxver_table($data, $dist);
 	} else {
-	    # Get newest version
-	    if (!$dist_version) {
-		$dist_version = reduce { cmp_version($a,$b) > 0 ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
-	    }
+	    set_newest_dist_version($data);
 	    eval {
 		my $r = fetch_meta_yml($dist);
 		my $meta = $r->{meta};
@@ -149,11 +191,19 @@ print <<EOF;
   .action_UNKNOWN { background:orange; }
   .action_FAIL    { background:red;    }
 
+  .fgaction_PASS    { color:green;  }
+  .fgaction_NA      { color:orange; }
+  .fgaction_UNKNOWN { color:orange; }
+  .fgaction_FAIL    { color:red;    }
+
   table		  { border-collapse:collapse; }
   th,td           { border:1px solid black; }
   body		  { font-family:sans-serif; }
 
   .bt th,td	  { border:none; height:2.2ex; }
+
+  .reports th	  { border:2px solid black; }
+  .reports td	  { border:1px solid black; }
 
   .warn           { color:red; font-weight:bold; }
   .sml            { font-size: x-small; }
@@ -211,7 +261,16 @@ if (0 && $author && eval { require Gravatar::URL; 1 }) {
 EOF
 }
 
-if ($author) {
+if ($reports) {
+    if ($table) {
+	$table->print;
+    }
+
+    dist_links();
+
+} elsif ($author) {
+
+    teaser();
 
     if ($tables) {
 	for my $r (@$tables) {
@@ -235,6 +294,8 @@ EOF
     }
 
 } elsif ($dist) {
+
+    teaser();
 
     if ($table) {
 	$table->print;
@@ -289,18 +350,7 @@ EOF
 EOF
     }
 
-    (my $faked_module = $dist) =~ s{-}{::}g;
-    print <<EOF;
-<div style="float:left; margin-left:3em;">
-<h2>Other links</h2>
-<ul>
-<li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
-<li><a href="$ct_link">CPAN Testers</a>
-<li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
-<li><a href="http://rt.cpan.org/NoAuth/Bugs.html?Dist=$dist">RT</a>
-</ul>
-</div>
-EOF
+    dist_links();
 
     if ($table) {
 	show_legend();
@@ -372,12 +422,7 @@ sub fetch_data ($) {
 
     my $data;
 
-    my $dist = basename $raw_dist;
-    if ($dist =~ m{^(.*)[- ]([\d\._]+)$}) {
-	($dist, $dist_version) = ($1, $2);
-    } elsif ($dist =~ m{^(.*) (.*)}) {
-	($dist, $dist_version) = ($1, $2);
-    }
+    set_dist_and_version($raw_dist);
     my $orig_dist = $dist;
     $dist =~ s{::}{-}g; # common error: module -> dist
 
@@ -652,7 +697,15 @@ sub build_success_table ($$$) {
 		    }
 		}
 		my $title = join(" ", @title);
-		push @row, qq{<table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table>};
+		my $qq = CGI->new($q);
+		$qq->param("reports", 1);
+		$qq->param("os", $osname);
+		$qq->param("perl", $perl);
+		if ($qq->param("author")) {
+		    $qq->delete("author");
+		    $qq->param("dist", "$dist $dist_version");
+		}
+		push @row, qq{<a href="@{[ $qq->self_url ]}"><table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table></a>};
 	    } else {
 		push @row, "&nbsp;";
 	    }
@@ -782,6 +835,25 @@ sub build_author_table ($$) {
 	   };
 }
 
+# Sets the globals $dist and $dist_version
+sub set_dist_and_version ($) {
+    my $raw_dist = shift;
+    my $_dist = basename $raw_dist;
+    if ($_dist =~ m{^(.*)[- ]([\d\._]+)$}) {
+	($dist, $dist_version) = ($1, $2);
+    } elsif ($_dist =~ m{^(.*) (.*)}) {
+	($dist, $dist_version) = ($1, $2);
+    }
+}
+
+# Sets the globals $dist_version
+sub set_newest_dist_version {
+    my($data) = @_;
+    if (!$dist_version) {
+	$dist_version = reduce { cmp_version($a,$b) > 0 ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
+    }
+}
+
 sub get_perl_and_patch ($) {
     my($r) = @_;
     my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch(?:level)?\s+(\S+))?};
@@ -868,6 +940,29 @@ sub stylesheet_cpantesters {
   .action_NA      { background:#d6d342; }
   .action_UNKNOWN { background:#d6d342; }
   .action_FAIL    { background:#d63c39; }
+EOF
+}
+
+sub teaser {
+    print <<EOF;
+<div style="margin-bottom:0.5cm;">
+  <b>NOTE:</b> You can click now on the matrix cells to get the list of reports.
+</div>
+EOF
+}
+
+sub dist_links {
+    (my $faked_module = $dist) =~ s{-}{::}g;
+    print <<EOF;
+<div style="float:left; margin-left:3em;">
+<h2>Other links</h2>
+<ul>
+<li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
+<li><a href="$ct_link">CPAN Testers</a>
+<li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
+<li><a href="http://rt.cpan.org/NoAuth/Bugs.html?Dist=$dist">RT</a>
+</ul>
+</div>
 EOF
 }
 
