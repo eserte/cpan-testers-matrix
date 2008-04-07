@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.69 2008/04/07 18:54:51 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.70 2008/04/07 21:25:53 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.69 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.70 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1023,7 +1023,7 @@ EOF
 sub teaser {
     print <<EOF;
 <div style="margin-bottom:0.5cm;">
-  <b>NOTE:</b> You can click now on the matrix cells to get the list of reports.
+  <b>NEW:</b> You can click now on the matrix cells or row/column headers to get the list of corresponding reports.
 </div>
 EOF
 }
