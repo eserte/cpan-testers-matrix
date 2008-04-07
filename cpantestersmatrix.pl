@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.68 2008/04/06 20:20:14 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.69 2008/04/07 18:54:51 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.68 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.69 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -117,11 +117,12 @@ if ($reports) {
 	my @reports;
 	for my $rec (@{ $r->{data} }) {
 	    next if defined $dist_version && $rec->{version} ne $dist_version;
-	    my($perl) = eval { get_perl_and_patch($rec) };
+	    my($perl, $patch) = eval { get_perl_and_patch($rec) };
 	    next if !$perl;
 	    next if defined $want_perl && $perl ne $want_perl;
 	    next if defined $want_os && $rec->{osname} ne $want_os;
 	    push @reports, $rec;
+	    $rec->{patch} = $patch;
 	}
 	my $last_action;
 	my @matrix;
@@ -147,6 +148,7 @@ if ($reports) {
 			    (!defined $dist_version ? $rec->{version} : ()),
 			    (!defined $want_perl    ? $rec->{perl} : ()),
 			    (!defined $want_os      ? $rec->{osname} : ()),
+			    ( defined $want_perl    ? $rec->{patch} : ()),
 			  ];
 	}
 	my $sort_href = sub {
@@ -163,6 +165,7 @@ if ($reports) {
 					       (!defined $dist_version ? $sort_href->("Dist version", "version") : ()),
 					       (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
 					       (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
+					       ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
 					      ],
 				  -spacing => 0,
 				  -data    => \@matrix,
@@ -300,6 +303,7 @@ if ($reports) {
 	$qq->delete("reports");
 	$qq->delete("os");
 	$qq->delete("perl");
+	$qq->delete("sort");
     print <<EOF;
 <div style="margin-bottom:0.5cm;">
   <a href="@{[ $qq->self_url ]}">Back to matrix</a>
