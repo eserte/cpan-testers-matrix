@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.70 2008/04/07 21:25:53 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.71 2008/04/11 18:57:24 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.70 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.71 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1021,11 +1021,13 @@ EOF
 }
 
 sub teaser {
-    print <<EOF;
+    if ($q && !$q->param("maxver")) {
+	print <<EOF;
 <div style="margin-bottom:0.5cm;">
   <b>NEW:</b> You can click now on the matrix cells or row/column headers to get the list of corresponding reports.
 </div>
 EOF
+    }
 }
 
 sub dist_links {
