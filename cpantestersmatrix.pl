@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.71 2008/04/11 18:57:24 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.72 2008/04/19 07:37:39 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.71 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.72 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -45,6 +45,7 @@ sub set_dist_and_version ($);
 sub get_perl_and_patch ($);
 
 my $cache_days = 1/4;
+my $ua_timeout = 10;
 
 my $cache_root = "/tmp/cpantesters_cache_$<";
 mkdir $cache_root, 0755 if !-d $cache_root;
@@ -957,7 +958,7 @@ sub get_ua () {
     require LWP::UserAgent;
     return $UA if $UA;
     $UA = LWP::UserAgent->new;
-    $UA->timeout(30);
+    $UA->timeout($ua_timeout);
     $UA;
 }
 
