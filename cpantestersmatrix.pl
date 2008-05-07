@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.72 2008/04/19 07:37:39 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.73 2008/05/07 21:28:46 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.72 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.73 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -227,6 +227,10 @@ print <<EOF;
   .action_NA      { background:orange; }
   .action_UNKNOWN { background:orange; }
   .action_FAIL    { background:red;    }
+
+  .maxver_PASSNEW { background:green;      }
+  .maxver_PASSANY { background:lightgreen; }
+  .maxver_NONE    { background:red;        }  
 
   .fgaction_PASS    { color:green;  }
   .fgaction_NA      { color:orange; }
@@ -818,12 +822,20 @@ sub show_legend {
   <h2>Legend</h2>
   <table>
 EOF
-	for my $act (@actions) {
+	if ($q->param("maxver")) {
 	    print <<EOF;
+    <tr><td width="50" class="maxver_PASSNEW"></td><td>PASS newest</td></tr>
+    <tr><td width="50" class="maxver_PASSANY"></td><td>PASS some older version</td></tr>
+    <tr><td width="50" class="maxver_NONE"></td><td>no PASS at all (either FAIL or UNKNOWN or NA)</td></tr>
+EOF
+	} else {
+	    for my $act (@actions) {
+		print <<EOF;
     <tr>
       <td width="50" class="action_$act"></td><td>$act</td>
     </tr>
 EOF
+	    }
 	}
 	print <<EOF;
   </table>
@@ -866,11 +878,11 @@ sub build_maxver_table ($$) {
 	    if (!$hasreport{$perl}->{$osname}) {
 		push @row, "-";
 	    } elsif (!exists $maxver{$perl}->{$osname}) {
-		push @row, qq{<div style="background:red;">&nbsp;</div>};
+		push @row, qq{<div class="maxver_NONE">&nbsp;</div>};
 	    } elsif ($maxver{$perl}->{$osname} ne $maxver) {
-		push @row, qq{<div style="background:lightgreen;">$maxver{$perl}->{$osname}</div>};
+		push @row, qq{<div class="maxver_PASSANY">$maxver{$perl}->{$osname}</div>};
 	    } else {
-		push @row, qq{<div style="background:green;">$maxver</div>};
+		push @row, qq{<div class="maxver_PASSNEW">$maxver</div>};
 	    }
 	}
 	unshift @row, $perl;
