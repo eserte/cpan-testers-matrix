@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.73 2008/05/07 21:28:46 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.74 2008/07/09 17:22:04 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.73 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.74 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -739,8 +739,9 @@ sub build_success_table ($$$) {
 	$action{$perl}->{$r->{osname}}->{__TOTAL__}++;
     }
 
-    my @perls   = sort { CPAN::Version->vcmp($b, $a) } keys %perl;
-    my @osnames = sort { $a cmp $b } keys %osname;
+    # Here trap errors in source yaml (perl version=0, osname="")
+    my @perls   = grep { $_ } sort { CPAN::Version->vcmp($b, $a) } keys %perl;
+    my @osnames = grep { $_ } sort { $a cmp $b } keys %osname;
 
     my $reports_param = sub {
 	my $qq = CGI->new($q);
