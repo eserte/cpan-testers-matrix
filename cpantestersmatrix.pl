@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.74 2008/07/09 17:22:04 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.75 2008/08/05 21:18:16 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.74 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.75 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -73,9 +73,11 @@ my $reports_header;
     my $get_stylesheet = $q->param("get_stylesheet");
     if ($get_stylesheet) {
 	if ($get_stylesheet eq 'hicontrast') {
-	    stylesheet_hicontrast();
+	    stylesheet_hicontrast_out();
 	} elsif ($get_stylesheet eq 'cpantesters') {
-	    stylesheet_cpantesters();
+	    stylesheet_cpantesters_out();
+	} elsif ($get_stylesheet eq 'matrix') {
+	    stylesheet_matrix_out();
 	} else {
 	    die "Unhandled value <$get_stylesheet>";
 	}
@@ -223,10 +225,9 @@ print <<EOF;
  <head><title>$title</title>
   <link type="image/ico" rel="shortcut icon" href="http://www.perlfoundation.org/static/images/foundation/favicon.ico" />
   <style type="text/css"><!--
-  .action_PASS    { background:green;  }
-  .action_NA      { background:orange; }
-  .action_UNKNOWN { background:orange; }
-  .action_FAIL    { background:red;    }
+EOF
+print stylesheet_cpantesters();
+print <<EOF;
 
   .maxver_PASSNEW { background:green;      }
   .maxver_PASSANY { background:lightgreen; }
@@ -252,6 +253,7 @@ print <<EOF;
   --></style>
   <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=hicontrast" ]}" title="High contrast">
   <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=cpantesters" ]}" title="Same colors like \@cpantesters.perl.org">
+  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=matrix" ]}" title="Old cpantestersmatrix colors">
   <script type="text/javascript">
   <!-- Hide script
   function focus_first() {
@@ -1015,8 +1017,7 @@ BEGIN {
 }
 
 sub stylesheet_hicontrast {
-    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
-    print <<EOF;
+    <<EOF;
   .action_PASS    { background:#00ff00; }
   .action_NA      { background:#0000c0; }
   .action_UNKNOWN { background:#0000c0; }
@@ -1025,13 +1026,36 @@ EOF
 }
 
 sub stylesheet_cpantesters {
-    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
-    print <<EOF;
+    <<EOF;
   .action_PASS    { background:#5ad742; }
   .action_NA      { background:#d6d342; }
   .action_UNKNOWN { background:#d6d342; }
   .action_FAIL    { background:#d63c39; }
 EOF
+}
+
+sub stylesheet_matrix {
+    <<EOF;
+  .action_PASS    { background:green;  }
+  .action_NA      { background:orange; }
+  .action_UNKNOWN { background:orange; }
+  .action_FAIL    { background:red;    }
+EOF
+}
+
+sub stylesheet_hicontrast_out {
+    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
+    print stylesheet_hicontrast;
+}
+
+sub stylesheet_cpantesters_out {
+    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
+    print stylesheet_cpantesters;
+}
+
+sub stylesheet_matrix_out {
+    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
+    print stylesheet_matrix;
 }
 
 sub teaser {
