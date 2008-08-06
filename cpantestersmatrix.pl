@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.75 2008/08/05 21:18:16 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.76 2008/08/06 05:00:49 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.75 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.76 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -226,7 +226,7 @@ print <<EOF;
   <link type="image/ico" rel="shortcut icon" href="http://www.perlfoundation.org/static/images/foundation/favicon.ico" />
   <style type="text/css"><!--
 EOF
-print stylesheet_cpantesters();
+print stylesheet_matrix();
 print <<EOF;
 
   .maxver_PASSNEW { background:green;      }
