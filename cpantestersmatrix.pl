@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.76 2008/08/06 05:00:49 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.77 2008/08/06 05:12:06 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.76 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.77 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1061,8 +1061,9 @@ sub stylesheet_matrix_out {
 sub teaser {
     if ($q && !$q->param("maxver")) {
 	print <<EOF;
-<div style="margin-bottom:0.5cm;">
-  <b>NEW:</b> You can click now on the matrix cells or row/column headers to get the list of corresponding reports.
+<div style="margin-bottom:0.5cm; font-size:smaller; ">
+  You can click on the matrix cells or row/column headers to get the list of corresponding reports.<br/>
+  Alternative color schemes are available: try <i>View &gt; Page Style</i> or <i>View &gt; Use Style</i> in your browser.
 </div>
 EOF
     }
