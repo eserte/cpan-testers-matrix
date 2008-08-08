@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.77 2008/08/06 05:12:06 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.78 2008/08/08 13:50:37 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.77 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.78 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -429,7 +429,7 @@ if ($cachefile) {
     my $datum = strftime("%F %T UTC", gmtime ((stat($cachefile))[9]));
     print <<EOF;
   <div>
-   <i>$file</i> as of <i>$datum</i>
+   <i>$file</i> as of <i>$datum</i> <span class="sml">Use Shift-Reload for forced update</span>
   </div>
 EOF
 }
