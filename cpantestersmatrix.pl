@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.78 2008/08/08 13:50:37 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.79 2008/09/01 18:54:15 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.78 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.79 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -216,7 +216,7 @@ if ($reports) {
     $error = $@ if $@;
 }
 
-print $q->header;
+print $q->header('-expires' => '+'.int($cache_days*24).'h');
 
 my $latest_distribution_string = $is_latest_version ? " (latest distribution)" : "";
 
