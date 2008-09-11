@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.79 2008/09/01 18:54:15 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.80 2008/09/11 22:26:34 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.79 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.80 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -133,8 +133,10 @@ if ($reports) {
 	for my $rec (sort {
 	    my $res = 0;
 	    for my $sort_column (@sort_columns) {
-		if ($sort_column =~ m{^(osvers|perl)$}) {
+		if      ($sort_column eq 'osvers') {
 		    $res = cmp_version($a->{$sort_column}, $b->{$sort_column});
+		} elsif ($sort_column eq 'perl') {
+		    $res = cmp_version_with_patch($a->{$sort_column}, $b->{$sort_column});
 		} elsif ($sort_column eq 'id') {
 		    $res = $a->{$sort_column} <=> $b->{$sort_column};
 		} else {
@@ -1082,6 +1084,16 @@ sub dist_links {
 </ul>
 </div>
 EOF
+}
+
+sub cmp_version_with_patch {
+    my($a, $b) = @_;
+    for ($a, $b) {
+	if (my($ver, $patch) = $_ =~ m{^(\S+)\s+patch\s+(\S+)}) {
+	    $_ = $ver . "." . sprintf("%09d", $patch);
+	}
+    }
+    cmp_version($a, $b);
 }
 
 ## Did not help:
