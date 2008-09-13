@@ -15,3 +15,7 @@
   reason: http://rt.cpan.org/Ticket/Display.html?id=39240
 2206689:
   reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+1000493:
+  reason: Disk full
+1000481:
+  reason: Disk full
