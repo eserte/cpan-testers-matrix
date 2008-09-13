@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.80 2008/09/11 22:26:34 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.81 2008/09/13 08:49:02 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.80 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.81 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -26,6 +26,7 @@ use CGI qw(escapeHTML);
 use CGI::Carp qw();
 use CPAN::Version;
 use File::Basename qw(basename);
+use FindBin;
 use HTML::Table;
 use List::Util qw(reduce);
 use POSIX qw(strftime);
@@ -55,6 +56,11 @@ my $author_cache = "$cache_root/author";
 mkdir $author_cache, 0755 if !-d $author_cache;
 my $meta_cache = "$cache_root/meta";
 mkdir $meta_cache, 0755 if !-d $meta_cache;
+
+my($realbin) = $FindBin::RealBin =~ m{^(.*)$}; # untaint it
+my $amendments_yml = "$realbin/cpantesters_amendments.yml";
+my $amendments_st = "$realbin/cpantesters_amendments.st";
+my $amendments = get_amendments();
 
 my $q = CGI->new;
 
@@ -96,7 +102,7 @@ my %other_dist_versions;
 my $is_latest_version;
 my $latest_version;
 
-my @actions = qw(PASS NA UNKNOWN FAIL);
+my @actions = qw(PASS NA UNKNOWN INVALID FAIL);
 
 if ($reports) {
     my $want_perl = $q->param("perl");
@@ -154,6 +160,7 @@ if ($reports) {
 			    (!defined $want_perl    ? $rec->{perl} : ()),
 			    (!defined $want_os      ? $rec->{osname} : ()),
 			    ( defined $want_perl    ? $rec->{patch} : ()),
+			    $rec->{action_comment},
 			  ];
 	}
 	my $sort_href = sub {
@@ -171,6 +178,7 @@ if ($reports) {
 					       (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
 					       (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
 					       ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
+					       "Comment",
 					      ],
 				  -spacing => 0,
 				  -data    => \@matrix,
@@ -239,6 +247,7 @@ print <<EOF;
   .fgaction_NA      { color:orange; }
   .fgaction_UNKNOWN { color:orange; }
   .fgaction_FAIL    { color:red;    }
+  .fgaction_INVALID { color:orange; }
 
   table		  { border-collapse:collapse; }
   th,td           { border:1px solid black; }
@@ -600,6 +609,9 @@ EOF
     } elsif ($resp && $resp->is_success) {
 	$data = YAML::Load($resp->decoded_content)
 	    or die "Could not load YAML data from <$url>";
+	for my $result (@$data) {
+	    amend_result($result);
+	}
 	eval {
 	    lock_nstore($data, $cachefile);
 	};
@@ -679,6 +691,8 @@ EOF
 	#$root->setNamespaceDeclURI(undef, undef); # sigh, not available in older XML::LibXML's
 	for my $node ($root->childNodes) {
 	    next if $node->nodeName ne 'item';
+	    my $about = $node->getAttribute("rdf:about");
+	    my($report_id) = $about =~ m{/perl\.cpan\.testers/(\d+)};
 	    for my $node2 ($node->childNodes) {
 		if ($node2->nodeName eq 'title') {
 		    my $report_line = $node2->textContent;
@@ -692,12 +706,16 @@ EOF
 			my $d = CPAN::DistnameInfo->new("$author/$dist_plus_ver.tar.gz");
 			my $dist = $d->dist;
 			my $version = $d->version;
-			push @{$author_dist->{$dist}}, { dist => $dist,
-							 version => $version,
-							 action => $action,
-							 perl => $perl,
-							 osname => $osname,
-						       };
+			my $id = $report_id;
+			my $result = { dist => $dist,
+				       version => $version,
+				       action => $action,
+				       id => $report_id,
+				       perl => $perl,
+				       osname => $osname,
+				     };
+			amend_result($result);
+			push @{$author_dist->{$dist}}, $result;
 		    } else {
 			warn "Cannot parse report line <$report_line>";
 		    }
@@ -831,7 +849,7 @@ EOF
 	    print <<EOF;
     <tr><td width="50" class="maxver_PASSNEW"></td><td>PASS newest</td></tr>
     <tr><td width="50" class="maxver_PASSANY"></td><td>PASS some older version</td></tr>
-    <tr><td width="50" class="maxver_NONE"></td><td>no PASS at all (either FAIL or UNKNOWN or NA)</td></tr>
+    <tr><td width="50" class="maxver_NONE"></td><td>no PASS at all (either FAIL, UNKNOWN, NA, or INVALID)</td></tr>
 EOF
 	} else {
 	    for my $act (@actions) {
@@ -1024,6 +1042,7 @@ sub stylesheet_hicontrast {
   .action_NA      { background:#0000c0; }
   .action_UNKNOWN { background:#0000c0; }
   .action_FAIL    { background:#800000; }
+  .action_INVALID { background:#0000c0; }
 EOF
 }
 
@@ -1033,6 +1052,7 @@ sub stylesheet_cpantesters {
   .action_NA      { background:#d6d342; }
   .action_UNKNOWN { background:#d6d342; }
   .action_FAIL    { background:#d63c39; }
+  .action_INVALID { background:#d6d342; }
 EOF
 }
 
@@ -1042,6 +1062,7 @@ sub stylesheet_matrix {
   .action_NA      { background:orange; }
   .action_UNKNOWN { background:orange; }
   .action_FAIL    { background:red;    }
+  .action_INVALID { background:orange; }
 EOF
 }
 
@@ -1084,6 +1105,31 @@ sub dist_links {
 </ul>
 </div>
 EOF
+}
+
+sub get_amendments {
+    my $amendments = {};
+    eval {
+	if (-r $amendments_st && -s $amendments_st && -M $amendments_st < -M $amendments_yml) {
+	    $amendments = lock_retrieve $amendments_st;
+	} elsif (-r $amendments_yml) {
+	    require YAML;
+	    $amendments = YAML::LoadFile($amendments_yml);
+	    lock_nstore($amendments, $amendments_st);
+	}
+    };
+    warn $@ if $@;
+    $amendments;
+}
+
+sub amend_result {
+    my $result = shift;
+    my $id = $result->{id};
+    my $action_comment;
+    if (defined $id && $amendments && $amendments->{$id}) {
+	$result->{action} = "INVALID"; # currently all amendments are ... -> INVALID
+	$result->{action_comment} = $amendments->{$id}->{reason};
+    }
 }
 
 sub cmp_version_with_patch {
