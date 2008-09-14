@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.82 2008/09/13 16:07:04 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.83 2008/09/14 06:26:12 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.82 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.83 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1128,8 +1128,10 @@ sub amend_result {
     my $id = $result->{id};
     my $action_comment;
     if (defined $id && $amendments && $amendments->{$id}) {
-	$result->{action} = "INVALID"; # currently all amendments are ... -> INVALID
-	$result->{action_comment} = $amendments->{$id}->{reason};
+	if (my $new_action = $amendments->{$id}->{action}) {
+	    $result->{action} = $new_action;
+	}
+	$result->{action_comment} = $amendments->{$id}->{comment};
     }
 }
 

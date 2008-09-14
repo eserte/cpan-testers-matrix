@@ -1,21 +1,33 @@
 ---
 2207064:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 2206988:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 2206984:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 2206837:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 2206755:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 2206714:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 2206690:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 2206689:
-  reason: http://rt.cpan.org/Ticket/Display.html?id=39240
+  comment: http://rt.cpan.org/Ticket/Display.html?id=39240
+  action: INVALID
 1000493:
-  reason: Disk full
+  comment: Disk full
+  action: INVALID
 1000481:
-  reason: Disk full
+  comment: Disk full
+  action: INVALID
+2204594:
+  comment: "Fixed in https://svn.perl.org/modules/Tk r11788"
