@@ -1,0 +1,17 @@
+---
+type: map
+mapping:
+  amendments:
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+          comment:
+            type: text
+          action:
+            type: text
+            enum: ["INVALID", "PASS", "FAIL", "NA", "UNKNOWN"]
+          id:
+            type: seq
+            sequence:
+              - type: int
