@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.84 2008/09/14 16:46:40 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.85 2008/09/14 17:34:17 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.84 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.85 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -180,7 +180,7 @@ if ($reports) {
 					       (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
 					       (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
 					       ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
-					       "Comment",
+					       $sort_href->("Comment", "action_comment"),
 					      ],
 				  -spacing => 0,
 				  -data    => \@matrix,
