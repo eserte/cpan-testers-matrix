@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.83 2008/09/14 06:26:12 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.84 2008/09/14 16:46:40 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.83 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.84 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -60,7 +60,7 @@ mkdir $meta_cache, 0755 if !-d $meta_cache;
 my($realbin) = $FindBin::RealBin =~ m{^(.*)$}; # untaint it
 my $amendments_yml = "$realbin/cpantesters_amendments.yml";
 my $amendments_st = "$realbin/cpantesters_amendments.st";
-my $amendments = get_amendments();
+my $amendments;
 
 my $q = CGI->new;
 
@@ -152,7 +152,8 @@ if ($reports) {
 	    }
 	    $res;
 	} @reports) {
-	    (my $action_comment_html = $rec->{action_comment}) =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
+	    my $action_comment_html = $rec->{action_comment}||"";
+	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
 			    qq{<a href="$rec->{url}">$rec->{id}</a>},
 			    $rec->{osvers},
@@ -1115,8 +1116,15 @@ sub get_amendments {
 	    $amendments = lock_retrieve $amendments_st;
 	} elsif (-r $amendments_yml) {
 	    require YAML;
-	    $amendments = YAML::LoadFile($amendments_yml);
+	    my $raw_amendments = YAML::LoadFile($amendments_yml);
+	    for my $amendment (@{ $raw_amendments->{amendments} }) {
+		for my $id (@{ $amendment->{id} }) {
+		    $amendments->{$id} = $amendment;
+		}
+	    }
 	    lock_nstore($amendments, $amendments_st);
+	} else {
+	    warn "$amendments_yml not readable!";
 	}
     };
     warn $@ if $@;
@@ -1127,6 +1135,7 @@ sub amend_result {
     my $result = shift;
     my $id = $result->{id};
     my $action_comment;
+    $amendments ||= get_amendments();
     if (defined $id && $amendments && $amendments->{$id}) {
 	if (my $new_action = $amendments->{$id}->{action}) {
 	    $result->{action} = $new_action;
