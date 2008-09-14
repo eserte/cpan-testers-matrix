@@ -51,6 +51,15 @@ amendments:
       - 1371120
       - 1114766
       - 916837
+      - 1430120
+      - 1532904
+      - 1549468
+      - 1625228
+      - 2011971
+      - 2029156
+      - 1624922
+      - 1717835
+      - 1779825
   - comment: "UNRESOLVED: KWin triggered failure (entry.t, listbox.t)"
     id:
       - 2147642
@@ -61,6 +70,9 @@ amendments:
     id:
       - 2131448
       - 1644475
+  - comment: "UNRESOLVED: wm is fluxbox (many not viewable/visibility failures, entry.t unexpected results, wm-tcl.t)"
+    id:
+      - 924174
   - comment: "UNRESOLVED: geometry problems, unknown wm"
     id:
       - 1118305
@@ -78,6 +90,15 @@ amendments:
   - comment: "UNRESOLVED: compilation failed; test output truncated"
     id:
       - 878409
+      - 870033
+      - 1623322
+      - 1057321
+      - 1398516
+      - 1517925
+      - 1830538
+      - 897675
+      - 898979
+      - 921224
   - comment: "UNRESOLVED: listbox.t geometry glitch, wm is Xfwm4"
     id:
       - 1604206
@@ -87,3 +108,49 @@ amendments:
   - comment: "UNRESOLVED: leak.t failure"
     id:
       - 1407839
+  - comment: "UNRESOLVED: geometry problem in canvas.t"
+    id:
+      - 881052
+      - 880588
+  - comment: "UNRESOLVED: geometry problem in canvas.t (like above), unexpected result in wm-tcl.t"
+    id:
+      - 875128
+  - comment: "Fixed in https://svn.perl.org/modules/Tk r10619 (rgb.txt location for OpenBSD)"
+    id:
+      - 950145
+      - 950148
+  - comment: "UNRESOLVED: immediate bus error"
+    id:
+      - 997617
+      - 1434580
+      - 869472
+      - 869253
+      - 1996960
+  - comment: "UNRESOLVED: cygwin compilation using X11 libraries does not work"
+    id:
+      - 998211
+      - 1194890
+      - 882726
+  - comment: "UNRESOLVED: fbox.t segfault after test 12 or so"
+    id:
+      - 1127465
+      - 868492
+      - 871308
+      - 871788
+      - 1218573
+  - comment: "UNRESOLVED: various failures: entry.t callbacks, unicode+text movement, wm-tcl.t"
+    id:
+      - 1914522
+  - comment: "UNRESOLVED: one or two failures in entry.t, wm is Metacity"
+    id:
+      - 1196307
+      - 1369724
+  - comment: "http://rt.cpan.org/Ticket/Display.html?id=33190 (wrong compiler options for libpng)"
+    id:
+      - 1608835
+      - 1608853
+      - 2132648
+  - comment: "http://rt.cpan.org/Ticket/Display.html?id=33190 (wrong compiler options for libpng) (wrong report grade detected!)"
+    action: FAIL
+    id:
+      - 1922604
