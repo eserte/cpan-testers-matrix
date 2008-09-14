@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.85 2008/09/14 17:34:17 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.86 2008/09/14 20:44:51 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.85 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.86 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -136,6 +136,7 @@ if ($reports) {
 	my $last_action;
 	my @matrix;
 	# By chance, lexical ordering fits for sort=action: FAIL is first.
+	no warnings 'uninitialized';
 	for my $rec (sort {
 	    my $res = 0;
 	    for my $sort_column (@sort_columns) {
