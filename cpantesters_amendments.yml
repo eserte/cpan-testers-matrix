@@ -16,6 +16,7 @@ amendments:
     id:
       - 1000493
       - 1000481
+      - 1884788
   - comment: "Fixed in https://svn.perl.org/modules/Tk r11788 (float inaccuracies)"
     id:
       - 2204594
@@ -66,7 +67,7 @@ amendments:
   - comment: "UNRESOLVED: listbox.t geometry glitches, wm is KWin"
     id:
       - 1040973
-  - comment: "UNRESOLVED: wm is fluxbox (many no event type or button failures)"
+  - comment: "reported in http://rt.cpan.org/Ticket/Display.html?id=38746 and solved in https://svn.perl.org/modules/Tk/trunk r11716"
     id:
       - 2131448
       - 1644475
