@@ -183,3 +183,42 @@ amendments:
       - 2162372
       - 2187975
       - 2207714
+  - comment: "no mysql include files installed"
+    action: NA
+    id:
+      - 2166832
+      - 2146357
+  - comment: "cannot find mysql_config"
+    action: NA
+    id:
+      - 2207233
+      - 2197955
+      - 2154282
+      - 2102201
+      - 2080312
+      - 2080305
+      - 2046184
+  - comment: "DBI::DBD missing in PREREQ_PM"
+    id:
+      - 2155227
+      - 2154673
+      - 2083423
+      - 2037357
+      - 2035556
+      - 2033408
+      - 2030889
+      - 2030811
+  - comment: "Access denied to database"
+    id:
+      - 2147003
+      - 2071363
+      - 2045646
+  - comment: "MySQL connection problem (not running?)"
+    id:
+      - 2180580
+      - 2064518
+      - 2055233
+  - comment: 'UNRESOLVED: Undefined symbol "gethostbyname_r"'
+    id:
+      - 2164716
+      - 2073121
