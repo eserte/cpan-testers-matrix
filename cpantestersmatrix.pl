@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.86 2008/09/14 20:44:51 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.87 2008/09/17 20:50:17 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.86 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.87 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -694,7 +694,7 @@ EOF
 	#$root->setNamespaceDeclURI(undef, undef); # sigh, not available in older XML::LibXML's
 	for my $node ($root->childNodes) {
 	    next if $node->nodeName ne 'item';
-	    my $about = $node->getAttribute("rdf:about");
+	    my $about = $node->getAttribute("rdf:about") || ''; # XXX may be undef with some XML::LibXML versions?!
 	    my($report_id) = $about =~ m{/perl\.cpan\.testers/(\d+)};
 	    for my $node2 ($node->childNodes) {
 		if ($node2->nodeName eq 'title') {
