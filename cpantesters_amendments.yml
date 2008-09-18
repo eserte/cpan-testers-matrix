@@ -222,3 +222,7 @@ amendments:
     id:
       - 2164716
       - 2073121
+  - comment: 'DISPLAY defined, but could not open it'
+    id:
+      - 1920677
+      - 1938866
