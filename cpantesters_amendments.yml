@@ -67,8 +67,9 @@ amendments:
   - comment: "UNRESOLVED: listbox.t geometry glitches, wm is KWin"
     id:
       - 1040973
-  - comment: "reported in http://rt.cpan.org/Ticket/Display.html?id=38746 and solved in https://svn.perl.org/modules/Tk/trunk r11716"
+  - comment: "reported in http://rt.cpan.org/Ticket/Display.html?id=38746 and solved in https://svn.perl.org/modules/Tk/trunk r11716 (new X11 events)"
     id:
+      - 2248075
       - 2131448
       - 1644475
   - comment: "UNRESOLVED: wm is fluxbox (many not viewable/visibility failures, entry.t unexpected results, wm-tcl.t)"
