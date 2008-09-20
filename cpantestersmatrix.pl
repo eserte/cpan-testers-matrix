@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.88 2008/09/18 19:50:41 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.89 2008/09/20 16:13:30 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.88 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.89 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -69,7 +69,10 @@ my $title = "CPAN Testers Matrix";
 if ($q->script_name =~ /cpantestersmatrix2/) {
     $title .= " (beta)";
 }
-my $ct_link = "http://cpantesters.perl.org";
+my $old_ct_domain = "cpantesters.perl.org";
+my $new_ct_domain = "www.cpantesters.org";
+my $ct_domain = $new_ct_domain;
+my $ct_link = "http://$ct_domain";
 my $table;
 my $tables;
 my $cachefile;
@@ -189,7 +192,7 @@ if ($reports) {
 				 );
 	$table->setColHead(1);
 	$title .= ": $dist $dist_version";
-	$ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
+	$ct_link = "http://$ct_domain/show/$dist.html#$dist-$dist_version";
     };
     $error = $@ if $@;
 } elsif ($author) {
@@ -525,7 +528,7 @@ sub fetch_data ($) {
 
 	my $fetch_dist_data = sub {
 	    my($dist) = @_;
-	    $url = "http://cpantesters.perl.org/show/$dist.yaml";
+	    $url = "http://$ct_domain/show/$dist.yaml";
 	    my $resp = $ua->get($url);
 	    $resp;
 	};
@@ -656,7 +659,7 @@ sub fetch_author_data ($) {
 	require CPAN::DistnameInfo;
 
 	my $ua = get_ua;
-	$url = "http://cpantesters.perl.org/author/$author.rss";
+	$url = "http://$old_ct_domain/author/$author.rss"; # XXX must use old site because of limitation to 100 records
 	#my $url = "file:///home/e/eserte/trash/SREZIC.rss";
 	$resp = $ua->get($url);
 	last GET_DATA if $resp->is_success;
@@ -834,7 +837,7 @@ sub build_success_table ($$$) {
     }
 
     my $title = "$dist $dist_version";
-    my $ct_link = "http://cpantesters.perl.org/show/$dist.html#$dist-$dist_version";
+    my $ct_link = "http://$ct_domain/show/$dist.html#$dist-$dist_version";
 
     return { table => $table,
 	     title => "$dist $dist_version",
@@ -928,7 +931,7 @@ sub build_maxver_table ($$) {
 
     return { table => $table,
 	     title => "$dist (max version with a PASS)",
-	     ct_link => "http://cpantesters.perl.org/show/$dist.html",
+	     ct_link => "http://$ct_domain/show/$dist.html",
 	   };
 }
 
@@ -947,7 +950,7 @@ sub build_author_table ($$) {
     }
     return { tables => \@tables,
 	     title => $author,
-	     ct_link => "http://cpantesters.perl.org/author/$author.html",
+	     ct_link => "http://$ct_domain/author/$author.html",
 	   };
 }
 
@@ -1196,6 +1199,7 @@ Slaven ReziE<0x107>
 =head1 SEE ALSO
 
 L<http://cpandeps.cantrell.org.uk/>,
-L<http://cpantesters.perl.org/>
+L<http://www.cpantesters.org/> (new),
+L<http://cpantesters.perl.org/> (old)
 
 =cut
