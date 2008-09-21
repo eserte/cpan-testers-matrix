@@ -85,7 +85,7 @@ amendments:
   - comment: "UNRESOLVED: TextSearchCmd procedure failure, wm is Metacity"
     id:
       - 871450
-  - comment: "UNRESOLVED: geometry problem in text.t, wm is compiz; another problem fixed in r11788"
+  - comment: "Workaround in https://svn.perl.org/modules/Tk r11846 (geometry problem in text.t, wm is compiz; another problem fixed in r11788)"
     id:
       - 959832
       - 959777
@@ -104,7 +104,7 @@ amendments:
   - comment: "UNRESOLVED: listbox.t geometry glitch, wm is Xfwm4"
     id:
       - 1604206
-  - comment: "UNRESOLVED: text.t geometry glitch, wm is compiz (see also report 959832)"
+  - comment: "Workaround in https://svn.perl.org/modules/Tk r11846 (text.t geometry glitch, wm is compiz, see also report 959832)"
     id:
       - 1549136
   - comment: "UNRESOLVED: leak.t failure"
