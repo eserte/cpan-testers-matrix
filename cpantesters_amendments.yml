@@ -110,7 +110,7 @@ amendments:
   - comment: "UNRESOLVED: leak.t failure"
     id:
       - 1407839
-  - comment: "UNRESOLVED: geometry problem in canvas.t"
+  - comment: "Workaround in https://svn.perl.org/modules/Tk r11845 (geometry problem in canvas.t, 215 vs. 255, initial mainwindow is too small)"
     id:
       - 881052
       - 880588
@@ -143,7 +143,7 @@ amendments:
   - comment: "UNRESOLVED: various failures: entry.t callbacks, unicode+text movement, wm-tcl.t"
     id:
       - 1914522
-  - comment: "UNRESOLVED: one or two failures in entry.t, wm is Metacity"
+  - comment: "Possibly muted in https://svn.perl.org/modules/Tk r11844 and r11842 (one or two failures in entry.t, wm is Metacity)"
     id:
       - 1196307
       - 1369724
