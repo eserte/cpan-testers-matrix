@@ -67,7 +67,7 @@ amendments:
   - comment: "UNRESOLVED: listbox.t geometry glitches, wm is KWin"
     id:
       - 1040973
-  - comment: "reported in http://rt.cpan.org/Ticket/Display.html?id=38746 and solved in https://svn.perl.org/modules/Tk/trunk r11716 (new X11 events)"
+  - comment: "Fixed in https://svn.perl.org/modules/Tk/trunk r11716 (reported in http://rt.cpan.org/Ticket/Display.html?id=38746 , new X11 events)"
     id:
       - 2248075
       - 2131448
@@ -78,8 +78,7 @@ amendments:
   - comment: "UNRESOLVED: geometry problems, unknown wm"
     id:
       - 1118305
-      - 912456
-  - comment: "UNRESOLVED: various failures, missing information, wm is Metacity"
+  - comment: "UNRESOLVED: segfaults in entry.t, JP.t, KR.t, wm is Metacity"
     id:
       - 967452
   - comment: "UNRESOLVED: TextSearchCmd procedure failure, wm is Metacity"
@@ -107,6 +106,7 @@ amendments:
   - comment: "Workaround in https://svn.perl.org/modules/Tk r11846 (text.t geometry glitch, wm is compiz, see also report 959832)"
     id:
       - 1549136
+      - 912456
   - comment: "UNRESOLVED: leak.t failure"
     id:
       - 1407839
@@ -147,12 +147,12 @@ amendments:
     id:
       - 1196307
       - 1369724
-  - comment: "http://rt.cpan.org/Ticket/Display.html?id=33190 (wrong compiler options for libpng)"
+  - comment: "Fixed in https://svn.perl.org/modules/Tk r2112 (reported in http://rt.cpan.org/Ticket/Display.html?id=33190 , wrong compiler options for libpng)"
     id:
       - 1608835
       - 1608853
       - 2132648
-  - comment: "http://rt.cpan.org/Ticket/Display.html?id=33190 (wrong compiler options for libpng) (wrong report grade detected!)"
+  - comment: "Fixed in https://svn.perl.org/modules/Tk r2112 (reported in http://rt.cpan.org/Ticket/Display.html?id=33190 , wrong compiler options for libpng) (wrong report grade detected!)"
     action: FAIL
     id:
       - 1922604
@@ -225,6 +225,71 @@ amendments:
       - 2073121
   - comment: 'DISPLAY defined, but could not open it'
     id:
+      - 1254868
+      - 1515604
       - 1920677
       - 1938866
       - 2247880
+  - comment: 'A failed configure_requires causes a FAIL report: http://rt.cpan.org/Ticket/Display.html?id=34580'
+    action: INVALID
+    id:
+      - 1815335 
+      - 1798108 
+      - 1764134 
+      - 1748648 
+      - 1744771 
+      - 1715136 
+      - 1706032 
+      - 1704364 
+      - 1672750 
+      - 1649876 
+      - 1648444 
+      - 1614358 
+      - 1606995 
+      - 1585453 
+      - 1579979 
+      - 1579442 
+      - 1556852 
+      - 1552355 
+      - 1546845 
+      - 1538220 
+      - 1522695 
+      - 1516682 
+      - 1510006 
+      - 1498694 
+      - 1489834 
+      - 1481361 
+      - 1469894 
+      - 1457255 
+      - 1441982 
+      - 1436756 
+      - 1418757 
+      - 1400595 
+      - 1384092 
+      - 1352829 
+      - 1320899 
+      - 1303125 
+      - 1301736 
+      - 1296695 
+      - 1285689 
+      - 1268198 
+      - 1262972 
+      - 1224663 
+      - 1216470 
+      - 1211369 
+      - 1194022 
+      - 1168475 
+      - 1155831 
+      - 1153521 
+      - 1143951 
+      - 1135639 
+      - 1130311 
+      - 1121914 
+      - 1101608 
+      -  971639 
+      -  970943 
+      -  921348 
+      -  899203 
+      -  897498 
+      -  791307 
+
