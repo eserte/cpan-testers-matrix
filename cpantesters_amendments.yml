@@ -341,3 +341,6 @@ amendments:
       - 1131348
       - 725993
       - 499791
+  - comment: 'All perls near patch 30095 are broken'
+    id:
+      - 2436295
