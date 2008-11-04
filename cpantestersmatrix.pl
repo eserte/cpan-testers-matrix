@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.89 2008/09/20 16:13:30 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.90 2008/11/04 20:38:15 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.89 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.90 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -71,7 +71,8 @@ if ($q->script_name =~ /cpantestersmatrix2/) {
 }
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
-my $ct_domain = $new_ct_domain;
+#my $ct_domain = $new_ct_domain;
+my $ct_domain = $old_ct_domain;
 my $ct_link = "http://$ct_domain";
 my $table;
 my $tables;
@@ -659,8 +660,12 @@ sub fetch_author_data ($) {
 	require CPAN::DistnameInfo;
 
 	my $ua = get_ua;
-	$url = "http://$old_ct_domain/author/$author.rss"; # XXX must use old site because of limitation to 100 records
-	#my $url = "file:///home/e/eserte/trash/SREZIC.rss";
+	if ($ct_domain eq $new_ct_domain) {
+	    $url = "http://$new_ct_domain/author/$author.yaml";
+	} else {
+	    $url = "http://$old_ct_domain/author/$author.rss"; # XXX must use old site because of limitation to 100 records
+	}
+	#$url = "file:///home/e/eserte/trash/SREZIC.yaml";
 	$resp = $ua->get($url);
 	last GET_DATA if $resp->is_success;
 
@@ -685,47 +690,58 @@ EOF
 	$author_dist = lock_retrieve($cachefile)
 	    or die "Could not load cached data";
     } elsif ($resp && $resp->is_success) {
-	my $p = XML::LibXML->new;
-	my $doc = eval {
-	    $p->parse_string($resp->decoded_content);
-	};
-	if ($@) {
-	    warn $@;
-	    die "Error parsing rss feed from <$url>";
-	}
-	my $root = $doc->documentElement;
-	#$root->setNamespaceDeclURI(undef, undef); # sigh, not available in older XML::LibXML's
-	for my $node ($root->childNodes) {
-	    next if $node->nodeName ne 'item';
-	    my $about = $node->getAttribute("rdf:about") || ''; # XXX may be undef with some XML::LibXML versions?!
-	    my($report_id) = $about =~ m{/perl\.cpan\.testers/(\d+)};
-	    for my $node2 ($node->childNodes) {
-		if ($node2->nodeName eq 'title') {
-		    my $report_line = $node2->textContent;
-		    if (my($action, $dist_plus_ver, $perl, $osname)
-			= $report_line =~ m{^
-					    (\S+)\s+ # action (PASS, FAIL ...)
-					    (\S+)\s+ # distribution+version
-					    (\S+(?:\s+patch(?:level)?\s+\d+|\s+RC\d+)?)\s+ # patchlevel/RC...
-					    on\s+(\S+) # OS
-				           }x) {
-			my $d = CPAN::DistnameInfo->new("$author/$dist_plus_ver.tar.gz");
-			my $dist = $d->dist;
-			my $version = $d->version;
-			my $id = $report_id;
-			my $result = { dist => $dist,
-				       version => $version,
-				       action => $action,
-				       id => $report_id,
-				       perl => $perl,
-				       osname => $osname,
-				     };
-			amend_result($result);
-			push @{$author_dist->{$dist}}, $result;
-		    } else {
-			warn "Cannot parse report line <$report_line>";
+	if ($url =~ m{\.ya?ml$}) {
+	    require YAML;
+	    my $data = YAML::Load($resp->decoded_content);
+	    for my $result (@$data) {
+		my $dist = $result->{dist} = $result->{distribution};
+		amend_result($result);
+		push @{$author_dist->{$dist}}, $result;
+	    }
+	} else {
+	    # assume RSS
+	    my $p = XML::LibXML->new;
+	    my $doc = eval {
+		$p->parse_string($resp->decoded_content);
+	    };
+	    if ($@) {
+		warn $@;
+		die "Error parsing rss feed from <$url>";
+	    }
+	    my $root = $doc->documentElement;
+	    #$root->setNamespaceDeclURI(undef, undef); # sigh, not available in older XML::LibXML's
+	    for my $node ($root->childNodes) {
+		next if $node->nodeName ne 'item';
+		my $about = $node->getAttribute("rdf:about") || ''; # XXX may be undef with some XML::LibXML versions?!
+		my($report_id) = $about =~ m{/perl\.cpan\.testers/(\d+)};
+		for my $node2 ($node->childNodes) {
+		    if ($node2->nodeName eq 'title') {
+			my $report_line = $node2->textContent;
+			if (my($action, $dist_plus_ver, $perl, $osname)
+			    = $report_line =~ m{^
+						(\S+)\s+ # action (PASS, FAIL ...)
+						(\S+)\s+ # distribution+version
+						 (\S+(?:\s+patch(?:level)?\s+\d+|\s+RC\d+)?)\s+ # patchlevel/RC...
+						  on\s+(\S+) # OS
+					       }x) {
+			    my $d = CPAN::DistnameInfo->new("$author/$dist_plus_ver.tar.gz");
+			    my $dist = $d->dist;
+			    my $version = $d->version;
+			    my $id = $report_id;
+			    my $result = { dist => $dist,
+					   version => $version,
+					   action => $action,
+					   id => $report_id,
+					   perl => $perl,
+					   osname => $osname,
+					 };
+			    amend_result($result);
+			    push @{$author_dist->{$dist}}, $result;
+			} else {
+			    warn "Cannot parse report line <$report_line>";
+			}
+			last;
 		    }
-		    last;
 		}
 	    }
 	}
@@ -958,9 +974,11 @@ sub build_author_table ($$) {
 sub set_dist_and_version ($) {
     my $raw_dist = shift;
     my $_dist = basename $raw_dist;
-    if ($_dist =~ m{^(.*)[- ]([\d\._]+)$}) {
+    if ($_dist =~ m{^(.*) (.*)}) {
 	($dist, $dist_version) = ($1, $2);
-    } elsif ($_dist =~ m{^(.*) (.*)}) {
+    } elsif ($_dist =~ m{^Acme-(?:24|6502)$}) { # XXX heuristics to get Acme-6502 right, need a better solution!
+	# keep existing global $dist
+    } elsif ($_dist =~ m{^(.*)[- ]([\d\._]+)$}) {
 	($dist, $dist_version) = ($1, $2);
     }
 }
