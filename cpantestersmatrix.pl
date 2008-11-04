@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.90 2008/11/04 20:38:15 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.91 2008/11/04 20:49:55 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.90 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.91 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -88,6 +88,8 @@ my $reports_header;
 	    stylesheet_cpantesters_out();
 	} elsif ($get_stylesheet eq 'matrix') {
 	    stylesheet_matrix_out();
+	} elsif ($get_stylesheet eq 'gradients') {
+	    stylesheet_gradients_out();
 	} else {
 	    die "Unhandled value <$get_stylesheet>";
 	}
@@ -272,6 +274,7 @@ print <<EOF;
   <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=hicontrast" ]}" title="High contrast">
   <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=cpantesters" ]}" title="Same colors like \@cpantesters.perl.org">
   <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=matrix" ]}" title="Old cpantestersmatrix colors">
+  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=gradients" ]}" title="Gradients by number of tests">
   <script type="text/javascript">
   <!-- Hide script
   function focus_first() {
@@ -809,7 +812,8 @@ sub build_success_table ($$$) {
 		for my $act (@actions) {
 		    if ($acts->{$act}) {
 			my $percent = int(100*($acts->{$act}||0)/$acts->{__TOTAL__});
-			push @cell, qq{<td width="${percent}%" class="action_$act"></td>};
+			my $level = (grep {$acts->{$act} & $_} 16, 8, 4, 2, 1)[0];
+			push @cell, qq{<td width="${percent}%" class="action_${act} action_${act}_$level"></td>};
 			push @title, $act.":".$acts->{$act};
 		    }
 		}
@@ -1090,6 +1094,40 @@ sub stylesheet_matrix {
 EOF
 }
 
+sub stylesheet_gradients {
+    <<EOF;
+  .action_PASS_1     { background: #7af762; }
+  .action_PASS_2     { background: #5ad742; }
+  .action_PASS_4     { background: #3ab722; }
+  .action_PASS_8     { background: #1a9702; }
+  .action_PASS_16    { background: #0a7700; }
+
+  .action_NA_1       { background: #ffff82; }
+  .action_NA_2       { background: #e6f362; }
+  .action_NA_4       { background: #d6d342; }
+  .action_NA_8       { background: #b6b322; }
+  .action_NA_16      { background: #969302; }
+
+  .action_UNKNOWN_1  { background: #ffff82; }
+  .action_UNKNOWN_2  { background: #e6f362; }
+  .action_UNKNOWN_4  { background: #d6d342; }
+  .action_UNKNOWN_8  { background: #b6b322; }
+  .action_UNKNOWN_16 { background: #969302; }
+
+  .action_FAIL_1     { background: #ff7c79; }
+  .action_FAIL_2     { background: #f65c59; }
+  .action_FAIL_4     { background: #d63c39; }
+  .action_FAIL_8     { background: #b61c19; }
+  .action_FAIL_16    { background: #960c09; }
+
+  .action_INVALID_1  { background: #ffff82; }
+  .action_INVALID_2  { background: #e6f362; }
+  .action_INVALID_4  { background: #d6d342; }
+  .action_INVALID_8  { background: #b6b322; }
+  .action_INVALID_16 { background: #969302; }
+EOF
+}
+
 sub stylesheet_hicontrast_out {
     print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
     print stylesheet_hicontrast;
@@ -1103,6 +1141,11 @@ sub stylesheet_cpantesters_out {
 sub stylesheet_matrix_out {
     print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
     print stylesheet_matrix;
+}
+
+sub stylesheet_gradients_out {
+    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
+    print stylesheet_gradients;
 }
 
 sub teaser {
