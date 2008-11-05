@@ -22,8 +22,9 @@ amendments:
     id:
       - 2204594
       - 1610829
-  - comment: "Possibly a glitch (regcomp.c-related) in 5.10.0"
+  - comment: "regcomp.c-related problem in 5.10.0"
     id:
+      - 2544507
       - 1968441
   - comment: "Fixed in https://svn.perl.org/modules/Tk r10465 (Xlib include file detection)"
     id:
