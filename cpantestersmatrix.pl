@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.92 2008/11/06 21:47:38 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.93 2008/11/06 21:48:23 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.92 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.93 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1247,9 +1247,15 @@ The script creates a predictable directory /tmp/cpantesters_cache_$<
 
 =head1 TODO
 
- * Move the alternative stylesheet selection into a HTML menu, so it's
-   accessible for every browser. Plus, the user's choice might be
-   stored in a cookie.
+=over
+
+=item *
+
+Move the alternative stylesheet selection into a HTML menu, so it's
+accessible for every browser. Plus, the user's choice might be stored
+in a cookie.
+
+=back
 
 =head1 PREREQUISITES
 
