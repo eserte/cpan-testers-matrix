@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.93 2008/11/06 21:48:23 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.94 2008/11/07 07:31:32 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.93 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.94 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1259,7 +1259,12 @@ in a cookie.
 
 =head1 PREREQUISITES
 
-HTML::Table, LWP, XML::LibXML, CPAN::DistnameInfo, YAML.
+CPAN::DistnameInfo, HTML::Table, List::Util, LWP, Storable, version,
+XML::LibXML, YAML.
+
+=head1 COREQUISITES
+
+Gravatar::URL
 
 =head1 SCRIPT CATEGORIES
 
