@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.95 2008/11/25 22:32:45 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.96 2009/01/13 20:31:54 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.95 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.96 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -982,7 +982,7 @@ sub set_dist_and_version ($) {
 	($dist, $dist_version) = ($1, $2);
     } elsif ($_dist =~ m{^Acme-(?:24|6502)$}) { # XXX heuristics to get Acme-6502 right, need a better solution!
 	# keep existing global $dist
-    } elsif ($_dist =~ m{^(.*)[- ]([\d\._]+)$}) {
+    } elsif ($_dist =~ m{^(.*)[- ](v?[\d\._]+)$}) {
 	($dist, $dist_version) = ($1, $2);
     }
 }
