@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.97 2009/02/09 20:46:53 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.98 2009/02/09 20:52:23 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.97 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.98 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1256,6 +1256,11 @@ The script creates a predictable directory /tmp/cpantesters_cache_$<
 Move the alternative stylesheet selection into a HTML menu, so it's
 accessible for every browser. Plus, the user's choice might be stored
 in a cookie.
+
+=item *
+
+The incoming YAML data has redundant data --- remove all the
+redundancy before creating the Storable file.
 
 =back
 
