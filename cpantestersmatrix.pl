@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.96 2009/01/13 20:31:54 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.97 2009/02/09 20:46:53 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.96 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.97 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -71,8 +71,10 @@ if ($q->script_name =~ /cpantestersmatrix2/) {
 }
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
+my $test_ct_domain = "reports.cpantesters.org";
 my $ct_domain = $new_ct_domain;
 #my $ct_domain = $old_ct_domain;
+#my $ct_domain = $test_ct_domain;
 my $ct_link = "http://$ct_domain";
 my $table;
 my $tables;
@@ -663,7 +665,7 @@ sub fetch_author_data ($) {
 	require CPAN::DistnameInfo;
 
 	my $ua = get_ua;
-	if ($ct_domain eq $new_ct_domain) {
+	if ($ct_domain eq $new_ct_domain || $ct_domain eq $test_ct_domain) {
 	    $url = "http://$new_ct_domain/author/$author.yaml";
 	} else {
 	    $url = "http://$old_ct_domain/author/$author.rss"; # XXX must use old site because of limitation to 100 records
