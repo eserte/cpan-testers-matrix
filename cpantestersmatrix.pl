@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.98 2009/02/09 20:52:23 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.99 2009/02/20 21:22:46 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.98 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.99 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -248,6 +248,13 @@ print <<EOF;
   <style type="text/css"><!--
 EOF
 print stylesheet_matrix();
+if ($author && eval { require Gravatar::URL; 1 }) {
+    my $author_image_url = Gravatar::URL::gravatar_url(email => lc($author) . '@cpan.org',
+						       default => 'http://bbbike.radzeit.de/BBBike/images/px_1t.gif');
+    print <<EOF;
+  body { background-image:url($author_image_url); background-repeat:no-repeat; background-position: 99% 10px; }
+EOF
+}
 print <<EOF;
 
   .maxver_PASSNEW { background:green;      }
@@ -271,6 +278,7 @@ print <<EOF;
 
   .warn           { color:red; font-weight:bold; }
   .sml            { font-size: x-small; }
+  .unimpt         { font-size: smaller; }
 
   --></style>
   <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=hicontrast" ]}" title="High contrast">
@@ -304,28 +312,17 @@ EOF
 print <<EOF;
   <form>
    <div>
-    Distribution (e.g. DBI, CPAN-Reporter, YAML-Syck): <input name="dist" /> <input type="submit" />
+    Distribution <span class="unimpt">(e.g. DBI, CPAN-Reporter, YAML-Syck)</span>: <input name="dist" /> <input type="submit" />
     <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
    </div>
   </form>
 
   <form>
    <div>
-    CPAN User ID: <input name="author" /> <input type="submit" />
+    CPAN User ID <span class="unimpt">(e.g. GAAS, TIMB, JHI)</span>: <input name="author" /> <input type="submit" />
    </div>
   </form>
 EOF
-
-# XXX Not yet, not satisfied with positioning!
-if (0 && $author && eval { require Gravatar::URL; 1 }) {
-    my $author_image_url = Gravatar::URL::gravatar_url(email => lc($author) . '@cpan.org',
-						    default => 'http://bbbike.radzeit.de/BBBike/images/px_1t.gif');
-    print <<EOF;
-  <div style="position:absolute; right:10px; top:10px;">
-    <img border="0" src="$author_image_url" />
-  </div>
-EOF
-}
 
 if ($reports) {
     {
