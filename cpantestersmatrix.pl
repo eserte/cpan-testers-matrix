@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.99 2009/02/20 21:22:46 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.100 2009/04/05 19:45:19 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.99 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.100 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -812,6 +812,7 @@ sub build_success_table ($$$) {
 		    if ($acts->{$act}) {
 			my $percent = int(100*($acts->{$act}||0)/$acts->{__TOTAL__});
 			my $level = (grep {$acts->{$act} & $_} 16, 8, 4, 2, 1)[0];
+			$level = 16 if !defined $level;
 			push @cell, qq{<td width="${percent}%" class="action_${act} action_${act}_$level"></td>};
 			push @title, $act.":".$acts->{$act};
 		    }
