@@ -246,7 +246,22 @@ amendments:
     id:
       - 704232
       - 988678
+      - 1000229
       - 1000247
+      - 1252529
+      - 3400776
+      - 3422738
+      - 3455824
+  - comment: 'Tk::FastSplash... is not a Tk object'
+    id:
+      - 1371008
+  - comment: 'Maybe segmentation fault'
+    id:
+      - 672186
+      - 713714
+      - 717407
+      - 735229
+      - 801798
   - comment: 'A failed configure_requires causes a FAIL report: http://rt.cpan.org/Ticket/Display.html?id=34580'
     action: INVALID
     id:
