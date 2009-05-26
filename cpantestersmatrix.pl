@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.101 2009/05/26 17:29:54 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.102 2009/05/26 17:34:38 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.101 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.102 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -71,10 +71,10 @@ if ($q->script_name =~ /cpantestersmatrix2/) {
 }
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
-my $test_ct_domain = "reports.cpantesters.org";
+my $test_ct_domain = "reports.cpantesters.org"; # not test anymore --- this is now the real thing?
 #my $ct_domain = $new_ct_domain;
-my $ct_domain = $old_ct_domain;
-#my $ct_domain = $test_ct_domain;
+#my $ct_domain = $old_ct_domain;
+my $ct_domain = $test_ct_domain;
 my $ct_link = "http://$ct_domain";
 my $table;
 my $tables;
