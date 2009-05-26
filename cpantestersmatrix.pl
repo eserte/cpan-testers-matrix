@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.103 2009/05/26 19:31:28 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.104 2009/05/26 19:38:52 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.103 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.104 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1202,6 +1202,10 @@ sub amend_result {
     # Formerly it was called 'action', now it is 'status' (and there's
     # a 'state', which is lowercase)
     $result->{action} = $result->{status} if !exists $result->{action};
+
+    # 'url' is currently missing. Fake it using the id
+    $result->{url} = "http://nntp.x.perl.org/group/perl.cpan.testers/$result->{id}"
+	if !exists $result->{url} && defined $result->{id};
 
     my $id = $result->{id};
     my $action_comment;
