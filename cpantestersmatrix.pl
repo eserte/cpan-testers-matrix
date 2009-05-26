@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.104 2009/05/26 19:38:52 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.105 2009/05/26 19:42:15 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.104 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.105 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1206,6 +1206,10 @@ sub amend_result {
     # 'url' is currently missing. Fake it using the id
     $result->{url} = "http://nntp.x.perl.org/group/perl.cpan.testers/$result->{id}"
 	if !exists $result->{url} && defined $result->{id};
+
+    # Another one: 'archname' is now 'platform'
+    $result->{archname} = $result->{platform} if !exists $result->{archname};
+
 
     my $id = $result->{id};
     my $action_comment;
