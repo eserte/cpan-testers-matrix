@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.105 2009/05/26 19:42:15 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.106 2009/05/27 23:14:03 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.105 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.106 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -696,7 +696,12 @@ EOF
 	    require YAML;
 	    my $data = YAML::Load($resp->decoded_content);
 	    for my $result (@$data) {
-		my $dist = $result->{dist} = $result->{distribution};
+		my $dist;
+		if (defined $result->{dist}) { # new style
+		    $dist = $result->{distribution} = $result->{dist};
+		} elsif (defined $result->{distribution}) { # old style
+		    $dist = $result->{dist} = $result->{distribution};
+		}
 		amend_result($result);
 		push @{$author_dist->{$dist}}, $result;
 	    }
@@ -1202,6 +1207,8 @@ sub amend_result {
     # Formerly it was called 'action', now it is 'status' (and there's
     # a 'state', which is lowercase)
     $result->{action} = $result->{status} if !exists $result->{action};
+    # May happen in author YAMLs --- inconsistency!
+    $result->{action} = $result->{state}  if !defined $result->{action};
 
     # 'url' is currently missing. Fake it using the id
     $result->{url} = "http://nntp.x.perl.org/group/perl.cpan.testers/$result->{id}"
