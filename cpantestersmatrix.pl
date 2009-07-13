@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.106 2009/05/27 23:14:03 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.107 2009/07/13 18:26:13 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.106 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.107 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -69,6 +69,7 @@ my $title = "CPAN Testers Matrix";
 if ($q->script_name =~ /cpantestersmatrix2/) {
     $title .= " (beta)";
 }
+my @CORE_OSNAMES = qw(MSWin32 cygwin darwin freebsd linux openbsd netbsd solaris);
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
 my $test_ct_domain = "reports.cpantesters.org"; # not test anymore --- this is now the real thing?
@@ -793,6 +794,12 @@ sub build_success_table ($$$) {
     # Here trap errors in source yaml (perl version=0, osname="")
     my @perls   = grep { $_ } sort { CPAN::Version->vcmp($b, $a) } keys %perl;
     my @osnames = grep { $_ } sort { $a cmp $b } keys %osname;
+
+    # Add "core" osnames to the list of existing ones
+    @osnames = do {
+	my %osnames = map { ($_,1) } (@osnames, @CORE_OSNAMES);
+	sort keys %osnames;
+    };
 
     my $reports_param = sub {
 	my $qq = CGI->new($q);
