@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.107 2009/07/13 18:26:13 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.108 2009/10/07 21:05:40 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.107 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.108 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1041,11 +1041,11 @@ sub fetch_error_check ($) {
     my $resp = shift;
     if ($resp->status_line =~ /timeout/i) {
 	<<EOF;
-Timeout while fetching data from cpantesters.perl.org.
+Timeout while fetching data from $ct_domain.
 EOF
     } elsif ($resp->code == 500) {
 	<<EOF;
-Error while fetching data from cpantesters.perl.org: <@{[ $resp->status_line ]}>
+Error while fetching data from $ct_domain: <@{[ $resp->status_line ]}>
 EOF
     } else {
 	"";
