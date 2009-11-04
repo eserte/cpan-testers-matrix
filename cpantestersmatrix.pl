@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.108 2009/10/07 21:05:40 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.109 2009/11/04 20:40:55 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.108 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.109 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1053,7 +1053,8 @@ EOF
 }
 
 BEGIN {
-    if (eval { require version; 1 }) {
+    # version 0.74 has some strange "Invalid version object" bug
+    if (eval { require version; version->VERSION(0.76); 1 }) {
 	*cmp_version = sub {
 	    local $^W;
 	    safe_version($_[0]) <=> safe_version($_[1]);
