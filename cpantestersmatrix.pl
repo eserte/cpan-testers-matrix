@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.109 2009/11/04 20:40:55 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.110 2009/11/09 19:01:38 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.109 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.110 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -251,7 +251,7 @@ EOF
 print stylesheet_matrix();
 if ($author && eval { require Gravatar::URL; 1 }) {
     my $author_image_url = Gravatar::URL::gravatar_url(email => lc($author) . '@cpan.org',
-						       default => 'http://bbbike.radzeit.de/BBBike/images/px_1t.gif');
+						       default => 'http://bbbike.de/BBBike/images/px_1t.gif');
     print <<EOF;
   body { background-image:url($author_image_url); background-repeat:no-repeat; background-position: 99% 10px; }
 EOF
