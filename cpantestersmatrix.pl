@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.110 2009/11/09 19:01:38 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.111 2009/12/04 16:32:57 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.110 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.111 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -44,6 +44,7 @@ sub get_ua ();
 sub fetch_error_check ($);
 sub set_dist_and_version ($);
 sub get_perl_and_patch ($);
+sub require_yaml ();
 
 my $cache_days = 1/4;
 my $ua_timeout = 10;
@@ -473,7 +474,7 @@ sub fetch_meta_yml ($) {
     if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
-	require YAML;
+	require_yaml;
 
 	my $ua = get_ua;
 	my $url = meta_url($dist);
@@ -486,7 +487,7 @@ sub fetch_meta_yml ($) {
 	    }
 	} else {
 	    eval {
-		$meta = YAML::Load($resp->decoded_content);
+		$meta = yaml_load($resp->decoded_content);
 		lock_nstore($meta, $cachefile);
 	    };
 	    if ($@) {
@@ -525,8 +526,7 @@ sub fetch_data ($) {
 	    last GET_DATA;
 	}
 
-	require YAML;
-	#use YAML::Syck qw(LoadFile Load);
+	require_yaml;
 
 	my $ua = get_ua;
 
@@ -617,7 +617,7 @@ EOF
 	# Fix distribution name
 	eval { $dist = $data->[-1]->{distribution} };
     } elsif ($resp && $resp->is_success) {
-	$data = YAML::Load($resp->decoded_content)
+	$data = yaml_load($resp->decoded_content)
 	    or die "Could not load YAML data from <$url>";
 	for my $result (@$data) {
 	    amend_result($result);
@@ -694,8 +694,8 @@ EOF
 	    or die "Could not load cached data";
     } elsif ($resp && $resp->is_success) {
 	if ($url =~ m{\.ya?ml$}) {
-	    require YAML;
-	    my $data = YAML::Load($resp->decoded_content);
+	    require_yaml;
+	    my $data = yaml_load($resp->decoded_content);
 	    for my $result (@$data) {
 		my $dist;
 		if (defined $result->{dist}) { # new style
@@ -1193,8 +1193,8 @@ sub get_amendments {
 	if (-r $amendments_st && -s $amendments_st && -M $amendments_st < -M $amendments_yml) {
 	    $amendments = lock_retrieve $amendments_st;
 	} elsif (-r $amendments_yml) {
-	    require YAML;
-	    my $raw_amendments = YAML::LoadFile($amendments_yml);
+	    require_yaml;
+	    my $raw_amendments = yaml_load_file($amendments_yml);
 	    for my $amendment (@{ $raw_amendments->{amendments} }) {
 		for my $id (@{ $amendment->{id} }) {
 		    $amendments->{$id} = $amendment;
@@ -1245,6 +1245,17 @@ sub cmp_version_with_patch {
 	}
     }
     cmp_version($a, $b);
+}
+
+sub require_yaml () {
+    if (eval { require YAML::Syck; 1 }) {
+	*yaml_load      = \&YAML::Syck::Load;
+	*yaml_load_file = \&YAML::Syck::LoadFile;
+    } else {
+	require YAML;
+	*yaml_load      = \&YAML::Load;
+	*yaml_load_file = \&YAML::LoadFile;
+    }
 }
 
 ## Did not help:
