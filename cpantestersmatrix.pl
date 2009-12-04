@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.111 2009/12/04 16:32:57 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.112 2009/12/04 17:30:24 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.111 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.112 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -247,6 +247,7 @@ print <<EOF;
 <html>
  <head><title>$title</title>
   <link type="image/ico" rel="shortcut icon" href="cpantesters_favicon.ico" />
+  <meta name="ROBOTS" content="INDEX, NOFOLLOW" />
   <style type="text/css"><!--
 EOF
 print stylesheet_matrix();
