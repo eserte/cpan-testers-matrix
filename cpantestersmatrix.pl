@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.113 2009/12/04 20:20:59 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.114 2009/12/10 13:56:56 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.113 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.114 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -553,22 +553,34 @@ sub fetch_data ($) {
 	}
 
 	warn "No success fetching <$url>: " . $resp->status_line;
-	eval {
-	    require CPAN;
-	    require CPAN::DistnameInfo;
-	    local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
-	    my $mo = CPAN::Shell->expand("Module", $orig_dist);
-	    if ($mo) {
-		my $try_dist = CPAN::DistnameInfo->new($mo->cpan_file)->dist;
+	my $fallback_dist;
+	if (eval { require "$realbin/parse_cpan_packages_fast.pl"; 1 }) {
+	    $fallback_dist = Parse::CPAN::Packages::Fast->new->latest_distribution($orig_dist);
+	} else {
+	    eval {
+		require CPAN;
+		require CPAN::DistnameInfo;
+		local $ENV{PATH} = "/usr/bin:/bin";
+		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
+		my $mo = CPAN::Shell->expand("Module", $orig_dist);
+		if ($mo) {
+		    $fallback_dist = CPAN::DistnameInfo->new($mo->cpan_file);
+		}
+	    };
+	    warn $@ if $@;
+	}
+	if ($fallback_dist) {
+	    eval {
+		my $try_dist = $fallback_dist->dist;
 		$resp = $fetch_dist_data->($try_dist);
 		if (!$resp->is_success) {
 		    die "No success fetching <$url>: " . $resp->status_line;
 		} else {
 		    $dist = $try_dist;
 		}
-	    }
-	};
-	warn $@ if $@;
+	    };
+	    warn $@ if $@;
+	}
 	last GET_DATA if $resp->is_success;
 
 	# XXX hmmm, hack for CPAN.pm problems
