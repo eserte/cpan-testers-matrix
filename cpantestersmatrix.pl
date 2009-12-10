@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.114 2009/12/10 13:56:56 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.115 2009/12/10 15:13:42 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.114 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.115 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -555,7 +555,11 @@ sub fetch_data ($) {
 	warn "No success fetching <$url>: " . $resp->status_line;
 	my $fallback_dist;
 	if (eval { require "$realbin/parse_cpan_packages_fast.pl"; 1 }) {
-	    $fallback_dist = Parse::CPAN::Packages::Fast->new->latest_distribution($orig_dist);
+	    eval {
+		my $mod_info = Parse::CPAN::Packages::Fast->new->package($orig_dist);
+		$fallback_dist = $mod_info->distribution;
+	    };
+	    warn $@ if $@;
 	} else {
 	    eval {
 		require CPAN;
