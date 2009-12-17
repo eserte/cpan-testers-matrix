@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.115 2009/12/10 15:13:42 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.116 2009/12/17 16:40:42 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.115 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.116 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1265,6 +1265,7 @@ sub cmp_version_with_patch {
     my($a, $b) = @_;
     for ($a, $b) {
 	if (my($ver, $patch) = $_ =~ m{^(\S+)\s+patch\s+(\S+)}) {
+	    no warnings 'numeric';
 	    $_ = $ver . "." . sprintf("%09d", $patch);
 	}
     }
