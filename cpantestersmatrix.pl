@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.118 2010/01/22 21:40:56 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.119 2010/02/04 16:44:19 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.118 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.119 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -78,6 +78,8 @@ my $ct_domain = $new_ct_domain;
 #my $ct_domain = $old_ct_domain;
 #my $ct_domain = $test_ct_domain;
 my $ct_link = "http://$ct_domain";
+#my $report_rooturl = "http://nntp.x.perl.org/group/perl.cpan.testers/";
+my $report_rooturl = "http://www.cpantesters.org/cpan/report/";
 my $table;
 my $tables;
 my $cachefile;
@@ -1242,8 +1244,7 @@ sub amend_result {
     # May happen in author YAMLs --- inconsistency!
     $result->{action} = $result->{state}  if !defined $result->{action};
 
-    # 'url' is currently missing. Fake it using the id
-    $result->{url} = "http://nntp.x.perl.org/group/perl.cpan.testers/$result->{id}"
+    $result->{url} = $report_rooturl . $result->{id}
 	if !exists $result->{url} && defined $result->{id};
 
     # Another one: 'archname' is now 'platform'
