@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.119 2010/02/04 16:44:19 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.120 2010/02/04 16:55:36 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.119 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.120 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -167,8 +167,9 @@ if ($reports) {
 	} @reports) {
 	    my $action_comment_html = $rec->{action_comment}||"";
 	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
+	    my $report_url = $report_rooturl . $rec->{id};
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
-			    qq{<a href="$rec->{url}">$rec->{id}</a>},
+			    qq{<a href="$report_url">$rec->{id}</a>},
 			    $rec->{osvers},
 			    $rec->{archname},
 			    (!defined $dist_version ? $rec->{version} : ()),
@@ -1243,13 +1244,8 @@ sub amend_result {
     $result->{action} = $result->{status} if !exists $result->{action};
     # May happen in author YAMLs --- inconsistency!
     $result->{action} = $result->{state}  if !defined $result->{action};
-
-    $result->{url} = $report_rooturl . $result->{id}
-	if !exists $result->{url} && defined $result->{id};
-
     # Another one: 'archname' is now 'platform'
     $result->{archname} = $result->{platform} if !exists $result->{archname};
-
 
     my $id = $result->{id};
     my $action_comment;
