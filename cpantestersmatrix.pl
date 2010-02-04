@@ -2,10 +2,10 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.120 2010/02/04 16:55:36 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.121 2010/02/04 16:57:29 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.120 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.121 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
