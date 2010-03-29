@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.122 2010/03/28 19:43:19 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.123 2010/03/29 08:06:21 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.122 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.123 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -78,6 +78,7 @@ my $ct_domain = $new_ct_domain;
 #my $ct_domain = $old_ct_domain;
 #my $ct_domain = $test_ct_domain;
 my $ct_link = "http://$ct_domain";
+my $dist_bugtracker_url;
 #my $report_rooturl = "http://nntp.x.perl.org/group/perl.cpan.testers/";
 my $report_rooturl = "http://www.cpantesters.org/cpan/report/";
 my $table;
@@ -231,6 +232,9 @@ if ($reports) {
 		my $meta = $r->{meta};
 		$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
 		$is_latest_version = defined $latest_version && $latest_version eq $dist_version;
+		if ($meta && $meta->{resources} && $meta->{resources}->{bugtracker}) {
+		    $dist_bugtracker_url = $meta->{resources}->{bugtracker};
+		}
 	    };
 	    warn $@ if $@;
 	    $r = build_success_table($data, $dist, $dist_version);
@@ -1194,6 +1198,7 @@ EOF
 
 sub dist_links {
     (my $faked_module = $dist) =~ s{-}{::}g;
+    my $dist_bugtracker_url = $dist_bugtracker_url || "https://rt.cpan.org/NoAuth/Bugs.html?Dist=$dist";
     print <<EOF;
 <div style="float:left; margin-left:3em;">
 <h2>Other links</h2>
@@ -1201,7 +1206,7 @@ sub dist_links {
 <li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
-<li><a href="https://rt.cpan.org/NoAuth/Bugs.html?Dist=$dist">RT</a>
+<li><a href="$dist_bugtracker_url">Bugtracker</a>
 EOF
     if (defined $dist_version) {
 	print <<EOF;
