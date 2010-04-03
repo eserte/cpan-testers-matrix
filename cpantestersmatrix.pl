@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.124 2010/04/03 21:40:16 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.125 2010/04/03 21:42:33 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.124 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.125 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -45,6 +45,7 @@ sub fetch_error_check ($);
 sub set_dist_and_version ($);
 sub get_perl_and_patch ($);
 sub require_yaml ();
+sub trim ($);
 
 my $cache_days = 1/4;
 my $ua_timeout = 10;
