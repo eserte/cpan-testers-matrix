@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.123 2010/03/29 08:06:21 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.124 2010/04/03 21:40:16 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.123 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.124 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -104,8 +104,8 @@ my $reports_header;
     }
 }
 
-my $dist = $q->param("dist");
-my $author = $q->param("author");
+my $dist    = trim $q->param("dist");
+my $author  = trim $q->param("author");
 my $reports = $q->param("reports");
 
 my $error;
@@ -1284,6 +1284,29 @@ sub require_yaml () {
 	*yaml_load_file = \&YAML::LoadFile;
     }
 }
+
+# REPO BEGIN
+# REPO NAME trim /home/e/eserte/work/srezic-repository 
+# REPO MD5 ab2f7dfb13418299d79662fba10590a1
+
+=head2 trim($string)
+
+=for category Text
+
+Trim starting and leading white space and squeezes white space to a
+single space.
+
+=cut
+
+sub trim ($) {
+    my $s = shift;
+    return $s if !defined $s;
+    $s =~ s/^\s+//;
+    $s =~ s/\s+$//;
+    $s =~ s/\s+/ /;
+    $s;
+}
+# REPO END
 
 ## Did not help:
 # sub cmp_version {
