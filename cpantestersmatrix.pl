@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.125 2010/04/03 21:42:33 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.126 2010/05/07 19:36:29 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.125 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.126 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1211,7 +1211,7 @@ sub dist_links {
 EOF
     if (defined $dist_version) {
 	print <<EOF;
-<li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> (beta)
+<li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version"><strike>Reports analysis</strike></a> (beta)
 EOF
     }
     print <<EOF;
