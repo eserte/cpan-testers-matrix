@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.126 2010/05/07 19:36:29 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.127 2010/06/26 13:00:35 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.126 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.127 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -169,7 +169,8 @@ if ($reports) {
 	} @reports) {
 	    my $action_comment_html = $rec->{action_comment}||"";
 	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
-	    my $report_url = $report_rooturl . $rec->{id};
+	    my $report_url = $report_rooturl . $rec->{id}; # prefer id over guid
+	    #my $report_url = $report_rooturl . ($rec->{guid} || $rec->{id}); # prefer guid over id
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
 			    qq{<a href="$report_url">$rec->{id}</a>},
 			    $rec->{osvers},
@@ -1252,6 +1253,9 @@ sub amend_result {
     $result->{action} = $result->{state}  if !defined $result->{action};
     # Another one: 'archname' is now 'platform'
     $result->{archname} = $result->{platform} if !exists $result->{archname};
+## This is not needed:
+#    # canonify perl version: strip leading "v"
+#    $result->{perl} =~ s{^v}{} if exists $result->{perl};
 
     my $id = $result->{id};
     my $action_comment;
