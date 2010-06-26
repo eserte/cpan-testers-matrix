@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.127 2010/06/26 13:00:35 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.128 2010/06/26 13:24:38 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.127 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.128 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -65,6 +65,8 @@ my $amendments_st = "$realbin/cpantesters_amendments.st";
 my $amendments;
 
 my $q = CGI->new;
+
+#XXX { local $ENV{PATH} = "/bin:/usr/bin";system("/usr/bin/ktrace", "-f", "/tmp/cpanktrace", "-p", $$);}
 
 # XXX hmm, some globals ...
 my $title = "CPAN Testers Matrix";
@@ -1060,6 +1062,8 @@ sub get_ua () {
     return $UA if $UA;
     $UA = LWP::UserAgent->new;
     $UA->timeout($ua_timeout);
+    ## Does not help, www.cpantesters.org does not send compressed yaml files
+    #$UA->default_headers->push_header(Accept_encoding => 'gzip');
     $UA;
 }
 
@@ -1260,7 +1264,7 @@ sub amend_result {
     my $id = $result->{id};
     my $action_comment;
     $amendments ||= get_amendments();
-    if (defined $id && $amendments && $amendments->{$id}) {
+    if (defined $id && $amendments && exists $amendments->{$id}) {
 	if (my $new_action = $amendments->{$id}->{action}) {
 	    $result->{action} = $new_action;
 	}
