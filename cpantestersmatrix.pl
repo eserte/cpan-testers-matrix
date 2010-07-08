@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.128 2010/06/26 13:24:38 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.129 2010/07/08 19:49:48 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.128 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.129 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -1363,7 +1363,7 @@ redundancy before creating the Storable file.
 =head1 PREREQUISITES
 
 CPAN::DistnameInfo, HTML::Table, List::Util, LWP, Storable, version,
-XML::LibXML, YAML.
+XML::LibXML, YAML::Syck.
 
 =head1 COREQUISITES
 
