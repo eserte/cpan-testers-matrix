@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.130 2010/08/16 20:25:37 eserte Exp $
+# $Id: cpantestersmatrix.pl,v 1.131 2010/09/13 18:14:19 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -18,7 +18,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.130 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.131 $ =~ /(\d+)\.(\d+)/);
 
 use vars qw($UA);
 
@@ -171,8 +171,8 @@ if ($reports) {
 	} @reports) {
 	    my $action_comment_html = $rec->{action_comment}||"";
 	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
-	    my $report_url = $report_rooturl . $rec->{id}; # prefer id over guid
-	    #my $report_url = $report_rooturl . ($rec->{guid} || $rec->{id}); # prefer guid over id
+	    #my $report_url = $report_rooturl . $rec->{id}; # prefer id over guid
+	    my $report_url = $report_rooturl . ($rec->{guid} || $rec->{id}); # prefer guid over id
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
 			    qq{<a href="$report_url">$rec->{id}</a>},
 			    $rec->{osvers},
