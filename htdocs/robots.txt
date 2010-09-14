@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /?
+
+# Broken bot, does not correctly obey the above rule
+User-agent: spbot
+Disallow: /
