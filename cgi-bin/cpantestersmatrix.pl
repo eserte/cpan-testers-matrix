@@ -147,7 +147,7 @@ my %prefs = do {
 
     print $q->header(
 	-cookie  => [$cookie],
-	-expires => '+'.int($cache_days*24).'h',
+	-expires => ($edit_prefs ? 'now' : '+'.int($cache_days*24).'h'),
     );
 
     $cookie->value;
