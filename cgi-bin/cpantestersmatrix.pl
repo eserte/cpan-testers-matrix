@@ -24,6 +24,7 @@ use vars qw($UA);
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
+use CGI::Cookie;
 use CPAN::Version;
 use File::Basename qw(basename);
 use FindBin;
@@ -89,27 +90,30 @@ my $tables;
 my $cachefile;
 my $reports_header;
 
-{
-    my $get_stylesheet = $q->param("get_stylesheet");
-    if ($get_stylesheet) {
-	if ($get_stylesheet eq 'hicontrast') {
-	    stylesheet_hicontrast_out();
-	} elsif ($get_stylesheet eq 'cpantesters') {
-	    stylesheet_cpantesters_out();
-	} elsif ($get_stylesheet eq 'matrix') {
-	    stylesheet_matrix_out();
-	} elsif ($get_stylesheet eq 'gradients') {
-	    stylesheet_gradients_out();
-	} else {
-	    die "Unhandled value <$get_stylesheet>";
-	}
-	exit;
-    }
-}
+my %stylesheets = (
+    hicontrast => {
+	name => 'High Contrast',
+	fun  => \&stylesheet_hicontrast,
+    },
+    cpantesters => {
+	name => 'CPAN Testers',
+	fun  => \&stylesheet_cpantesters,
+    },
+    matrix => {
+	name => 'Matrix',
+	fun  => \&stylesheet_matrix,
+    },
+    gradients => {
+	name => 'Gradients',
+	fun  => \&stylesheet_gradients,
+    },
+);
 
-my $dist    = trim $q->param("dist");
-my $author  = trim $q->param("author");
-my $reports = $q->param("reports");
+my $dist         = trim $q->param("dist");
+my $author       = trim $q->param("author");
+my $reports      = $q->param("reports");
+my $edit_prefs   = $q->param("prefs");
+my $update_prefs = $q->param("update_prefs");
 
 my $error;
 
@@ -119,6 +123,35 @@ my $is_latest_version;
 my $latest_version;
 
 my @actions = qw(PASS NA UNKNOWN INVALID FAIL);
+
+my %prefs = do {
+    my %cookies = CGI::Cookie->fetch;
+    my $cookie = $cookies{preferences}
+	if exists $cookies{preferences};
+
+    if ($update_prefs || !$cookie) {
+	$cookie = CGI::Cookie->new(
+	    -name    => 'preferences',
+	    -expures => '+10y',
+	    -value   => {
+		stylesheet  => do {
+		    my $requested = $update_prefs && trim $q->param('stylesheet');
+		    defined $requested && exists $stylesheets{$requested}
+			? $requested : 'matrix';
+		},
+		steal_focus => (defined $q->param('steal_focus') ? 1 : 0),
+	    },
+	);
+
+    }
+
+    print $q->header(
+	-cookie  => [$cookie],
+	-expires => '+'.int($cache_days*24).'h',
+    );
+
+    $cookie->value;
+};
 
 if ($reports) {
     my $want_perl = $q->param("perl");
@@ -250,8 +283,6 @@ if ($reports) {
     $error = $@ if $@;
 }
 
-print $q->header('-expires' => '+'.int($cache_days*24).'h');
-
 my $latest_distribution_string = $is_latest_version ? " (latest distribution)" : "";
 
 print <<EOF;
@@ -261,7 +292,7 @@ print <<EOF;
   <meta name="ROBOTS" content="INDEX, NOFOLLOW" />
   <style type="text/css"><!--
 EOF
-print stylesheet_matrix();
+print $stylesheets{ $prefs{stylesheet} }->{fun}->();
 if ($author && eval { require Gravatar::URL; 1 }) {
     my $author_image_url = Gravatar::URL::gravatar_url(email => lc($author) . '@cpan.org',
 						       default => 'http://bbbike.de/BBBike/images/px_1t.gif');
@@ -295,10 +326,6 @@ print <<EOF;
   .unimpt         { font-size: smaller; }
 
   --></style>
-  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=hicontrast" ]}" title="High contrast">
-  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=cpantesters" ]}" title="Same colors like \@cpantesters.perl.org">
-  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=matrix" ]}" title="Old cpantestersmatrix colors">
-  <link rel="alternate stylesheet" type="text/css" href="@{[ $q->url(-relative => 1) . "?get_stylesheet=gradients" ]}" title="Gradients by number of tests">
   <script type="text/javascript">
   <!-- Hide script
   function focus_first() {
@@ -310,7 +337,9 @@ print <<EOF;
   // End script hiding -->
   </script>
  </head>
- <body onload="focus_first();">
+EOF
+print $prefs{steal_focus} ? qq{<body onload="focus_first();">\n} : qq{<body>\n};
+print <<EOF;
   <h1><a href="$ct_link">$title</a>$latest_distribution_string</h1>
 EOF
 if ($error) {
@@ -454,6 +483,35 @@ EOF
 	show_legend();
     }
 
+} elsif ($edit_prefs) {
+    print <<'EOF';
+<form method="POST">
+  <fieldset>
+    <legend>Preferences</legend>
+    <label for="stylesheet">Stylesheet:</label>
+EOF
+
+    for my $stylesheet (sort keys %stylesheets) {
+	my $selected = $stylesheet eq $prefs{stylesheet}
+	    ? q{checked="checked"} : "";
+	$q->print(qq{<input type="radio" name="stylesheet" value="$stylesheet" $selected>$stylesheets{$stylesheet}{name}</input>});
+    }
+
+    my $steal_focus = $prefs{steal_focus}
+	? q{checked="checked"} : "";
+
+    print <<"EOF"
+    <br />
+
+    <label for="steal_focus">Steal Focus:</label>
+    <input type="checkbox" name="steal_focus" $steal_focus></input>
+
+    <br />
+
+    <input type="submit" name="update_prefs" value="Update Preferences"></input>
+  </fieldset>
+</form>
+EOF
 }
 
 print '<hr style="clear:left;">';
@@ -469,6 +527,9 @@ EOF
 }
 
 print <<EOF;
+  <div>
+   <span class="sml"><a href="?prefs=1">Change Preferences</p></span>
+  </div>
   <div>
    <a href="http://srezic.cvs.sourceforge.net/*checkout*/srezic/srezic-misc/cgi/cpantestersmatrix.pl">cpantestersmatrix.pl</a> $VERSION
    by <a href="mailto:srezic\@cpan.org">Slaven Rezi&#x0107;</a>
@@ -1169,26 +1230,6 @@ sub stylesheet_gradients {
   .action_INVALID_8  { background: #b6b322; }
   .action_INVALID_16 { background: #969302; }
 EOF
-}
-
-sub stylesheet_hicontrast_out {
-    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
-    print stylesheet_hicontrast;
-}
-
-sub stylesheet_cpantesters_out {
-    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
-    print stylesheet_cpantesters;
-}
-
-sub stylesheet_matrix_out {
-    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
-    print stylesheet_matrix;
-}
-
-sub stylesheet_gradients_out {
-    print $q->header(-type => "text/css", '-expires' => '+1h', '-cache-control' => 'public');
-    print stylesheet_gradients;
 }
 
 sub teaser {
