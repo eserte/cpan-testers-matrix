@@ -1,0 +1,28 @@
+You need to make cgi-bin/cpantestermatrix.pl available as a CGI script.
+
+With apache + mod_perl you can use the nearly "zero conf"
+configuration file etc/httpd.conf:
+
+* Just include the configuration file for use into your Apache, e.g.
+  on a FreeBSD system:
+
+    cd /usr/local/etc/apache22/Includes
+    ln -s /path/to/cpan-testers-matrix/etc/httpd.conf cpan-testers-matrix.conf
+
+  Or on a Debian system:
+
+    cd /etc/apache2/sites-enabled
+    ln -s /path/to/cpan-testers-matrix/etc/httpd.conf cpan-testers-matrix.conf
+
+* NameVirtualHost should be turned on in the standard Apache
+  configuration, if not already done, e.g. add into the standard
+  httpd.conf:
+
+    NameVirtualHost *:80
+
+* Add an entry with the hostname "matrix-cpantesters" to your local
+  DNS, or, easier, to your /etc/hosts:
+
+    127.0.0.1     matrix-cpantesters
+
+* Restart the Apache, and point your browser to http://matrix-cpantesters
