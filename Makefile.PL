@@ -34,7 +34,7 @@ WriteMakefile(NAME =>         'CPAN::Testers::Matrix',
 sub MY::postamble {
     my $postamble = <<'EOF';
 validate-cpantestersmatrix-data:
-	pkwalify -f cgi/cpantesters_amendments.kwalify cgi/cpantesters_amendments.yml
+	pkwalify -f etc/cpantesters_amendments.kwalify data/cpantesters_amendments.yml
 
 EOF
     $postamble;
