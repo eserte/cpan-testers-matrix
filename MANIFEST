@@ -1,0 +1,10 @@
+.gitignore
+cgi-bin/cpantesters_amendments.yml
+cgi-bin/cpantestersmatrix.pl
+data/cpantesters_amendments.yml
+etc/cpantesters_amendments.kwalify
+images/cpantesters_favicon.ico
+images/cpantesters_favicon.xcf
+Makefile.PL
+MANIFEST			This list of files
+t/test.t
