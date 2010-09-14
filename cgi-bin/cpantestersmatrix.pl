@@ -2,7 +2,6 @@
 # -*- perl -*-
 
 #
-# $Id: cpantestersmatrix.pl,v 1.131 2010/09/13 18:14:19 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
@@ -10,7 +9,6 @@
 # modify it under the same terms as Perl itself.
 #
 # Mail: slaven@rezic.de
-# WWW:  http://srezic.sf.net/
 #
 
 package # not official yet
@@ -18,7 +16,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = sprintf("%d.%03d", q$Revision: 1.131 $ =~ /(\d+)\.(\d+)/);
+$VERSION = '1.400';
 
 use vars qw($UA);
 
@@ -531,7 +529,7 @@ print <<EOF;
    <span class="sml"><a href="?prefs=1">Change Preferences</p></span>
   </div>
   <div>
-   <a href="http://srezic.cvs.sourceforge.net/*checkout*/srezic/srezic-misc/cgi/cpantestersmatrix.pl">cpantestersmatrix.pl</a> $VERSION
+   <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
    by <a href="mailto:srezic\@cpan.org">Slaven Rezi&#x0107;</a>
   </div>
  </body>
