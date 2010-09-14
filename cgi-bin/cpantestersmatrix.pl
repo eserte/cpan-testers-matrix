@@ -132,7 +132,7 @@ my %prefs = do {
     if ($update_prefs || !$cookie) {
 	$cookie = CGI::Cookie->new(
 	    -name    => 'preferences',
-	    -expures => '+10y',
+	    -expires => '+10y',
 	    -value   => {
 		stylesheet  => do {
 		    my $requested = $update_prefs && trim $q->param('stylesheet');
