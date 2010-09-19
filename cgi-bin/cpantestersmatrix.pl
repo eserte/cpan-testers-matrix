@@ -1239,8 +1239,7 @@ sub teaser {
     if ($q && !$q->param("maxver")) {
 	print <<EOF;
 <div style="margin-bottom:0.5cm; font-size:smaller; ">
-  You can click on the matrix cells or row/column headers to get the list of corresponding reports.<br/>
-  Alternative color schemes are available: try <i>View &gt; Page Style</i> or <i>View &gt; Use Style</i> in your browser.
+  You can click on the matrix cells or row/column headers to get the list of corresponding reports.
 </div>
 EOF
     }
