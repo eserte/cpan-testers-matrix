@@ -1198,30 +1198,35 @@ EOF
 
 sub stylesheet_gradients {
     <<EOF;
+  .action_PASS       { background: #5ad742; }
   .action_PASS_1     { background: #7af762; }
   .action_PASS_2     { background: #5ad742; }
   .action_PASS_4     { background: #3ab722; }
   .action_PASS_8     { background: #1a9702; }
   .action_PASS_16    { background: #0a7700; }
 
+  .action_NA         { background: #e6f362; }
   .action_NA_1       { background: #ffff82; }
   .action_NA_2       { background: #e6f362; }
   .action_NA_4       { background: #d6d342; }
   .action_NA_8       { background: #b6b322; }
   .action_NA_16      { background: #969302; }
 
+  .action_UNKNOWN    { background: #e6f362; }
   .action_UNKNOWN_1  { background: #ffff82; }
   .action_UNKNOWN_2  { background: #e6f362; }
   .action_UNKNOWN_4  { background: #d6d342; }
   .action_UNKNOWN_8  { background: #b6b322; }
   .action_UNKNOWN_16 { background: #969302; }
 
+  .action_FAIL       { background: #f65c59; }
   .action_FAIL_1     { background: #ff7c79; }
   .action_FAIL_2     { background: #f65c59; }
   .action_FAIL_4     { background: #d63c39; }
   .action_FAIL_8     { background: #b61c19; }
   .action_FAIL_16    { background: #960c09; }
 
+  .action_INVALID    { background: #e6f362; }
   .action_INVALID_1  { background: #ffff82; }
   .action_INVALID_2  { background: #e6f362; }
   .action_INVALID_4  { background: #d6d342; }
