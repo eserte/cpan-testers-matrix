@@ -1,5 +1,18 @@
 You need to make cgi-bin/cpantestermatrix.pl available as a CGI script.
 
+
+One very easy way of doing that is using the included cpan-testers-matrix.psgi
+file that wraps up the CGI script in a PSGI application. Just point `plackup' or
+your favourite PSGI-supporting webserver at it, e.g.:
+
+  $ plackup cpan-testers-matrix.psgi
+  HTTP::Server::PSGI: Accepting connections at http://0:5000/
+
+
+Note that you might need to change the #!shebang in cgi-bin/cpantestermatrix.pl
+if you want to run it with a perl other than /usr/bin/perl.
+
+
 With apache + mod_perl you can use the nearly "zero conf"
 configuration file etc/httpd.conf:
 
