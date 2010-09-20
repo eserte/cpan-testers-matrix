@@ -1,6 +1,29 @@
 User-agent: *
 Disallow: /?
 
-# Broken bot, does not correctly obey the above rule
+######################################################################
+# Broken bots, do not correctly obey the above rule
 User-agent: spbot
+Disallow: /
+
+User-agent: bixolabs
+Disallow: /
+
+# Unclear which name is used here
+User-agent: Sogou web spider
+Disallow: /
+
+User-agent: sogou spider
+Disallow: /
+
+User-agent: ccbot
+Disallow: /
+
+User-agent: Gaisbot
+Disallow: /
+
+User-agent: LinkedInBot
+Disallow: /
+
+User-agent: Pathtraq
 Disallow: /
