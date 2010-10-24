@@ -16,7 +16,7 @@ package # not official yet
 
 use strict;
 use vars qw($VERSION);
-$VERSION = '1.400';
+$VERSION = '1.401';
 
 use vars qw($UA);
 
@@ -268,7 +268,11 @@ if ($reports) {
 		$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
 		$is_latest_version = defined $latest_version && $latest_version eq $dist_version;
 		if ($meta && $meta->{resources} && $meta->{resources}->{bugtracker}) {
-		    $dist_bugtracker_url = $meta->{resources}->{bugtracker};
+		    if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
+			$dist_bugtracker_url = $meta->{resources}->{bugtracker}->{web};
+		    } else {
+			$dist_bugtracker_url = $meta->{resources}->{bugtracker};
+		    }
 		}
 	    };
 	    warn $@ if $@;
