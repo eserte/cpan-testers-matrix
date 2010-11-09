@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # -*- perl -*-
 
 #
@@ -15,6 +15,7 @@ package # not official yet
     CPAN::Testers::Matrix;
 
 use strict;
+use warnings;
 use vars qw($VERSION);
 $VERSION = '1.401';
 
@@ -43,17 +44,30 @@ sub get_ua ();
 sub fetch_error_check ($);
 sub set_dist_and_version ($);
 sub get_perl_and_patch ($);
+sub require_deserializer_dist ();
+sub require_deserializer_author ();
 sub require_yaml ();
+sub require_json ();
 sub trim ($);
 
 my $cache_days = 1/4;
 my $ua_timeout = 10;
 
+use constant FILEFMT_AUTHOR => 'yaml';
+#use constant FILEFMT_DIST   => 'json';
+use constant FILEFMT_DIST   => 'yaml';
+
 my $cache_root = "/tmp/cpantesters_cache_$<";
 mkdir $cache_root, 0755 if !-d $cache_root;
 my $dist_cache = "$cache_root/dist";
+if (FILEFMT_DIST eq 'json') {
+    $dist_cache .= '_json';
+}
 mkdir $dist_cache, 0755 if !-d $dist_cache;
 my $author_cache = "$cache_root/author";
+if (FILEFMT_AUTHOR eq 'json') {
+    $author_cache .= '_json';
+}
 mkdir $author_cache, 0755 if !-d $author_cache;
 my $meta_cache = "$cache_root/meta";
 mkdir $meta_cache, 0755 if !-d $meta_cache;
@@ -601,13 +615,13 @@ sub fetch_data ($) {
 	    last GET_DATA;
 	}
 
-	require_yaml;
+	require_deserializer_dist;
 
 	my $ua = get_ua;
 
 	my $fetch_dist_data = sub {
 	    my($dist) = @_;
-	    $url = "http://$ct_domain/show/$dist.yaml";
+	    $url = "http://$ct_domain/show/$dist." . FILEFMT_DIST;
 	    my $resp = $ua->get($url);
 	    $resp;
 	};
@@ -708,8 +722,8 @@ EOF
 	# Fix distribution name
 	eval { $dist = $data->[-1]->{distribution} };
     } elsif ($resp && $resp->is_success) {
-	$data = yaml_load($resp->decoded_content)
-	    or die "Could not load YAML data from <$url>";
+	$data = deserialize_dist($resp->decoded_content)
+	    or die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
 	for my $result (@$data) {
 	    amend_result($result);
 	}
@@ -755,7 +769,7 @@ sub fetch_author_data ($) {
 
 	my $ua = get_ua;
 	if ($ct_domain eq $new_ct_domain || $ct_domain eq $test_ct_domain) {
-	    $url = "http://$new_ct_domain/author/$author.yaml";
+	    $url = "http://$new_ct_domain/author/$author." . FILEFMT_AUTHOR;
 	} else {
 	    $url = "http://$old_ct_domain/author/$author.rss"; # XXX must use old site because of limitation to 100 records
 	}
@@ -784,9 +798,9 @@ EOF
 	$author_dist = lock_retrieve($cachefile)
 	    or die "Could not load cached data";
     } elsif ($resp && $resp->is_success) {
-	if ($url =~ m{\.ya?ml$}) {
-	    require_yaml;
-	    my $data = yaml_load($resp->decoded_content);
+	if ($url =~ m{\.(ya?ml|json)$}) {
+	    require_deserializer_author;
+	    my $data = deserialize_author($resp->decoded_content);
 	    for my $result (@$data) {
 		my $dist;
 		if (defined $result->{dist}) { # new style
@@ -882,7 +896,7 @@ sub build_success_table ($$$) {
 	$action{$perl}->{$r->{osname}}->{__TOTAL__}++;
     }
 
-    # Here trap errors in source yaml (perl version=0, osname="")
+    # Here trap errors in source yaml/json (perl version=0, osname="")
     my @perls   = grep { $_ } sort { CPAN::Version->vcmp($b, $a) } keys %perl;
     my @osnames = grep { $_ } sort { $a cmp $b } keys %osname;
 
@@ -1125,7 +1139,7 @@ sub get_ua () {
     return $UA if $UA;
     $UA = LWP::UserAgent->new;
     $UA->timeout($ua_timeout);
-    ## Does not help, www.cpantesters.org does not send compressed yaml files
+    ## Does not help, www.cpantesters.org does not send compressed yaml/json files
     #$UA->default_headers->push_header(Accept_encoding => 'gzip');
     $UA;
 }
@@ -1300,7 +1314,7 @@ sub amend_result {
     # Formerly it was called 'action', now it is 'status' (and there's
     # a 'state', which is lowercase)
     $result->{action} = $result->{status} if !exists $result->{action};
-    # May happen in author YAMLs --- inconsistency!
+    # May happen in author YAML/JSONs --- inconsistency!
     $result->{action} = $result->{state}  if !defined $result->{action};
     # Another one: 'archname' is now 'platform'
     $result->{archname} = $result->{platform} if !exists $result->{archname};
@@ -1330,6 +1344,26 @@ sub cmp_version_with_patch {
     cmp_version($a, $b);
 }
 
+sub require_deserializer_dist () {
+    if (FILEFMT_DIST eq 'json') {
+	require_json;
+	*deserialize_dist      = \*json_load;
+    } else {
+	require_yaml;
+	*deserialize_dist      = \*yaml_load;
+    }
+}
+
+sub require_deserializer_author () {
+    if (FILEFMT_AUTHOR eq 'json') {
+	require_json;
+	*deserialize_author      = \*json_load;
+    } else {
+	require_yaml;
+	*deserialize_author      = \*yaml_load;
+    }
+}
+
 sub require_yaml () {
     if (eval { require YAML::Syck; 1 }) {
 	*yaml_load      = \&YAML::Syck::Load;
@@ -1339,6 +1373,19 @@ sub require_yaml () {
 	*yaml_load      = \&YAML::Load;
 	*yaml_load_file = \&YAML::LoadFile;
     }
+}
+
+sub require_json () {
+    require JSON::XS;
+    no warnings 'once';
+    *json_load      = \&JSON::XS::decode_json;
+    *json_load_file = sub {
+	my $file = shift;
+	open my $fh, $file or die $!;
+	local $/;
+	my $buf = <$fh>;
+	JSON::XS::decode_json($buf);
+    };
 }
 
 # REPO BEGIN
@@ -1402,7 +1449,7 @@ in a cookie.
 
 =item *
 
-The incoming YAML data has redundant data --- remove all the
+The incoming YAML/JSON data has redundant data --- remove all the
 redundancy before creating the Storable file.
 
 =back
@@ -1410,7 +1457,7 @@ redundancy before creating the Storable file.
 =head1 PREREQUISITES
 
 CPAN::DistnameInfo, HTML::Table, List::Util, LWP, Storable, version,
-XML::LibXML, YAML::Syck.
+XML::LibXML, YAML::Syck, JSON::XS.
 
 =head1 COREQUISITES
 
