@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.401';
+$VERSION = '1.50';
 
 use vars qw($UA);
 
@@ -54,8 +54,8 @@ my $cache_days = 1/4;
 my $ua_timeout = 10;
 
 use constant FILEFMT_AUTHOR => 'yaml';
-#use constant FILEFMT_DIST   => 'json';
-use constant FILEFMT_DIST   => 'yaml';
+use constant FILEFMT_DIST   => 'json';
+#use constant FILEFMT_DIST   => 'yaml';
 
 my $cache_root = "/tmp/cpantesters_cache_$<";
 mkdir $cache_root, 0755 if !-d $cache_root;
