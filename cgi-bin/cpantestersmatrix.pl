@@ -1146,17 +1146,22 @@ sub get_ua () {
 
 sub fetch_error_check ($) {
     my $resp = shift;
+    my $msg;
     if ($resp->status_line =~ /timeout/i) {
-	<<EOF;
-Timeout while fetching data from $ct_domain.
+	$msg = <<EOF;
+Timeout while fetching data from $ct_domain: timeout=${ua_timeout}s
 EOF
     } elsif ($resp->code == 500) {
-	<<EOF;
+	$msg = <<EOF;
 Error while fetching data from $ct_domain: <@{[ $resp->status_line ]}>
 EOF
     } else {
-	"";
+	$msg = "";
     }
+    if (length $msg) {
+	warn $msg;
+    }
+    $msg;
 }
 
 BEGIN {
