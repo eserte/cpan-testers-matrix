@@ -1476,6 +1476,8 @@ CPAN
 
 Slaven ReziE<0x107>
 
+Contributions by: Florian Ragwitz and Sebastien Aperghis-Tramoni
+
 =head1 SEE ALSO
 
 L<http://cpandeps.cantrell.org.uk/>,
