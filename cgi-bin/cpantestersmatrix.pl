@@ -764,13 +764,13 @@ sub fetch_author_data ($) {
 	    last GET_DATA;
 	}
 
-	require XML::LibXML;
 	require CPAN::DistnameInfo;
 
 	my $ua = get_ua;
 	if ($ct_domain eq $new_ct_domain || $ct_domain eq $test_ct_domain) {
 	    $url = "http://$new_ct_domain/author/$author." . FILEFMT_AUTHOR;
 	} else {
+	    require XML::LibXML;
 	    $url = "http://$old_ct_domain/author/$author.rss"; # XXX must use old site because of limitation to 100 records
 	}
 	#$url = "file:///home/e/eserte/trash/SREZIC.yaml";
