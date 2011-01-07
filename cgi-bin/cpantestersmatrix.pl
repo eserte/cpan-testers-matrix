@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.50';
+$VERSION = '1.51';
 
 use vars qw($UA);
 
@@ -53,9 +53,11 @@ sub trim ($);
 my $cache_days = 1/4;
 my $ua_timeout = 10;
 
+## Be conservative for now... json files are larger than the yaml files
 use constant FILEFMT_AUTHOR => 'yaml';
-use constant FILEFMT_DIST   => 'json';
-#use constant FILEFMT_DIST   => 'yaml';
+#use constant FILEFMT_AUTHOR => 'json';
+use constant FILEFMT_DIST   => 'yaml';
+#use constant FILEFMT_DIST   => 'json';
 
 my $cache_root = "/tmp/cpantesters_cache_$<";
 mkdir $cache_root, 0755 if !-d $cache_root;
@@ -773,6 +775,16 @@ sub fetch_author_data ($) {
 	    require XML::LibXML;
 	    $url = "http://$old_ct_domain/author/$author.rss"; # XXX must use old site because of limitation to 100 records
 	}
+
+	# check first if the file is too large XXX should not be necessary :-(
+	my $head_resp = $ua->head($url);
+	last GET_DATA if !$head_resp->is_success;
+	if ($head_resp->content_length > 15_000_000) {
+	    die <<EOF;
+Sorry, $url is too large to be processed
+EOF
+	}
+
 	#$url = "file:///home/e/eserte/trash/SREZIC.yaml";
 	$resp = $ua->get($url);
 	last GET_DATA if $resp->is_success;
