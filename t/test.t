@@ -23,6 +23,7 @@ my @matrix_tests =
      ['author=srezic'],
      ['dist=Kwalify', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
      ['dist=Kwalify 1.16', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
+     ['author=zoffix', { TODO => "Large author files currently not supported" }],
     );
 my @report_table_tests = 
     (
@@ -48,6 +49,17 @@ sub _fetch_cpantestersmatrix {
 
 sub test_cpantestersmatrix {
     my(@cgi_args) = @_;
+    my %directives;
+    @cgi_args = grep {
+	if (ref $_ eq 'HASH') {
+	    %directives = %$_;
+	    0;
+	} else {
+	    1;
+	}
+    } @cgi_args;
+    local $TODO;
+    $TODO = $directives{TODO} if exists $directives{TODO};
     my $content = _fetch_cpantestersmatrix(@cgi_args);
     is($?, 0, "Exit code for @cgi_args");
     ok($content, "Have content for @cgi_args");
