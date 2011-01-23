@@ -779,7 +779,8 @@ sub fetch_author_data ($) {
 	# check first if the file is too large XXX should not be necessary :-(
 	my $head_resp = $ua->head($url);
 	last GET_DATA if !$head_resp->is_success;
-	if ($head_resp->content_length > 15_000_000) {
+	my $content_length = $head_resp->content_length;
+	if (defined $content_length && $content_length > 15_000_000) {
 	    die <<EOF;
 Sorry, $url is too large to be processed
 EOF
