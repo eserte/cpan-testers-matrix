@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.51';
+$VERSION = '1.52';
 
 use vars qw($UA);
 
@@ -374,7 +374,13 @@ print <<EOF;
   <form>
    <div>
     Distribution <span class="unimpt">(e.g. DBI, CPAN-Reporter, YAML-Syck)</span>: <input name="dist" /> <input type="submit" />
+EOF
+if ($q->param('maxver')) {
+    print <<EOF;
     <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
+EOF
+}
+print <<EOF;
    </div>
   </form>
 
@@ -454,7 +460,7 @@ EOF
 	    print qq{<li><a href="@{[ $qq->self_url ]}">Max version with a PASS</a>\n};
 	} else {
 	    my $qq = CGI->new($q);
-	    $qq->param("maxver" => 0);
+	    $qq->delete("maxver");
 	    print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
 	}
 	print "</ul>";
