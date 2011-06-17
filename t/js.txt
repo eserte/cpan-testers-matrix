@@ -1,0 +1,18 @@
+Testing the javascript smart cachedate feature
+----------------------------------------------
+
+Should show a negative offset from UTC:
+
+    env TZ=America/Los_Angeles $BROWSER 'http://matrix.cpantesters.org/beta?dist=Kwalify'
+
+Should show UTC (always, no DST):
+
+    env TZ=Africa/Banjul $BROWSER 'http://matrix.cpantesters.org/beta?dist=Kwalify'
+
+Should show a positive offset from UTC:
+
+    env TZ=Europe/Berlin $BROWSER 'http://matrix.cpantesters.org/beta?dist=Kwalify'
+
+Should show an offset with non-zero minutes:
+
+    env TZ=Asia/Colombo $BROWSER 'http://matrix.cpantesters.org/beta?dist=Kwalify'
