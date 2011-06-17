@@ -352,11 +352,25 @@ print <<EOF;
       frm["dist"].focus();
     }
   }
+
+  var start_epoch;
+EOF
+my $cachefile_time;
+if ($cachefile) {
+    $cachefile_time = (stat($cachefile))[9];
+    print <<EOF;
+  start_epoch = $cachefile_time;
+EOF
+}
+print <<EOF;
   // End script hiding -->
   </script>
+  <script type="text/javascript" src="matrix_cpantesters.js"></script>
  </head>
 EOF
-print $prefs{steal_focus} ? qq{<body onload="focus_first();">\n} : qq{<body>\n};
+print qq{<body onload="} .
+    ($prefs{steal_focus} ? qq{focus_first(); } : '') .
+    qq{init_cachedate();">\n};
 print <<EOF;
   <h1><a href="$ct_link">$title</a>$latest_distribution_string</h1>
 EOF
@@ -542,10 +556,10 @@ print '<hr style="clear:left;">';
 
 if ($cachefile) {
     my $file = basename $cachefile;
-    my $datum = strftime("%F %T UTC", gmtime ((stat($cachefile))[9]));
+    my $datum = strftime("%F %T UTC", gmtime($cachefile_time));
     print <<EOF;
   <div>
-   <i>$file</i> as of <i>$datum</i> <span class="sml">Use Shift-Reload for forced update</span>
+   <i>$file</i> as of <i id="cachedate">$datum</i> <span class="sml">Use Shift-Reload for forced update</span>
   </div>
 EOF
 }
