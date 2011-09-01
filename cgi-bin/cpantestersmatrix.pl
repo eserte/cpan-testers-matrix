@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.53';
+$VERSION = '1.54';
 
 use vars qw($UA);
 
@@ -1187,6 +1187,10 @@ EOF
     } elsif ($resp->code == 500) {
 	$msg = <<EOF;
 Error while fetching data from $ct_domain: <@{[ $resp->status_line ]}>
+EOF
+    } elsif ($resp->code == 404) {
+	$msg = <<EOF;
+Cannot fetch data from $ct_domain (file not found)
 EOF
     } else {
 	$msg = "";
