@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use FindBin;
 
 use Plack::Builder;
 use Plack::App::File;
@@ -10,7 +11,7 @@ use Plack::App::WrapCGI;
 use Cwd 'cwd';
 use File::Spec::Functions 'catfile', 'splitpath';
 
-my $root = (splitpath(catfile(cwd(), __FILE__)))[1];
+my $root = $FindBin::RealBin;
 
 my $favicon = Plack::App::File->new(
     file => catfile($root, 'images', 'cpantesters_favicon.ico'),
