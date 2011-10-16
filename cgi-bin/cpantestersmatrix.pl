@@ -1604,9 +1604,15 @@ sub amend_result {
     $result->{action} = $result->{state}  if !defined $result->{action};
     # Another one: 'archname' is now 'platform'
     $result->{archname} = $result->{platform} if !exists $result->{archname};
-## This is not needed:
-#    # canonify perl version: strip leading "v"
-#    $result->{perl} =~ s{^v}{} if exists $result->{perl};
+
+    # Happens after 2011-10 (again?)
+    # canonify perl version: strip leading "v"
+    $result->{perl} =~ s{^v}{} if exists $result->{perl};
+
+    # Happens after 2011-10
+    # normalize osnames
+    $result->{osname} = 'freebsd' if ($result->{osname}||'') eq 'FreeBSD';
+    $result->{osname} = 'MSWin32' if ($result->{osname}||'') eq 'mswin32';
 
     # Some normalizations
     $result->{fulldate} =~ s{^(....)(..)(..)(..)(..)$}{$1-$2-$3 $4:$5} if exists $result->{fulldate};
