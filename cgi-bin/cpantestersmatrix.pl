@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.54';
+$VERSION = '1.55';
 
 use vars qw($UA);
 
