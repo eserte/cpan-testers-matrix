@@ -76,7 +76,14 @@ mkdir $meta_cache, 0755 if !-d $meta_cache;
 
 my($realbin) = $FindBin::RealBin =~ m{^(.*)$}; # untaint it
 my $amendments_yml = "$realbin/cpantesters_amendments.yml";
-my $amendments_st = "$realbin/cpantesters_amendments.st";
+if (!-e $amendments_yml) {
+    # Maybe using the cgi-bin/data layout?
+    my $try = "$realbin/../data/cpantesters_amendments.yml";
+    if (-e $try) {
+	$amendments_yml = $try;
+    }
+}
+(my $amendments_st = $amendments_yml) =~ s{\.yml$}{.st};
 my $amendments;
 
 my $q = CGI->new;
