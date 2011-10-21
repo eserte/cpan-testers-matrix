@@ -95,7 +95,7 @@ my $title = "CPAN Testers Matrix";
 if ($q->script_name =~ /cpantestersmatrix2/) {
     $title .= " (beta)";
 }
-my @CORE_OSNAMES = qw(MSWin32 cygwin darwin freebsd linux openbsd netbsd solaris);
+my @CORE_OSNAMES = qw(mswin32 cygwin darwin freebsd linux openbsd netbsd solaris);
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
 my $test_ct_domain = "reports.cpantesters.org"; # not test anymore --- this is now the real thing?
