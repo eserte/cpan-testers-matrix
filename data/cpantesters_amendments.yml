@@ -363,3 +363,19 @@ amendments:
   - comment: 'After reinstalling Catalyst-Devel the error went away'
     id:
       - 2501658
+# About Tk 804.030 failures
+  - comment: 'Probably a BBC, bleadperl is breaking or changing the regexp engine'
+    id:
+      - 16764354
+      - 16764420
+      - 16776830
+      - 16782299
+  - comment: 'It seems that the X server died while running the test suite'
+    id:
+      - 16778466
+  - comment: 'Problem while compiling the bundled libpng'
+    id:
+      - 16772178
+  - comment: 'A portable Strawberry perl bug, see http://rt.cpan.org/Public/Bug/Display.html?id=68937'
+    id:
+      - 16766570
