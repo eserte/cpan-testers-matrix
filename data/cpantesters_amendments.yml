@@ -379,3 +379,6 @@ amendments:
   - comment: 'A portable Strawberry perl bug, see http://rt.cpan.org/Public/Bug/Display.html?id=68937'
     id:
       - 16766570
+  - comment: 'No make on this system'
+    id:
+      - 16784102
