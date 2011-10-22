@@ -376,6 +376,10 @@ amendments:
   - comment: 'Problem while compiling the bundled libpng'
     id:
       - 16772178
+      - 16795577
+      - 16796328
+      - 16796957
+      - 16798019
   - comment: 'A portable Strawberry perl bug, see http://rt.cpan.org/Public/Bug/Display.html?id=68937'
     id:
       - 16766570
