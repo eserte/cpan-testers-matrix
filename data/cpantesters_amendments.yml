@@ -370,6 +370,8 @@ amendments:
       - 16764420
       - 16776830
       - 16782299
+      - 16880217
+      - 16952547
   - comment: 'It seems that the X server died while running the test suite'
     id:
       - 16778466
@@ -386,3 +388,11 @@ amendments:
   - comment: 'No make on this system'
     id:
       - 16784102
+  - comment: 'Strange: Could not load Tk library: ... wrong ELF class: ELFCLASS64 -> perl arch mismatch'
+    id:
+      - 16790090
+    action: INVALID
+  - comment: 'memory leak test fails + an entry test fails because of unexpected length'
+    id:
+      - 16807097
+      - 16806740
