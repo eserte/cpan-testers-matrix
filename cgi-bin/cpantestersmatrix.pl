@@ -405,7 +405,7 @@ print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
     qq{init_cachedate();">\n};
 print <<EOF;
-  <h1><a href="$ct_link">$title</a>$latest_distribution_string</h1>
+  <h1>$title <span class="unimpt">$latest_distribution_string</span></h1>
 EOF
 if ($error) {
     my $html_error = escapeHTML($error);
@@ -483,6 +483,7 @@ EOF
 <ul>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/~$author/">search.cpan.org</a>
+<li><a href="https://metacpan.org/author/$author/">metacpan.org</a>
 </ul>
 </div>
 EOF
@@ -1356,6 +1357,7 @@ sub dist_links {
 <li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
+<li><a href="https://metacpan.org/release/$dist">metacpan.org</a>
 <li><a href="$dist_bugtracker_url">Bugtracker</a>
 EOF
     if (defined $dist_version) {
