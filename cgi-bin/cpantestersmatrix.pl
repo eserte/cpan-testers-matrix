@@ -53,6 +53,8 @@ sub trim ($);
 my $cache_days = 1/4;
 my $ua_timeout = 10;
 
+my $current_stable_perl = "5.14.0"; # this is actually 5.14.x
+
 ## Be conservative for now... json files are larger than the yaml files
 use constant FILEFMT_AUTHOR => 'yaml';
 #use constant FILEFMT_AUTHOR => 'json';
@@ -161,6 +163,7 @@ my %prefs = do {
 			? $requested : 'matrix';
 		},
 		steal_focus => (defined $q->param('steal_focus') ? 1 : 0),
+		exclude_old_devel => (defined $q->param('exclude_old_devel') ? 1 : 0),
 	    },
 	);
 
@@ -544,12 +547,19 @@ EOF
 
     my $steal_focus = $prefs{steal_focus}
 	? q{checked="checked"} : "";
+    my $exclude_old_devel = $prefs{exclude_old_devel}
+	? q{checked="checked"} : "";
 
     print <<"EOF"
     <br />
 
     <label for="steal_focus">Steal Focus:</label>
     <input type="checkbox" name="steal_focus" $steal_focus></input>
+
+    <br />
+
+    <label for="exclude_old_devel">Exclude old development versions:</label>
+    <input type="checkbox" name="exclude_old_devel" $exclude_old_devel></input>
 
     <br />
 
@@ -958,6 +968,7 @@ sub build_success_table ($$$) {
 
     my @matrix;
     for my $perl (@perls) {
+	next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
 	my @row;
 	for my $osname (@osnames) {
 	    my $acts = $action{$perl}->{$osname};
@@ -1391,6 +1402,17 @@ sub cmp_version_with_patch {
 	}
     }
     cmp_version($a, $b);
+}
+
+sub is_old_devel_perl {
+    my $perl = shift;
+    return 0 if cmp_version($perl, $current_stable_perl) >= 0;
+    if (my($major,$minor) = $perl =~ m{^(\d+)\.(\d+)}) {
+	return 1 if $minor >= 7 && $minor%2==1;
+	return 0;
+    } else {
+	return undef;
+    }
 }
 
 sub require_deserializer_dist () {
