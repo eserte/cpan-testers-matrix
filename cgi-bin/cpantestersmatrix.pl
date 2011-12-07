@@ -211,9 +211,17 @@ if ($reports) {
 	my @matrix;
 	# By chance, lexical ordering fits for sort=action: FAIL is first.
 	no warnings 'uninitialized';
+
+	my @sort_column_defs = map {
+	    my($sort_order, $sort_column) = $_ =~ m{^(-|\+)?(.*)};
+	    $sort_order = '+' if !$sort_order;
+	    [$sort_order, $sort_column];
+	} @sort_columns;
+
 	for my $rec (sort {
 	    my $res = 0;
-	    for my $sort_column (@sort_columns) {
+	    for my $sort_column_def (@sort_column_defs) {
+		my($sort_order, $sort_column) = @$sort_column_def;
 		if      ($sort_column eq 'osvers') {
 		    $res = cmp_version($a->{$sort_column}, $b->{$sort_column});
 		} elsif ($sort_column eq 'perl') {
@@ -222,6 +230,9 @@ if ($reports) {
 		    $res = $a->{$sort_column} <=> $b->{$sort_column};
 		} else {
 		    $res = $a->{$sort_column} cmp $b->{$sort_column};
+		}
+		if ($sort_order eq '-') {
+		    $res *= -1;
 		}
 		last if $res != 0;
 	    }
@@ -242,12 +253,23 @@ if ($reports) {
 			    $action_comment_html,
 			  ];
 	}
+
+	my $leader_sort_order = $sort_column_defs[0]->[0];
 	my $sort_href = sub {
 	    my($label, $column) = @_;
 	    my $qq = CGI->new($q);
-	    my @new_sort_columns = ($column, grep { $_ ne $column } @sort_columns);
-	    $qq->param("sort", @new_sort_columns);
-	    qq{<a href="@{[ $qq->self_url ]}">$label</a>};
+	    my $this_is_leader_column = $sort_column_defs[0]->[1] eq $column;
+	    my $this_sort_order = ($this_is_leader_column
+				   ? ($leader_sort_order eq '+' ? '-' : '+') # toggle
+				   : '+'                                     # always ascending
+				  );
+	    my @new_sort_column_defs = (
+					[$this_sort_order, $column],
+					grep { $_->[1] ne $column } @sort_column_defs
+				       );
+	    $qq->param("sort", map { join("",@$_) } @new_sort_column_defs);
+	    qq{<a href="@{[ $qq->self_url ]}">$label</a>} .
+		($this_is_leader_column ? ' ' . ($leader_sort_order eq '+' ? '&#x25BC;' : '&#x25B2;') : '');
 	};
 	$table = HTML::Table->new(-head    => [$sort_href->("Result", "action"),
 					       $sort_href->("Id", "id"),
