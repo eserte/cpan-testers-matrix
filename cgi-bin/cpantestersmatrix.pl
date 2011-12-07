@@ -202,6 +202,7 @@ if ($reports) {
 	    my($perl, $patch) = eval { get_perl_and_patch($rec) };
 	    next if !$perl;
 	    next if defined $want_perl && $perl ne $want_perl;
+	    next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
 	    next if defined $want_os && $rec->{osname} ne $want_os;
 	    push @reports, $rec;
 	    $rec->{patch} = $patch;
