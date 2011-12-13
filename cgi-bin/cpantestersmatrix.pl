@@ -55,11 +55,10 @@ my $ua_timeout = 10;
 
 my $current_stable_perl = "5.14.0"; # this is actually 5.14.x
 
-## Be conservative for now... json files are larger than the yaml files
-use constant FILEFMT_AUTHOR => 'yaml';
-#use constant FILEFMT_AUTHOR => 'json';
-use constant FILEFMT_DIST   => 'yaml';
-#use constant FILEFMT_DIST   => 'json';
+#use constant FILEFMT_AUTHOR => 'yaml';
+use constant FILEFMT_AUTHOR => 'json';
+#use constant FILEFMT_DIST   => 'yaml';
+use constant FILEFMT_DIST   => 'json';
 
 my $cache_root = "/tmp/cpantesters_cache_$<";
 mkdir $cache_root, 0755 if !-d $cache_root;
