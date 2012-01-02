@@ -1244,7 +1244,12 @@ EOF
 
 BEGIN {
     # version 0.74 has some strange "Invalid version object" bug
-    if (eval { require version; version->VERSION(0.76); 1 }) {
+    #
+    # Later version.pm versions (e.g. 0.76 or 0.77) are quite noisy. For
+    # example for Tk.pm there are a lot of warnings in the form:
+    #   Version string '804.025_beta10' contains invalid data; ignoring: '_beta10'
+    # CPAN::Version's vcmp is also OK and does not warn, so use it.
+    if (0 && eval { require version; version->VERSION(0.76); 1 }) {
 	*cmp_version = sub {
 	    local $^W;
 	    safe_version($_[0]) <=> safe_version($_[1]);
