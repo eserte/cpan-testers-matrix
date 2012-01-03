@@ -397,3 +397,14 @@ amendments:
     id:
       - 16807097
       - 16806740
+  - comment: 'http://code.activestate.com/lists/perl5-porters/172695/ (undefined symbol: Perl_to_utf8_lower)'
+    id:
+      - 18789755
+      - 18717908
+      - 18686877
+      - 18626237
+      - 18602309
+      - 18547619
+      - 18525920
+      - 18486845
+      - 18447873
