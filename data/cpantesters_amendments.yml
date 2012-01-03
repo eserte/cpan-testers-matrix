@@ -18,6 +18,7 @@ amendments:
       - 1000493
       - 1000481
       - 1884788
+      - 16000463
   - comment: "Fixed in https://svn.perl.org/modules/Tk r11788 (float inaccuracies)"
     id:
       - 2204594
