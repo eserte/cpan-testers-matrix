@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.59';
+$VERSION = '1.60';
 
 use vars qw($UA);
 
@@ -266,7 +266,11 @@ if ($reports) {
 					[$this_sort_order, $column],
 					grep { $_->[1] ne $column } @sort_column_defs
 				       );
-	    $qq->param("sort", map { join("",@$_) } @new_sort_column_defs);
+	    $qq->param("sort", map {
+		my($sort_order, $column) = @$_;
+		$sort_order = '' if $sort_order eq '+'; # some browsers cannot deal with a (correctly escaped) +
+		$sort_order . $column;
+	    } @new_sort_column_defs);
 	    qq{<a href="@{[ $qq->self_url ]}">$label</a>} .
 		($this_is_leader_column ? ' ' . ($leader_sort_order eq '+' ? '&#x25BC;' : '&#x25B2;') : '');
 	};
