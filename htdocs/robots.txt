@@ -27,3 +27,7 @@ Disallow: /
 
 User-agent: Pathtraq
 Disallow: /
+
+# http://msdn.microsoft.com/en-us/library/aa740955(v=vs.85).aspx#unknown_94
+User-Agent: MSIECrawler
+Disallow: /
