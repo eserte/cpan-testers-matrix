@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.60';
+$VERSION = '1.61';
 
 use vars qw($UA);
 
@@ -942,6 +942,10 @@ EOF
 	    warn $!;
 	    die "Internal error (nstore)";
 	};
+    } else {
+	# no success
+	undef $cachefile;
+	$error = "Cannot fetch author file <$url>\n";
     }
 
     return { author_dist => $author_dist,
