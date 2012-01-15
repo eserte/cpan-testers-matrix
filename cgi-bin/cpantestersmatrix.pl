@@ -614,7 +614,7 @@ print <<EOF;
   </div>
   <div>
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
-   by <a href="mailto:srezic\@cpan.org">Slaven Rezi&#x0107;</a>
+   by <a href="http://search.cpan.org/~srezic/">Slaven Rezi&#x0107;</a>
   </div>
  </body>
 </html>
