@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.61';
+$VERSION = '1.62';
 
 use vars qw($UA);
 
@@ -194,6 +194,7 @@ if ($reports) {
 
     eval {
 	my $r = fetch_data($dist);
+	apply_data_from_meta_yml($dist);
 	set_newest_dist_version($r->{data});
 	my @reports;
 	for my $rec (@{ $r->{data} }) {
@@ -307,6 +308,7 @@ if ($reports) {
 } elsif ($dist) {
     eval {
 	my $r = fetch_data($dist);
+	apply_data_from_meta_yml($dist);
 	my $data;
 	($dist, $data, $cachefile, $error) = @{$r}{qw(dist data cachefile error)};
 
@@ -314,20 +316,6 @@ if ($reports) {
 	    $r = build_maxver_table($data, $dist);
 	} else {
 	    set_newest_dist_version($data);
-	    eval {
-		my $r = fetch_meta_yml($dist);
-		my $meta = $r->{meta};
-		$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
-		$is_latest_version = defined $latest_version && $latest_version eq $dist_version;
-		if ($meta && $meta->{resources} && $meta->{resources}->{bugtracker}) {
-		    if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
-			$dist_bugtracker_url = $meta->{resources}->{bugtracker}->{web};
-		    } else {
-			$dist_bugtracker_url = $meta->{resources}->{bugtracker};
-		    }
-		}
-	    };
-	    warn $@ if $@;
 	    $r = build_success_table($data, $dist, $dist_version);
 	}
 	$table = $r->{table};
@@ -1428,6 +1416,24 @@ sub amend_result {
 	}
 	$result->{action_comment} = $amendments->{$id}->{comment};
     }
+}
+
+sub apply_data_from_meta_yml {
+    my($dist) = @_;
+    eval {
+	my $r = fetch_meta_yml($dist);
+	my $meta = $r->{meta};
+	$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
+	$is_latest_version = defined $latest_version && $latest_version eq $dist_version;
+	if ($meta && $meta->{resources} && $meta->{resources}->{bugtracker}) {
+	    if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
+		$dist_bugtracker_url = $meta->{resources}->{bugtracker}->{web};
+	    } else {
+		$dist_bugtracker_url = $meta->{resources}->{bugtracker};
+	    }
+	}
+    };
+    warn $@ if $@;
 }
 
 sub cmp_version_with_patch {
