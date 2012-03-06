@@ -430,3 +430,9 @@ amendments:
       - 20518977
       - 20518962
       - 20518961
+  - comment: 'https://rt.cpan.org/Ticket/Display.html?id=75495 (common::sense and WARNING_BITS)'
+    id:
+# Kwalify
+      - 20325046
+      - 20268637
+      - 20168721
