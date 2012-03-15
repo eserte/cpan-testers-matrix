@@ -659,6 +659,8 @@ sub fetch_meta_yml ($) {
 sub fetch_data ($) {
     my($raw_dist) = @_;
 
+    die "dist is missing\n" if !defined $raw_dist;
+
     my $data;
 
     set_dist_and_version($raw_dist);
