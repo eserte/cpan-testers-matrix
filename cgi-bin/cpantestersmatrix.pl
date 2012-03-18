@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.63';
+$VERSION = '1.64';
 
 use vars qw($UA);
 
@@ -598,7 +598,7 @@ print '<hr style="clear:left;">';
 
 if ($cachefile) {
     my $file = basename $cachefile;
-    my $datum = strftime("%F %T UTC", gmtime($cachefile_time));
+    my $datum = strftime("%Y-%m-%d %H:%M:%S UTC", gmtime($cachefile_time));
     print <<EOF;
   <div>
    <i>$file</i> as of <i id="cachedate">$datum</i> <span class="sml">Use Shift-Reload for forced update</span>
