@@ -18,6 +18,7 @@ amendments:
       - 1000493
       - 1000481
       - 1884788
+      - 16000463
   - comment: "Fixed in https://svn.perl.org/modules/Tk r11788 (float inaccuracies)"
     id:
       - 2204594
@@ -363,3 +364,75 @@ amendments:
   - comment: 'After reinstalling Catalyst-Devel the error went away'
     id:
       - 2501658
+# About Tk 804.030 failures
+  - comment: 'Probably a BBC, bleadperl is breaking or changing the regexp engine'
+    id:
+      - 16764354
+      - 16764420
+      - 16776830
+      - 16782299
+      - 16880217
+      - 16952547
+  - comment: 'It seems that the X server died while running the test suite'
+    id:
+      - 16778466
+  - comment: 'Problem while compiling the bundled libpng'
+    id:
+      - 16772178
+      - 16795577
+      - 16796328
+      - 16796957
+      - 16798019
+  - comment: 'A portable Strawberry perl bug, see http://rt.cpan.org/Public/Bug/Display.html?id=68937'
+    id:
+      - 16766570
+  - comment: 'No make on this system'
+    id:
+      - 16784102
+  - comment: 'Strange: Could not load Tk library: ... wrong ELF class: ELFCLASS64 -> perl arch mismatch'
+    id:
+      - 16790090
+    action: INVALID
+  - comment: 'memory leak test fails + an entry test fails because of unexpected length'
+    id:
+      - 16807097
+      - 16806740
+  - comment: 'http://code.activestate.com/lists/perl5-porters/172695/ (undefined symbol: Perl_to_utf8_lower)'
+    id:
+      - 18789755
+      - 18717908
+      - 18686877
+      - 18626237
+      - 18602309
+      - 18547619
+      - 18525920
+      - 18486845
+      - 18447873
+  - comment: 'https://rt.cpan.org/Ticket/Display.html?id=75541 (WWOLF/Test-0.001)'
+    action: INVALID
+    id:
+# SREZIC/*
+      - 20501725
+      - 20501695
+      - 20518098
+      - 20501725
+      - 20501695
+# Inline-CPP
+      - 20519010
+      - 20519009
+      - 20519008
+      - 20519007
+      - 20518995
+      - 20518992
+      - 20518980
+      - 20518979
+      - 20518978
+      - 20518977
+      - 20518962
+      - 20518961
+  - comment: 'https://rt.cpan.org/Ticket/Display.html?id=75495 (common::sense and WARNING_BITS)'
+    id:
+# Kwalify
+      - 20325046
+      - 20268637
+      - 20168721

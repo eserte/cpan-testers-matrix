@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.54';
+$VERSION = '1.63';
 
 use vars qw($UA);
 
@@ -53,11 +53,12 @@ sub trim ($);
 my $cache_days = 1/4;
 my $ua_timeout = 10;
 
-## Be conservative for now... json files are larger than the yaml files
-use constant FILEFMT_AUTHOR => 'yaml';
-#use constant FILEFMT_AUTHOR => 'json';
-use constant FILEFMT_DIST   => 'yaml';
-#use constant FILEFMT_DIST   => 'json';
+my $current_stable_perl = "5.14.0"; # this is actually 5.14.x
+
+#use constant FILEFMT_AUTHOR => 'yaml';
+use constant FILEFMT_AUTHOR => 'json';
+#use constant FILEFMT_DIST   => 'yaml';
+use constant FILEFMT_DIST   => 'json';
 
 my $cache_root = "/tmp/cpantesters_cache_$<";
 mkdir $cache_root, 0755 if !-d $cache_root;
@@ -76,7 +77,14 @@ mkdir $meta_cache, 0755 if !-d $meta_cache;
 
 my($realbin) = $FindBin::RealBin =~ m{^(.*)$}; # untaint it
 my $amendments_yml = "$realbin/cpantesters_amendments.yml";
-my $amendments_st = "$realbin/cpantesters_amendments.st";
+if (!-e $amendments_yml) {
+    # Maybe using the cgi-bin/data layout?
+    my $try = "$realbin/../data/cpantesters_amendments.yml";
+    if (-e $try) {
+	$amendments_yml = $try;
+    }
+}
+(my $amendments_st = $amendments_yml) =~ s{\.yml$}{.st};
 my $amendments;
 
 my $q = CGI->new;
@@ -88,7 +96,7 @@ my $title = "CPAN Testers Matrix";
 if ($q->script_name =~ /cpantestersmatrix2/) {
     $title .= " (beta)";
 }
-my @CORE_OSNAMES = qw(MSWin32 cygwin darwin freebsd linux openbsd netbsd solaris);
+my @CORE_OSNAMES = qw(mswin32 cygwin darwin freebsd linux openbsd netbsd solaris);
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
 my $test_ct_domain = "reports.cpantesters.org"; # not test anymore --- this is now the real thing?
@@ -154,6 +162,7 @@ my %prefs = do {
 			? $requested : 'matrix';
 		},
 		steal_focus => (defined $q->param('steal_focus') ? 1 : 0),
+		exclude_old_devel => (defined $q->param('exclude_old_devel') ? 1 : 0),
 	    },
 	);
 
@@ -185,6 +194,7 @@ if ($reports) {
 
     eval {
 	my $r = fetch_data($dist);
+	apply_data_from_meta_yml($dist);
 	set_newest_dist_version($r->{data});
 	my @reports;
 	for my $rec (@{ $r->{data} }) {
@@ -192,6 +202,7 @@ if ($reports) {
 	    my($perl, $patch) = eval { get_perl_and_patch($rec) };
 	    next if !$perl;
 	    next if defined $want_perl && $perl ne $want_perl;
+	    next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
 	    next if defined $want_os && $rec->{osname} ne $want_os;
 	    push @reports, $rec;
 	    $rec->{patch} = $patch;
@@ -200,9 +211,17 @@ if ($reports) {
 	my @matrix;
 	# By chance, lexical ordering fits for sort=action: FAIL is first.
 	no warnings 'uninitialized';
+
+	my @sort_column_defs = map {
+	    my($sort_order, $sort_column) = $_ =~ m{^(-|\+)?(.*)};
+	    $sort_order = '+' if !$sort_order;
+	    [$sort_order, $sort_column];
+	} @sort_columns;
+
 	for my $rec (sort {
 	    my $res = 0;
-	    for my $sort_column (@sort_columns) {
+	    for my $sort_column_def (@sort_column_defs) {
+		my($sort_order, $sort_column) = @$sort_column_def;
 		if      ($sort_column eq 'osvers') {
 		    $res = cmp_version($a->{$sort_column}, $b->{$sort_column});
 		} elsif ($sort_column eq 'perl') {
@@ -211,6 +230,9 @@ if ($reports) {
 		    $res = $a->{$sort_column} <=> $b->{$sort_column};
 		} else {
 		    $res = $a->{$sort_column} cmp $b->{$sort_column};
+		}
+		if ($sort_order eq '-') {
+		    $res *= -1;
 		}
 		last if $res != 0;
 	    }
@@ -231,12 +253,27 @@ if ($reports) {
 			    $action_comment_html,
 			  ];
 	}
+
+	my $leader_sort_order = $sort_column_defs[0]->[0];
 	my $sort_href = sub {
 	    my($label, $column) = @_;
 	    my $qq = CGI->new($q);
-	    my @new_sort_columns = ($column, grep { $_ ne $column } @sort_columns);
-	    $qq->param("sort", @new_sort_columns);
-	    qq{<a href="@{[ $qq->self_url ]}">$label</a>};
+	    my $this_is_leader_column = $sort_column_defs[0]->[1] eq $column;
+	    my $this_sort_order = ($this_is_leader_column
+				   ? ($leader_sort_order eq '+' ? '-' : '+') # toggle
+				   : '+'                                     # always ascending
+				  );
+	    my @new_sort_column_defs = (
+					[$this_sort_order, $column],
+					grep { $_->[1] ne $column } @sort_column_defs
+				       );
+	    $qq->param("sort", map {
+		my($sort_order, $column) = @$_;
+		$sort_order = '' if $sort_order eq '+'; # some browsers cannot deal with a (correctly escaped) +
+		$sort_order . $column;
+	    } @new_sort_column_defs);
+	    qq{<a href="@{[ $qq->self_url ]}">$label</a>} .
+		($this_is_leader_column ? ' ' . ($leader_sort_order eq '+' ? '&#x25BC;' : '&#x25B2;') : '');
 	};
 	$table = HTML::Table->new(-head    => [$sort_href->("Result", "action"),
 					       $sort_href->("Id", "id"),
@@ -271,6 +308,7 @@ if ($reports) {
 } elsif ($dist) {
     eval {
 	my $r = fetch_data($dist);
+	apply_data_from_meta_yml($dist);
 	my $data;
 	($dist, $data, $cachefile, $error) = @{$r}{qw(dist data cachefile error)};
 
@@ -278,20 +316,6 @@ if ($reports) {
 	    $r = build_maxver_table($data, $dist);
 	} else {
 	    set_newest_dist_version($data);
-	    eval {
-		my $r = fetch_meta_yml($dist);
-		my $meta = $r->{meta};
-		$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
-		$is_latest_version = defined $latest_version && $latest_version eq $dist_version;
-		if ($meta && $meta->{resources} && $meta->{resources}->{bugtracker}) {
-		    if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
-			$dist_bugtracker_url = $meta->{resources}->{bugtracker}->{web};
-		    } else {
-			$dist_bugtracker_url = $meta->{resources}->{bugtracker};
-		    }
-		}
-	    };
-	    warn $@ if $@;
 	    $r = build_success_table($data, $dist, $dist_version);
 	}
 	$table = $r->{table};
@@ -372,7 +396,7 @@ print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
     qq{init_cachedate();">\n};
 print <<EOF;
-  <h1><a href="$ct_link">$title</a>$latest_distribution_string</h1>
+  <h1>$title <span class="unimpt">$latest_distribution_string</span></h1>
 EOF
 if ($error) {
     my $html_error = escapeHTML($error);
@@ -450,6 +474,7 @@ EOF
 <ul>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/~$author/">search.cpan.org</a>
+<li><a href="https://metacpan.org/author/$author/">metacpan.org</a>
 </ul>
 </div>
 EOF
@@ -537,12 +562,19 @@ EOF
 
     my $steal_focus = $prefs{steal_focus}
 	? q{checked="checked"} : "";
+    my $exclude_old_devel = $prefs{exclude_old_devel}
+	? q{checked="checked"} : "";
 
     print <<"EOF"
     <br />
 
     <label for="steal_focus">Steal Focus:</label>
     <input type="checkbox" name="steal_focus" $steal_focus></input>
+
+    <br />
+
+    <label for="exclude_old_devel">Exclude old development versions:</label>
+    <input type="checkbox" name="exclude_old_devel" $exclude_old_devel></input>
 
     <br />
 
@@ -570,7 +602,7 @@ print <<EOF;
   </div>
   <div>
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
-   by <a href="mailto:srezic\@cpan.org">Slaven Rezi&#x0107;</a>
+   by <a href="http://search.cpan.org/~srezic/">Slaven Rezi&#x0107;</a>
   </div>
  </body>
 </html>
@@ -898,6 +930,10 @@ EOF
 	    warn $!;
 	    die "Internal error (nstore)";
 	};
+    } else {
+	# no success
+	undef $cachefile;
+	$error = "Cannot fetch author file <$url>\n";
     }
 
     return { author_dist => $author_dist,
@@ -951,6 +987,7 @@ sub build_success_table ($$$) {
 
     my @matrix;
     for my $perl (@perls) {
+	next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
 	my @row;
 	for my $osname (@osnames) {
 	    my $acts = $action{$perl}->{$osname};
@@ -1203,7 +1240,12 @@ EOF
 
 BEGIN {
     # version 0.74 has some strange "Invalid version object" bug
-    if (eval { require version; version->VERSION(0.76); 1 }) {
+    #
+    # Later version.pm versions (e.g. 0.76 or 0.77) are quite noisy. For
+    # example for Tk.pm there are a lot of warnings in the form:
+    #   Version string '804.025_beta10' contains invalid data; ignoring: '_beta10'
+    # CPAN::Version's vcmp is also OK and does not warn, so use it.
+    if (0 && eval { require version; version->VERSION(0.76); 1 }) {
 	*cmp_version = sub {
 	    local $^W;
 	    safe_version($_[0]) <=> safe_version($_[1]);
@@ -1315,6 +1357,7 @@ sub dist_links {
 <li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
+<li><a href="https://metacpan.org/release/$dist">metacpan.org</a>
 <li><a href="$dist_bugtracker_url">Bugtracker</a>
 EOF
     if (defined $dist_version) {
@@ -1375,6 +1418,24 @@ sub amend_result {
     }
 }
 
+sub apply_data_from_meta_yml {
+    my($dist) = @_;
+    eval {
+	my $r = fetch_meta_yml($dist);
+	my $meta = $r->{meta};
+	$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
+	$is_latest_version = defined $latest_version && defined $dist_version && $latest_version eq $dist_version;
+	if ($meta && $meta->{resources} && $meta->{resources}->{bugtracker}) {
+	    if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
+		$dist_bugtracker_url = $meta->{resources}->{bugtracker}->{web};
+	    } else {
+		$dist_bugtracker_url = $meta->{resources}->{bugtracker};
+	    }
+	}
+    };
+    warn $@ if $@;
+}
+
 sub cmp_version_with_patch {
     my($a, $b) = @_;
     for ($a, $b) {
@@ -1384,6 +1445,17 @@ sub cmp_version_with_patch {
 	}
     }
     cmp_version($a, $b);
+}
+
+sub is_old_devel_perl {
+    my $perl = shift;
+    return 0 if cmp_version($perl, $current_stable_perl) >= 0;
+    if (my($major,$minor) = $perl =~ m{^(\d+)\.(\d+)}) {
+	return 1 if $minor >= 7 && $minor%2==1;
+	return 0;
+    } else {
+	return undef;
+    }
 }
 
 sub require_deserializer_dist () {
