@@ -30,6 +30,10 @@ WriteMakefile(NAME =>         'CPAN::Testers::Matrix',
 			     'JSON::XS'			   => 0,
 			     'YAML::Syck'		   => 0, # may work also with YAML, but not recommended
 			     #'XML::LibXML'                => 0, # was needed for the old .rss files
+#XXX additional stackato prereqs
+'Plack::Builder' => 0,
+'CGI::Emulate::PSGI' => 0,
+'CGI::Compile' => 0,
 			   },
 	     );
 
