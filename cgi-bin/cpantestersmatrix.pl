@@ -1537,14 +1537,14 @@ sub require_json () {
 # REPO NAME trim /home/e/eserte/work/srezic-repository 
 # REPO MD5 ab2f7dfb13418299d79662fba10590a1
 
-=head2 trim($string)
-
-=for category Text
-
-Trim starting and leading white space and squeezes white space to a
-single space.
-
-=cut
+# =head2 trim($string)
+# 
+# =for category Text
+# 
+# Trim starting and leading white space and squeezes white space to a
+# single space.
+# 
+# =cut
 
 sub trim ($) {
     my $s = shift;
@@ -1579,38 +1579,12 @@ cpantestersmatrix.pl - present the CPAN testers results in a OS-perl version mat
 
 =head1 INSTALLATION
 
-This is a CGI script. See below the PREREQUISITES section for required non-standard perl modules.
-The script creates a predictable directory /tmp/cpantesters_cache_$<
+This is a cgi or psgi script. See the INSTALL document in the
+distribution for some installation hints.
 
-=head1 TODO
+=head1 NOTES
 
-=over
-
-=item *
-
-Move the alternative stylesheet selection into a HTML menu, so it's
-accessible for every browser. Plus, the user's choice might be stored
-in a cookie.
-
-=item *
-
-The incoming YAML/JSON data has redundant data --- remove all the
-redundancy before creating the Storable file.
-
-=back
-
-=head1 PREREQUISITES
-
-CPAN::DistnameInfo, HTML::Table, List::Util, LWP, Storable, version,
-XML::LibXML, YAML::Syck, JSON::XS.
-
-=head1 COREQUISITES
-
-Gravatar::URL
-
-=head1 SCRIPT CATEGORIES
-
-CPAN
+The script creates a predictable directory F<< /tmp/cpantesters_cache_$< >>
 
 =head1 AUTHOR
 
@@ -1621,7 +1595,6 @@ Contributions by: Florian Ragwitz and Sebastien Aperghis-Tramoni
 =head1 SEE ALSO
 
 L<http://cpandeps.cantrell.org.uk/>,
-L<http://www.cpantesters.org/> (new),
-L<http://cpantesters.perl.org/> (old)
+L<http://www.cpantesters.org/>
 
 =cut
