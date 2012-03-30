@@ -848,10 +848,15 @@ sub fetch_author_data ($) {
 	my $head_resp = $ua->head($url);
 	last GET_DATA if !$head_resp->is_success;
 	my $content_length = $head_resp->content_length;
-	if (defined $content_length && $content_length > 15_000_000) {
-	    die <<EOF;
-Sorry, $url is too large to be processed
+	if (defined $content_length) {
+	    my $max_content_length = $] >= 5.014 ? 100_000_000 : 15_000_000;
+	    if ($content_length > $max_content_length) {
+		my $msg = <<EOF;
+Sorry, $url is too large to be processed (content-length: $content_length)
 EOF
+		warn $msg; # for error.log
+		die $msg;
+	    }
 	}
 
 	#$url = "file:///home/e/eserte/trash/SREZIC.yaml";
