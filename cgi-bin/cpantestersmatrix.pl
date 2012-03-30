@@ -990,14 +990,17 @@ sub build_success_table ($$$) {
 	sort keys %osnames;
     };
 
-    my $reports_param = sub {
+    my $reports_param = do {
 	my $qq = CGI->new($q);
 	$qq->param("reports", 1);
 	if ($qq->param("author")) {
 	    $qq->delete("author");
 	    $qq->param("dist", "$dist $dist_version");
 	}
-	$qq;
+
+	my $qs = $qq->query_string;
+
+	sub { CGI->new($qs) };
     };
 
     my @matrix;
