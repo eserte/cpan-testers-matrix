@@ -1,9 +1,16 @@
 You need to make cgi-bin/cpantestermatrix.pl available as a CGI script.
 
 
-One very easy way of doing that is using the included cpan-testers-matrix.psgi
-file that wraps up the CGI script in a PSGI application. Just point `plackup' or
-your favourite PSGI-supporting webserver at it, e.g.:
+One very easy way of doing that is using the included
+cpan-testers-matrix.psgi file that wraps up the CGI script in a PSGI
+application. Just make sure the following modules are installed:
+
+- Plack
+- CGI::Emulate::PSGI
+- CGI::Compile
+
+Then point `plackup' or your favourite PSGI-supporting webserver at
+it, e.g.:
 
   $ plackup cpan-testers-matrix.psgi
   HTTP::Server::PSGI: Accepting connections at http://0:5000/
