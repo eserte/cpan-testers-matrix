@@ -25,6 +25,7 @@ use CGI qw(escapeHTML);
 use CGI::Carp qw();
 use CGI::Cookie;
 use CPAN::Version;
+use Fcntl qw(LOCK_EX O_RDWR O_CREAT);
 use File::Basename qw(basename);
 use FindBin;
 use HTML::Table;
@@ -661,6 +662,13 @@ sub fetch_data ($) {
     my $cachefile = get_cache_filename_from_dist($dist_cache, $dist);
     my $error;
 
+    # Avoid multiple simultaneous fetches
+    my $lckfile = "$cachefile.lck";
+    sysopen my $lck, $lckfile, O_RDWR | O_CREAT, 0644
+        or die "Can't write to $lckfile: $!";
+    flock $lck, LOCK_EX
+	or die "Can't flock $lckfile: $!";
+
  GET_DATA: {
 	if (-r $cachefile && -M $cachefile < $cache_days &&
 	    (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache')
@@ -809,6 +817,13 @@ sub fetch_author_data ($) {
     my $url;
     my $cachefile = $author_cache."/".$author.".st";
     my $error;
+
+    # Avoid multiple simultaneous fetches
+    my $lckfile = "$cachefile.lck";
+    sysopen my $lck, $lckfile, O_RDWR | O_CREAT, 0644
+        or die "Can't write to $lckfile: $!";
+    flock $lck, LOCK_EX
+	or die "Can't flock $lckfile: $!";
 
  GET_DATA: {
 	if (-r $cachefile && -M $cachefile < $cache_days &&
