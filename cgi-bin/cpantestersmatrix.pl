@@ -1027,7 +1027,7 @@ sub build_success_table ($$$) {
 		my $qq = $reports_param->();
 		$qq->replace("os", $osname);
 		$qq->replace("perl", $perl);
-		push @row, qq{<a href="?$qq"><table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table></a>};
+		push @row, qq{<a href="?@{[ $qq->stringify(";") ]}"><table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table></a>};
 	    } else {
 		push @row, "&nbsp;";
 	    }
@@ -1035,7 +1035,7 @@ sub build_success_table ($$$) {
 	{
 	    my $qq = $reports_param->();
 	    $qq->replace("perl", $perl);
-	    unshift @row, qq{<a href="?$qq">$perl</a>};
+	    unshift @row, qq{<a href="?@{[ $qq->stringify(";") ]}">$perl</a>};
 	}
 	push @matrix, \@row;
     }
@@ -1044,13 +1044,13 @@ sub build_success_table ($$$) {
 				 -head => [
 					   do {
 					       my $qq = $reports_param->();
-					       qq{<a href="?$qq">ALL</a>};
+					       qq{<a href="?@{[ $qq->stringify(";") ]}">ALL</a>};
 					   },
 					   (map {
 					       my $osname = $_;
 					       my $qq = $reports_param->();
 					       $qq->replace("os", $osname);
-					       qq{<a href="?$qq">$osname</a>};
+					       qq{<a href="?@{[ $qq->stringify(";") ]}">$osname</a>};
 					   } @osnames),
 					  ],
 				 -spacing => 0,
