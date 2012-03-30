@@ -464,8 +464,14 @@ EOF
     teaser();
 
     if ($tables) {
+	print qq{<ul>\n};
 	for my $r (@$tables) {
-	    print qq{<h2><a href="$r->{ct_link}">$r->{title}</a></h2>};
+	    print qq{<li><a href="#$r->{anchor}">$r->{title}</a></li>\n};
+	}
+	print qq{</ul>\n};
+
+	for my $r (@$tables) {
+	    print qq{<h2><a href="$r->{ct_link}" name="$r->{anchor}">$r->{title}</a></h2>};
 	    print $r->{table};
 	}
     }
@@ -1178,6 +1184,7 @@ sub build_author_table ($$) {
 	my $qq = CGI->new({dist => "$dist $dist_version"});
 	$r->{ct_link} = $q->url(-relative => 1) . "?" . $qq->query_string;
 	push @tables, $r;
+	$r->{anchor} = "$dist-$dist_version";
     }
     return { tables => \@tables,
 	     title => $author,
