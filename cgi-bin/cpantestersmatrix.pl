@@ -32,6 +32,7 @@ use HTML::Table;
 use List::Util qw(reduce);
 use POSIX qw(strftime);
 use Storable qw(lock_nstore lock_retrieve);
+use URI::Query qw();
 
 sub fetch_data ($);
 sub fetch_author_data ($);
@@ -1000,7 +1001,7 @@ sub build_success_table ($$$) {
 
 	my $qs = $qq->query_string;
 
-	sub { CGI->new($qs) };
+	sub { URI::Query->new($qs) };
     };
 
     my @matrix;
@@ -1024,17 +1025,17 @@ sub build_success_table ($$$) {
 		}
 		my $title = join(" ", @title);
 		my $qq = $reports_param->();
-		$qq->param("os", $osname);
-		$qq->param("perl", $perl);
-		push @row, qq{<a href="@{[ $qq->self_url ]}"><table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table></a>};
+		$qq->replace("os", $osname);
+		$qq->replace("perl", $perl);
+		push @row, qq{<a href="?$qq"><table title="$title" class="bt" width="100%"><tr>} . join(" ", @cell) . qq{</tr></table></a>};
 	    } else {
 		push @row, "&nbsp;";
 	    }
 	}
 	{
 	    my $qq = $reports_param->();
-	    $qq->param("perl", $perl);
-	    unshift @row, qq{<a href="@{[ $qq->self_url ]}">$perl</a>};
+	    $qq->replace("perl", $perl);
+	    unshift @row, qq{<a href="?$qq">$perl</a>};
 	}
 	push @matrix, \@row;
     }
@@ -1043,13 +1044,13 @@ sub build_success_table ($$$) {
 				 -head => [
 					   do {
 					       my $qq = $reports_param->();
-					       qq{<a href="@{[ $qq->self_url ]}">ALL</a>};
+					       qq{<a href="?$qq">ALL</a>};
 					   },
 					   (map {
 					       my $osname = $_;
 					       my $qq = $reports_param->();
-					       $qq->param("os", $osname);
-					       qq{<a href="@{[ $qq->self_url ]}">$osname</a>};
+					       $qq->replace("os", $osname);
+					       qq{<a href="?$qq">$osname</a>};
 					   } @osnames),
 					  ],
 				 -spacing => 0,
