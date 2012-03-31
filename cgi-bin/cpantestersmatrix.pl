@@ -51,6 +51,7 @@ sub require_deserializer_author ();
 sub require_yaml ();
 sub require_json ();
 sub trim ($);
+sub get_config ($);
 
 my $cache_days = 1/4;
 my $ua_timeout = 10;
@@ -88,6 +89,8 @@ if (!-e $amendments_yml) {
 }
 (my $amendments_st = $amendments_yml) =~ s{\.yml$}{.st};
 my $amendments;
+
+my $config_yml = "$realbin/cpantestersmatrix.yml";
 
 my $q = CGI->new;
 
@@ -1400,6 +1403,26 @@ EOF
 </ul>
 </div>
 EOF
+}
+
+{
+    my $config;
+    sub get_config ($) {
+	my $key = shift;
+
+	if (!$config) {
+	    if (-r $config_yml) {
+		require_yaml;
+		$config = eval { yaml_load_file($config_yml) };
+		if (!$config) {
+		    warn "Failed to load $config_yml: $@";
+		}
+	    }
+	    $config = {} if !$config; # mark that there was a load attempt
+	}
+
+	$config->{$key};
+    }
 }
 
 sub get_amendments {
