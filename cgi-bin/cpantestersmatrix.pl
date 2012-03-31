@@ -25,7 +25,6 @@ use CGI qw(escapeHTML);
 use CGI::Carp qw();
 use CGI::Cookie;
 use CPAN::Version;
-use Fcntl qw(LOCK_EX O_RDWR O_CREAT);
 use File::Basename qw(basename);
 use FindBin;
 use HTML::Table;
@@ -674,10 +673,7 @@ sub fetch_data ($) {
 
     # Avoid multiple simultaneous fetches
     my $lckfile = "$cachefile.lck";
-    sysopen my $lck, $lckfile, O_RDWR | O_CREAT, 0644
-        or die "Can't write to $lckfile: $!";
-    flock $lck, LOCK_EX
-	or die "Can't flock $lckfile: $!";
+    my $lckobj = CPAN::Testers::Matrix::LockFile->new($lckfile);
 
  GET_DATA: {
 	if (-r $cachefile && -M $cachefile < $cache_days &&
@@ -830,10 +826,7 @@ sub fetch_author_data ($) {
 
     # Avoid multiple simultaneous fetches
     my $lckfile = "$cachefile.lck";
-    sysopen my $lck, $lckfile, O_RDWR | O_CREAT, 0644
-        or die "Can't write to $lckfile: $!";
-    flock $lck, LOCK_EX
-	or die "Can't flock $lckfile: $!";
+    my $lckobj = CPAN::Testers::Matrix::LockFile->new($lckfile);
 
  GET_DATA: {
 	if (-r $cachefile && -M $cachefile < $cache_days &&
@@ -1554,6 +1547,30 @@ sub require_json () {
 	my $buf = <$fh>;
 	JSON::XS::decode_json($buf);
     };
+}
+
+{
+    package # do not index
+	CPAN::Testers::Matrix::LockFile;
+
+    use Fcntl qw(LOCK_EX O_RDWR O_CREAT);
+
+    sub new {
+	my($class, $lckfile) = @_;
+	die if !$lckfile;
+	sysopen my $lck, $lckfile, O_RDWR | O_CREAT, 0644
+	    or die "Can't write to $lckfile: $!";
+	flock $lck, LOCK_EX
+	    or die "Can't flock $lckfile: $!";
+	bless { lck => $lck, lckfile => $lckfile }, $class;
+    }
+
+    sub DESTROY {
+	my $self = shift;
+	my $lckfile = $self->{lckfile};
+	die if !$lckfile;
+	unlink $lckfile;
+    }
 }
 
 # REPO BEGIN
