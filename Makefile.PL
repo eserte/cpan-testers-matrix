@@ -39,6 +39,9 @@ sub MY::postamble {
 validate-cpantestersmatrix-data:
 	pkwalify -f etc/cpantesters_amendments.kwalify data/cpantesters_amendments.yml
 
+validate-config:
+	[ ! -e cgi-bin/cpantestersmatrix.yml ] || pkwalify -f etc/cpantestersmatrix_config.kwalify cgi-bin/cpantestersmatrix.yml
+
 fix-permissions:
 	chmod ugo+rx cgi-bin/cpantestersmatrix.pl
 	chmod ugo+r data/*.yml htdocs/* images/*

@@ -1,0 +1,21 @@
+---
+type: map
+mapping:
+
+  # Typically a user's ~/.cpan, which has an up-to-date
+  # sources/modules/02packages.details.txt.gz available
+  cpan_home:
+    type: text
+
+  # Where an uncompressed headerless version of
+  # 02packages.details.txt.gz may be cached. Note that the
+  # actual cache file will have the user id appended (do
+  # not specify here)
+  plain_packages_file:
+    type: text
+
+  # Where processed dist and author cache files are stored.
+  # Defaults to /tmp/cpantesters_cache, but the user id will
+  # be automatically appended.
+  cache_root:
+    type: text
