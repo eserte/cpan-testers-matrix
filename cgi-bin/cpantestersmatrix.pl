@@ -663,7 +663,35 @@ sub fetch_data ($) {
 
     set_dist_and_version($raw_dist);
     my $orig_dist = $dist;
-    $dist =~ s{::}{-}g; # common error: module -> dist
+    if ($dist =~ m{::}) {
+	my $resolve_module_to_dist_sub = sub {
+	    my $cpan_home = get_config("cpan_home");
+	    die "cpan_home not configued in $config_yml" if !$cpan_home;
+	    my $plain_packages_file = get_config("plain_packages_file");
+	    die "plain_packages_file not configued in $config_yml" if !$plain_packages_file;
+	    my $packages_file = "$cpan_home/sources/modules/02packages.details.txt.gz";
+	    die "$packages_file not readable" if !-r $packages_file;
+	    require Parse::CPAN::Packages::Fast;
+	    die "Old PCPF without _module_lookup" if !Parse::CPAN::Packages::Fast->can('_module_lookup');
+
+	    my $ret = Parse::CPAN::Packages::Fast->_module_lookup($dist, $packages_file, $plain_packages_file . '_' . $<);
+	    return if !$ret || !$ret->{dist};
+	    my $d = CPAN::DistnameInfo->new($ret->{dist});
+	    return if !$d;
+	    $d->dist;
+	};
+	my $maybe_dist = eval { $resolve_module_to_dist_sub->() };
+	if ($@) {
+	    warn $@;
+	    $dist =~ s{::}{-}g; # simple
+	} elsif ($maybe_dist) {
+	    $dist = $maybe_dist;
+	} else {
+	    die <<EOF;
+Module <$dist> is unknown.
+EOF
+	}
+    }
 
     my $resp;
     my $good_cachefile;
@@ -697,6 +725,15 @@ sub fetch_data ($) {
 	$resp = $fetch_dist_data->($dist);
 	last GET_DATA if $resp->is_success;
 
+	if ($resp->code == 404) {
+	    die <<EOF
+Distribution results for <$dist> at <$url> not found.
+Maybe you mistyped the distribution name?
+Maybe you added the author name to the distribution string?
+Note that the distribution name is case-sensitive.
+EOF
+	}
+
 	$error = fetch_error_check($resp);
 	if ($error) {
 	    if (-r $cachefile) {
@@ -708,80 +745,8 @@ sub fetch_data ($) {
 	    }
 	}
 
-	warn "No success fetching <$url>: " . $resp->status_line;
-	my $fallback_dist;
-	if (eval { require "$realbin/parse_cpan_packages_fast.pl"; 1 }) {
-	    eval {
-		my $mod_info = Parse::CPAN::Packages::Fast->new->package($orig_dist);
-		$fallback_dist = $mod_info->distribution;
-	    };
-	    warn $@ if $@;
-	} else {
-	    eval {
-		require CPAN;
-		require CPAN::DistnameInfo;
-		local $ENV{PATH} = "/usr/bin:/bin";
-		local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
-		my $mo = CPAN::Shell->expand("Module", $orig_dist);
-		if ($mo) {
-		    $fallback_dist = CPAN::DistnameInfo->new($mo->cpan_file);
-		}
-	    };
-	    warn $@ if $@;
-	}
-	if ($fallback_dist) {
-	    eval {
-		my $try_dist = $fallback_dist->dist;
-		$resp = $fetch_dist_data->($try_dist);
-		if (!$resp->is_success) {
-		    die "No success fetching <$url>: " . $resp->status_line;
-		} else {
-		    $dist = $try_dist;
-		}
-	    };
-	    warn $@ if $@;
-	}
-	last GET_DATA if $resp->is_success;
-
-	# XXX hmmm, hack for CPAN.pm problems
-	eval {
-	    require CPAN;
-	    require CPAN::DistnameInfo;
-	    local $CPAN::Be_Silent = $CPAN::Be_Silent = 1;
-	    CPAN::HandleConfig->load;
-	    %CPAN::Config = %CPAN::Config; # cease -w
-	    my $pkgdetails = "$CPAN::Config->{keep_source_where}/modules/02packages.details.txt.gz";
-	    local $ENV{PATH} = "/usr/bin:/bin";
-	    open my $pkgfh, "-|", "zcat", $pkgdetails
-		or die "Cannot zcat $pkgdetails: $!";
-	    # overread header
-	    while(<$pkgfh>) {
-		chomp;
-		last if ($_ eq '');
-	    }
-	    while(<$pkgfh>) {
-		my($module,undef,$cpan_file) = split /\s+/;
-		if (lc $module eq lc $orig_dist) { # allow lowercase written modules
-		    my $try_dist = CPAN::DistnameInfo->new($cpan_file)->dist;
-		    $resp = $fetch_dist_data->($try_dist);
-		    if (!$resp->is_success) {
-			die "No success fetching <$url>: " . $resp->status_line;
-		    } else {
-			$dist = $try_dist;
-		    }
-		    last;
-		}
-	    }
-	};
-	warn $@ if $@;
-	last if $resp->is_success;
-
-	die <<EOF
-Distribution results for <$dist> at <$url> not found.
-Maybe you entered a module name (A::B) instead of the distribution name (A-B)?
-Maybe you added the author name to the distribution string?
-Note that the distribution name is case-sensitive.
-EOF
+	warn "Unknown error, should never happen: ". $resp->headers->as_string;
+	die "Unknown error, should never happen";
     }
 
     if ($good_cachefile) {
@@ -1414,7 +1379,9 @@ EOF
 	    $config = {} if !$config; # mark that there was a load attempt
 	}
 
-	$config->{$key};
+	my $val = $config->{$key};
+	($val) = $val =~ m{^(.*)$}; # we trust everything here
+	$val;
     }
 }
 

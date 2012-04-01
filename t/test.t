@@ -24,6 +24,7 @@ my @matrix_tests =
      ['dist=Kwalify', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
      ['dist=Kwalify 1.16', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
      ['author=zoffix', { TODO => "Large author files currently not supported" }],
+     ['dist=Schema::Kwalify'], # resolves to distribution
     );
 my @report_table_tests = 
     (
