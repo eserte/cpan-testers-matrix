@@ -62,7 +62,10 @@ use constant FILEFMT_AUTHOR => 'json';
 #use constant FILEFMT_DIST   => 'yaml';
 use constant FILEFMT_DIST   => 'json';
 
-my $cache_root = "/tmp/cpantesters_cache_$<";
+my($realbin) = $FindBin::RealBin =~ m{^(.*)$}; # untaint it
+my $config_yml = "$realbin/cpantestersmatrix.yml";
+
+my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
 mkdir $cache_root, 0755 if !-d $cache_root;
 my $dist_cache = "$cache_root/dist";
 if (FILEFMT_DIST eq 'json') {
@@ -77,7 +80,6 @@ mkdir $author_cache, 0755 if !-d $author_cache;
 my $meta_cache = "$cache_root/meta";
 mkdir $meta_cache, 0755 if !-d $meta_cache;
 
-my($realbin) = $FindBin::RealBin =~ m{^(.*)$}; # untaint it
 my $amendments_yml = "$realbin/cpantesters_amendments.yml";
 if (!-e $amendments_yml) {
     # Maybe using the cgi-bin/data layout?
@@ -88,8 +90,6 @@ if (!-e $amendments_yml) {
 }
 (my $amendments_st = $amendments_yml) =~ s{\.yml$}{.st};
 my $amendments;
-
-my $config_yml = "$realbin/cpantestersmatrix.yml";
 
 my $q = CGI->new;
 
@@ -1380,6 +1380,7 @@ EOF
 	}
 
 	my $val = $config->{$key};
+	no warnings 'uninitialized';
 	($val) = $val =~ m{^(.*)$}; # we trust everything here
 	$val;
     }
