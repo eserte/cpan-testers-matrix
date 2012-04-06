@@ -87,7 +87,7 @@ var start_date_formatted;
 function init_cachedate() {
     var start_date = new Date(start_epoch*1000);
     start_date_formatted = sprintf("%04d-%02d-%02d %02d:%02d:%02d",
-				   start_date.getFullYear(), start_date.getMonth(), start_date.getDate(),
+				   start_date.getFullYear(), start_date.getMonth()+1, start_date.getDate(),
 				   start_date.getHours(), start_date.getMinutes(), start_date.getSeconds());
     var tzOffset = start_date.getTimezoneOffset();
     var tzOffsetString;
