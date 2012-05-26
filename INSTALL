@@ -43,7 +43,7 @@ configuration file etc/httpd.conf:
     cd /usr/local/etc/apache22/Includes
     ln -s /path/to/cpan-testers-matrix/etc/httpd.conf cpan-testers-matrix.conf
 
-  Or on a Debian system:
+  Or on a Debian system (make sure the libapache2-mod-perl2 is installed)
 
     cd /etc/apache2/sites-enabled
     ln -s /path/to/cpan-testers-matrix/etc/httpd.conf cpan-testers-matrix.conf
@@ -60,6 +60,13 @@ configuration file etc/httpd.conf:
     127.0.0.1     matrix-cpantesters
 
 * Restart the Apache, and point your browser to http://matrix-cpantesters
+
+* Make sure that a cache file may be written by the Apache user. On a
+  Debian system:
+
+    touch -t 197001010000 cgi-bin/cpantesters_amendments.st
+    sudo chown www-data cgi-bin/cpantesters_amendments.st
+
 
 PROBLEMS
 --------
