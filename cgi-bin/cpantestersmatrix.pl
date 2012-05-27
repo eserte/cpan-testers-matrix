@@ -31,7 +31,7 @@ use HTML::Table;
 use List::Util qw(reduce);
 use POSIX qw(strftime);
 use Storable qw(lock_nstore lock_retrieve);
-use URI::Query qw();
+use URI::Query 0.08 qw();
 
 sub fetch_data ($);
 sub fetch_author_data ($);
