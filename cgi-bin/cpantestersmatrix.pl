@@ -55,7 +55,7 @@ sub get_config ($);
 my $cache_days = 1/4;
 my $ua_timeout = 10;
 
-my $current_stable_perl = "5.14.0"; # this is actually 5.14.x
+my $current_stable_perl = "5.16.0"; # this is actually 5.16.x
 
 #use constant FILEFMT_AUTHOR => 'yaml';
 use constant FILEFMT_AUTHOR => 'json';
