@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.64';
+$VERSION = '1.65';
 
 use vars qw($UA);
 
@@ -49,6 +49,7 @@ sub require_deserializer_dist ();
 sub require_deserializer_author ();
 sub require_yaml ();
 sub require_json ();
+sub beta_html ();
 sub trim ($);
 sub get_config ($);
 
@@ -93,13 +94,13 @@ my $amendments;
 
 my $q = CGI->new;
 
+my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
+
 #XXX { local $ENV{PATH} = "/bin:/usr/bin";system("/usr/bin/ktrace", "-f", "/tmp/cpanktrace", "-p", $$);}
 
 # XXX hmm, some globals ...
 my $title = "CPAN Testers Matrix";
-if ($q->script_name =~ /cpantestersmatrix2/) {
-    $title .= " (beta)";
-}
+my $dist_title = "";
 my @CORE_OSNAMES = qw(mswin32 cygwin darwin freebsd linux openbsd netbsd solaris);
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
@@ -294,7 +295,7 @@ if ($reports) {
 				  -class   => 'reports',
 				 );
 	$table->setColHead(1);
-	$title .= ": $dist $dist_version";
+	$dist_title = ": $dist $dist_version";
 	$ct_link = "http://$ct_domain/show/$dist.html#$dist-$dist_version";
     };
     $error = $@ if $@;
@@ -306,7 +307,7 @@ if ($reports) {
 	$r = build_author_table($author, $author_dist);
 	$tables = $r->{tables};
 	$ct_link = $r->{ct_link};
-	$title .= ": $r->{title}";
+	$dist_title = ": $r->{title}";
     };
     $error = $@ if $@;
 } elsif ($dist) {
@@ -324,7 +325,7 @@ if ($reports) {
 	}
 	$table = $r->{table};
 	$ct_link = $r->{ct_link};
-	$title .= ": $r->{title}";
+	$dist_title = ": $r->{title}";
     };
     $error = $@ if $@;
 }
@@ -333,7 +334,7 @@ my $latest_distribution_string = $is_latest_version ? " (latest distribution)" :
 
 print <<EOF;
 <html>
- <head><title>$title</title>
+ <head><title>$title$dist_title</title>
   <link type="image/ico" rel="shortcut icon" href="cpantesters_favicon.ico" />
   <meta name="ROBOTS" content="INDEX, NOFOLLOW" />
   <style type="text/css"><!--
@@ -400,7 +401,7 @@ print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
     qq{init_cachedate();">\n};
 print <<EOF;
-  <h1>$title <span class="unimpt">$latest_distribution_string</span></h1>
+  <h1>$title@{[ $is_beta ? beta_html : "" ]}$dist_title <span class="unimpt">$latest_distribution_string</span></h1>
 EOF
 if ($error) {
     my $html_error = escapeHTML($error);
@@ -1356,7 +1357,7 @@ sub dist_links {
 EOF
     if (defined $dist_version) {
 	print <<EOF;
-<li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> (beta)
+<li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> @{[ beta_html ]}
 EOF
     }
     print <<EOF;
@@ -1517,6 +1518,10 @@ sub require_json () {
 	my $buf = <$fh>;
 	JSON::XS::decode_json($buf);
     };
+}
+
+sub beta_html () {
+    q{<span style="font:xx-small sans-serif; border:1px solid red; padding:0px 2px 0px 2px; background-color:yellow; color:black;">&#x0299;&#x1D07;&#x1D1B;&#x1D00;</span>};
 }
 
 {
