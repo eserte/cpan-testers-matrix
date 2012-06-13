@@ -68,6 +68,31 @@ configuration file etc/httpd.conf:
     sudo chown www-data cgi-bin/cpantesters_amendments.st
 
 
+ADDITIONAL CONFIGURATION
+------------------------
+
+To support not only searching for dist names, but also for module
+names, there is additional configuration necessary.
+
+First, create a cpantestersmatrix.yml, which is located next to
+cpantestersmatrix.cgi. This yaml file should contain a hash with the
+following keys:
+
+* cpan_home: pointing to the .cpan directory of a user where the
+  packages file is regularily updated (see below)
+
+* plain_packages_file: the path for a file where a uncompressed
+  02packages file is written to. The parent directory must exist.
+
+The distribution contains some sample files.
+
+Additionally somehow it has to be made sure that CPAN's packages file
+is updated regularily. This can be done with a cron job in /etc/cron.d
+like the following:
+
+15 0,6,12,18 * * * root perl -MCPAN -e 'CPAN::Index->reload'
+
+
 PROBLEMS
 --------
 
