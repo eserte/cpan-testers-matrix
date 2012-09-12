@@ -50,6 +50,7 @@ sub require_deserializer_author ();
 sub require_yaml ();
 sub require_json ();
 sub beta_html ();
+sub zdjela_meda ();
 sub trim ($);
 sub get_config ($);
 
@@ -615,6 +616,7 @@ print <<EOF;
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
    by <a href="http://search.cpan.org/~srezic/">Slaven Rezi&#x0107;</a>
   </div>
+@{[ zdjela_meda ]}
  </body>
 </html>
 EOF
@@ -1522,6 +1524,10 @@ sub require_json () {
 
 sub beta_html () {
     q{<span style="font:xx-small sans-serif; border:1px solid red; padding:0px 2px 0px 2px; background-color:yellow; color:black;">&#x0299;&#x1D07;&#x1D1B;&#x1D00;</span>};
+}
+
+sub zdjela_meda () {
+    qq{<span style="font-size:1px; color:#ffffff; background-color:#ffffff; visibility:hidden;"><a href="/ZDJELAMEDA?dist=$dist">If you're a bot, then click here</a></span>};
 }
 
 {
