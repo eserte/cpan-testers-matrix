@@ -1,5 +1,6 @@
 User-agent: *
 Disallow: /?
+Disallow: /ZDJELAMEDA
 
 ######################################################################
 # Broken bots, do not correctly obey the above rule
