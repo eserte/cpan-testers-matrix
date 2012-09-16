@@ -1527,6 +1527,7 @@ sub beta_html () {
 }
 
 sub zdjela_meda () {
+    no warnings 'uninitialized'; # $dist may be undef
     qq{<span style="font-size:1px; color:#ffffff; background-color:#ffffff; visibility:hidden;"><a href="/ZDJELAMEDA?dist=$dist">If you're a bot, then click here</a></span>};
 }
 
