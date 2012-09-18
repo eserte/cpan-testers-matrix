@@ -1529,6 +1529,10 @@ sub beta_html () {
 }
 
 sub bot_check () {
+    if ($q->query_string eq '') {
+	# This is the only accepted URL for bots
+	return;
+    }
     my $ua = $q->user_agent || '';
     if ($ua =~ m{( \bGooglebot[-/]
 		 | \bBaiduspider[-/]
