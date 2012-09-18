@@ -50,6 +50,7 @@ sub require_deserializer_author ();
 sub require_yaml ();
 sub require_json ();
 sub beta_html ();
+sub bot_check ();
 sub zdjela_meda ();
 sub trim ($);
 sub get_config ($);
@@ -94,6 +95,7 @@ if (!-e $amendments_yml) {
 my $amendments;
 
 my $q = CGI->new;
+bot_check;
 
 my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
 
@@ -1524,6 +1526,29 @@ sub require_json () {
 
 sub beta_html () {
     q{<span style="font:xx-small sans-serif; border:1px solid red; padding:0px 2px 0px 2px; background-color:yellow; color:black;">&#x0299;&#x1D07;&#x1D1B;&#x1D00;</span>};
+}
+
+sub bot_check () {
+    my $ua = $q->user_agent || '';
+    if ($ua =~ m{( \bGooglebot[-/]
+		 | \bBaiduspider[-/]
+		 | \bbingbot\b
+		 | \bYahoo![ ]Slurp;
+		 | \bJikeSpider\b
+		 | \bSosospider\b
+		 | \bBlekkobot\b
+		 | \+http://www\.mobilizer\.com # diese Domain steht zum Verkauf
+		 | \bSemrushBot\b
+		 )}x) {
+	print $q->header("text/plain; charset=utf-8");
+	warn "INFO: bot '$ua' is not welcome \@ matrix\n";
+	binmode STDOUT, ':utf8';
+	print <<EOF;
+\x{212c}0\x{01ac}s not welcome.
+Not a bot? Tell me, it's srezic at cpan.
+EOF
+	exit 0;
+    }
 }
 
 sub zdjela_meda () {
