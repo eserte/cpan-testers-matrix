@@ -46,30 +46,41 @@ fix-permissions:
 	chmod ugo+rx cgi-bin/cpantestersmatrix.pl
 	chmod ugo+r data/*.yml htdocs/* images/*
 
-rsync-live-cpantestersmatrix-stable:	fix-permissions rsync-live-cpantestersmatrix-favicon rsync-live-cpantestersmatrix-js
-	@echo -n "Are you sure? This is stable! CTRL-C if not! "
-	@read yn
-	rsync -av cgi-bin/cpantestersmatrix.pl live-matrix:/root/work/cpantestersmatrix/cpantestersmatrix.pl
+EOF
 
-rsync-live-cpantestersmatrix-devel:	fix-permissions rsync-live-cpantestersmatrix-favicon rsync-live-cpantestersmatrix-js
-	rsync -av cgi-bin/cpantestersmatrix.pl live-matrix:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
+    for my $def (
+		 ['live', 'live-matrix'],
+		 ['pps', 'pps-matrix'],
+		) {
+	my($type, $host) = @$def;
+	$postamble .= <<EOF;
 
-rsync-live-cpantestersmatrix-favicon:	fix-permissions
-	rsync -av images/cpantesters_favicon.ico live-matrix:/root/work/cpantestersmatrix/cpantesters_favicon.ico
+rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmatrix-favicon rsync-$type-cpantestersmatrix-js
+	\@echo -n "Are you sure? This is stable! CTRL-C if not! "
+	\@read yn
+	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix.pl
 
-rsync-live-cpantestersmatrix-robots.txt: fix-permissions
-	rsync -av htdocs/robots.txt live-matrix:/root/work/cpantestersmatrix/robots.txt
+rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-favicon rsync-$type-cpantestersmatrix-js
+	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
 
-rsync-live-cpantestersmatrix-js: fix-permissions
-	rsync -av htdocs/matrix_cpantesters.js live-matrix:/root/work/cpantestersmatrix/matrix_cpantesters.js
+rsync-$type-cpantestersmatrix-favicon:	fix-permissions
+	rsync -av images/cpantesters_favicon.ico $host:/root/work/cpantestersmatrix/cpantesters_favicon.ico
 
-rsync-live-cpantestersmatrix-data:	fix-permissions validate-cpantestersmatrix-data
-	rsync -av data/cpantesters_amendments.yml live-matrix:/root/work/cpantestersmatrix/cpantesters_amendments.yml
+rsync-$type-cpantestersmatrix-robots.txt: fix-permissions
+	rsync -av htdocs/robots.txt $host:/root/work/cpantestersmatrix/robots.txt
 
-fix-live-cpantestersmatrix-permissions:
-	ssh live-matrix chgrp www-data /root/work/cpantestersmatrix
-	ssh live-matrix chmod g+w /root/work/cpantestersmatrix
+rsync-$type-cpantestersmatrix-js: fix-permissions
+	rsync -av htdocs/matrix_cpantesters.js $host:/root/work/cpantestersmatrix/matrix_cpantesters.js
+
+rsync-$type-cpantestersmatrix-data:	fix-permissions validate-cpantestersmatrix-data
+	rsync -av data/cpantesters_amendments.yml $host:/root/work/cpantestersmatrix/cpantesters_amendments.yml
+
+fix-$type-cpantestersmatrix-permissions:
+	ssh $host chgrp www-data /root/work/cpantestersmatrix
+	ssh $host chmod g+w /root/work/cpantestersmatrix
 
 EOF
+    }
+
     $postamble;
 }
