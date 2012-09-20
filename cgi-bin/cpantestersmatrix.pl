@@ -1544,20 +1544,23 @@ sub bot_check () {
 		 | \+http://www\.mobilizer\.com # diese Domain steht zum Verkauf
 		 | \bSemrushBot\b
 		 )}x) {
-	print $q->header("text/plain; charset=utf-8");
+	print $q->header("text/html; charset=utf-8");
+	$q->charset('utf-8');
 	warn "INFO: bot '$ua' is not welcome \@ matrix\n";
 	binmode STDOUT, ':utf8';
+	print $q->start_html('zdjelameda');
 	print <<EOF;
-\x{212c}0\x{01ac}s not welcome.
-Not a bot? Tell me, it's srezic at cpan.
+\x{212c}0\x{01ac}s not welcome. But you can continue <a href="/ZDJELAMEDA.php?i=1">here</a>.<br/>
+Not a bot? Tell me: it's srezic at cpan.
 EOF
+	print $q->end_html;
 	exit 0;
     }
 }
 
 sub zdjela_meda () {
     no warnings 'uninitialized'; # $dist may be undef
-    qq{<span style="font-size:1px; color:#ffffff; background-color:#ffffff; visibility:hidden;"><a href="/ZDJELAMEDA?dist=$dist">If you're a bot, then click here</a></span>};
+    qq{<span style="font-size:1px; color:#ffffff; background-color:#ffffff; visibility:hidden;"><a href="/ZDJELAMEDA.php?dist=$dist">If you're a bot, then click here</a></span>};
 }
 
 {

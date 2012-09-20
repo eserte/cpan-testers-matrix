@@ -43,7 +43,7 @@ validate-config:
 	[ ! -e cgi-bin/cpantestersmatrix.yml ] || pkwalify -f etc/cpantestersmatrix_config.kwalify cgi-bin/cpantestersmatrix.yml
 
 fix-permissions:
-	chmod ugo+rx cgi-bin/cpantestersmatrix.pl
+	chmod ugo+rx cgi-bin/cpantestersmatrix.pl cgi-bin/zdjelameda.pl
 	chmod ugo+r data/*.yml htdocs/* images/*
 
 EOF
@@ -62,6 +62,9 @@ rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmat
 
 rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-favicon rsync-$type-cpantestersmatrix-js
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
+
+rsync-$type-cpantestersmatrix-misc: fix-permissions
+	rsync -av cgi-bin/zdjelameda.pl $host:/root/work/cpantestersmatrix/zdjelameda.pl
 
 rsync-$type-cpantestersmatrix-favicon:	fix-permissions
 	rsync -av images/cpantesters_favicon.ico $host:/root/work/cpantestersmatrix/cpantesters_favicon.ico
