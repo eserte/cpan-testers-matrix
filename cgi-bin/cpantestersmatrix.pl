@@ -1543,6 +1543,7 @@ sub bot_check () {
 		 | \bBlekkobot\b
 		 | \+http://www\.mobilizer\.com # diese Domain steht zum Verkauf
 		 | \bSemrushBot\b
+		 | \bXenu[ ]Link[ ]Sleuth\b # link checkers should also obey robots.txt!
 		 )}x) {
 	print $q->header("text/html; charset=utf-8");
 	$q->charset('utf-8');
