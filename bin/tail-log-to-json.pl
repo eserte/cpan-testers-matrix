@@ -40,7 +40,7 @@ while(<$fh>) {
 	# - version
 	# - dist
 	my $osname;
-	if ($archname =~ m{\b(linux|openbsd|netbsd|solaris|freebsd|MSWin32|darwin)\b}) {
+	if ($archname =~ m{\b(linux|openbsd|netbsd|solaris|freebsd|MSWin32|darwin|dragonfly|cygwin|mirbsd)\b}) {
 	    $osname = lc $1
 	} else {
 	    warn "Cannot parse OS out of '$archname'\n";
