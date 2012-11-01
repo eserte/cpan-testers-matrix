@@ -724,7 +724,12 @@ EOF
 
 	my $fetch_dist_data = sub {
 	    my($dist) = @_;
-	    $url = "http://$ct_domain/show/$dist." . FILEFMT_DIST;
+	    my $static_dist_dir = get_config('static_dist_dir');
+	    if ($static_dist_dir) {
+		$url = "file://$static_dist_dir/$dist." . FILEFMT_DIST;
+	    } else {
+		$url = "http://$ct_domain/show/$dist." . FILEFMT_DIST;
+	    }
 	    my $resp = $ua->get($url);
 	    $resp;
 	};
