@@ -1,0 +1,3 @@
+cpan_home: /usr/local/src/CPAN
+plain_packages_file: /tmp/plain_packages_file
+static_dist_dir: /home/e/eserte/trash/show
