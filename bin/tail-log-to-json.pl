@@ -115,6 +115,9 @@ while(<$fh>) {
 	    push @{ $distinfo{$dist} }, {
 					 status => uc($status),
 					 osname => $osname,
+					 ## XXX There are two GUIDs: the GUIDs defined in log.txt
+					 ## are not the same as in the cpantesters db. So this one is
+					 ## strictly incorrect (and maybe should be renamed)
 					 guid => $guid,
 					 version => $version,
 					 distribution => $dist,
