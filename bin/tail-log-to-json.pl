@@ -119,7 +119,10 @@ while(<$fh>) {
 					 version => $version,
 					 distribution => $dist,
 					 perl => $perl,
-					 id => "dummy",
+					 ## by not defining "id" there won't be a report link in the report view,
+					 ## which would be misleading anyway, as the guid in log.txt is NOT the same guid
+					 ## in the cpantesters db
+					 #id => "dummy",
 					 archname => $archname,
 					};
             $count++;
