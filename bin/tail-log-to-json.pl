@@ -21,7 +21,12 @@ my $o_logfile;
 
 sub mylog ($) {
     my($message) = @_;
-    open my $fh, ">>", $o_logfile or die "Could not open >> '$o_logfile': $!";
+    my $fh;
+    if ($o_logfile) {
+	open $fh, ">>", $o_logfile or die "Could not open >> '$o_logfile': $!";
+    } else {
+	$fh = \*STDERR;
+    }
     $message =~ s/\s*\z/\n/;
     my @t = gmtime;
     $t[5]+=1900;
