@@ -38,6 +38,7 @@ sub mylog ($) {
 sub mydie ($) {
     my($mess) = @_;
     mylog $mess;
+    warn $mess;
     exit;
 }
 
@@ -49,16 +50,16 @@ GetOptions("o=s" => \$o_dir,
           )
     or die "usage: $0 -o output_directory log.txt\n";
 $o_dir
-    or mydie "Please specify -o option (destination directory for the .json files)\n";
+    or die "Please specify -o option (destination directory for the .json files)\n";
 $o_logfile
-    or mydie "Please specify -logfile option";
+    or die "Please specify -logfile option";
 $o_statusfile
-    or mydie "Please specify -statusfile option";
+    or die "Please specify -statusfile option";
 my $tail_log = shift
-    or mydie "Please provide path to log.txt\n";
+    or die "Please provide path to log.txt\n";
 
 -d $o_dir
-    or mydie "Could not find o_dir '$o_dir'";
+    or die "Could not find o_dir '$o_dir'";
 
 my %distinfo;
 
