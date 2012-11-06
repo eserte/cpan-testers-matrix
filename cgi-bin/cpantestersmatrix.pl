@@ -1370,6 +1370,7 @@ EOF
 EOF
     }
     print <<EOF;
+<li><a class="sml" href="http://217.199.168.174/cgi-bin/cpantestersmatrix.pl?dist=$dist">Matrix via log.txt</a> <span class="sml">(temporary!)</span>
 </ul>
 </div>
 EOF
