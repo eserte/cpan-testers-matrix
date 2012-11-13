@@ -250,6 +250,7 @@ if ($reports) {
 	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
 	    #my $report_url = $report_rooturl . $rec->{id}; # prefer id over guid
 	    my $report_url = $report_rooturl . ($rec->{guid} || $rec->{id}); # prefer guid over id
+	    (my $date = $rec->{fulldate}) =~ s{^(....)(..)(..)(..)(..)$}{$1-$2-$3 $4:$5};
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
 			    qq{<a href="$report_url">$rec->{id}</a>},
 			    $rec->{osvers},
@@ -258,6 +259,7 @@ if ($reports) {
 			    (!defined $want_perl    ? $rec->{perl} : ()),
 			    (!defined $want_os      ? $rec->{osname} : ()),
 			    ( defined $want_perl    ? $rec->{patch} : ()),
+			    $date,
 			    $action_comment_html,
 			  ];
 	}
@@ -291,6 +293,7 @@ if ($reports) {
 					       (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
 					       (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
 					       ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
+					       $sort_href->("Date", "fulldate"),
 					       $sort_href->("Comment", "action_comment"),
 					      ],
 				  -spacing => 0,
