@@ -54,6 +54,7 @@ sub bot_check ();
 sub zdjela_meda ();
 sub trim ($);
 sub get_config ($);
+sub obfuscate_from ($);
 
 my $cache_days = 1/4;
 my $ua_timeout = 10;
@@ -250,7 +251,6 @@ if ($reports) {
 	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
 	    #my $report_url = $report_rooturl . $rec->{id}; # prefer id over guid
 	    my $report_url = $report_rooturl . ($rec->{guid} || $rec->{id}); # prefer guid over id
-	    (my $date = $rec->{fulldate}) =~ s{^(....)(..)(..)(..)(..)$}{$1-$2-$3 $4:$5};
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
 			    qq{<a href="$report_url">$rec->{id}</a>},
 			    $rec->{osvers},
@@ -259,7 +259,8 @@ if ($reports) {
 			    (!defined $want_perl    ? $rec->{perl} : ()),
 			    (!defined $want_os      ? $rec->{osname} : ()),
 			    ( defined $want_perl    ? $rec->{patch} : ()),
-			    $date,
+			    $rec->{tester},
+			    $rec->{fulldate},
 			    $action_comment_html,
 			  ];
 	}
@@ -293,6 +294,7 @@ if ($reports) {
 					       (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
 					       (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
 					       ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
+					       $sort_href->("Tester", "tester"),
 					       $sort_href->("Date", "fulldate"),
 					       $sort_href->("Comment", "action_comment"),
 					      ],
@@ -1438,6 +1440,10 @@ sub amend_result {
 #    # canonify perl version: strip leading "v"
 #    $result->{perl} =~ s{^v}{} if exists $result->{perl};
 
+    # Some normalizations
+    $result->{fulldate} =~ s{^(....)(..)(..)(..)(..)$}{$1-$2-$3 $4:$5} if exists $result->{fulldate};
+    $result->{tester} = obfuscate_from $result->{tester};
+
     my $id = $result->{id};
     my $action_comment;
     $amendments ||= get_amendments();
@@ -1572,6 +1578,33 @@ EOF
 sub zdjela_meda () {
     no warnings 'uninitialized'; # $dist may be undef
     qq{<span style="font-size:1px; color:#ffffff; background-color:#ffffff; visibility:hidden;"><a href="/ZDJELAMEDA.php?dist=$dist">If you're a bot, then click here</a></span>};
+}
+
+# Taken CPAN/Blame/Model/Solved.pm from git://repo.or.cz/andk-cpan-tools.git
+sub obfuscate_from ($) {
+    my $from = shift;
+    my $obfuscated_from = $from;
+    if ($from) {
+	our %from_to_obfuscated;
+	return $from_to_obfuscated{$from} if exists $from_to_obfuscated{$from};
+
+	for ($obfuscated_from) {
+	    s/.+\(([^\)]+)\).*/$1/;
+	    last if s/.*\(\"([^"]+)\"\)/$1/;
+	    last if s/.+\(([^\)]+)\)/$1/;
+	    last if s/\@([^.]+)\..+/ at $1/;
+	    last if s/\@/.../;
+	}
+	for ($obfuscated_from) {
+	    s/<.*//; # found <briang
+	    s/\s+$//;
+	    s/^\s+//;
+	    s/^\"([^"]+)\"$/$1/;
+	}
+
+	$from_to_obfuscated{$from} = $obfuscated_from;
+    }
+    $obfuscated_from;
 }
 
 {
