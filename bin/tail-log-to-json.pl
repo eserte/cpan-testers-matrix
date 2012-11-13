@@ -108,6 +108,12 @@ while(<$fh>) {
 	} else {
 	    warn "Cannot parse OS out of '$archname'\n";
 	}
+	my $fulldate;
+	if ($date1 =~ m{^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$}) {
+	    $fulldate = "$1$2$3$4$5";
+	} else {
+	    warn "Cannot parse date out of '$date1'\n";
+	}
 	# example: perl-v5.14.2
 	$perl =~ s{^perl-v}{};
 	# example: AVENJ/MooX-Role-Pluggable-0.01.tar.gz
@@ -128,6 +134,8 @@ while(<$fh>) {
 					 ## in the cpantesters db
 					 #id => "dummy",
 					 archname => $archname,
+					 fulldate => $fulldate,
+					 tester => $author,
 					};
             $count++;
 	} else {
