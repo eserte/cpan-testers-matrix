@@ -1,3 +1,4 @@
+#!/usr/perl5.16.1d/bin/perl
 #!/usr/bin/perl -T
 # -*- perl -*-
 
@@ -30,7 +31,6 @@ use FindBin;
 use HTML::Table;
 use List::Util qw(reduce);
 use POSIX qw(strftime);
-use Storable qw(lock_nstore lock_retrieve);
 use URI::Query 0.08 qw();
 
 sub fetch_data ($);
@@ -40,6 +40,10 @@ sub build_success_table ($$$);
 sub build_maxver_table ($$);
 sub build_author_table ($$);
 sub get_cache_filename_from_dist ($$);
+sub get_cache_filename_from_author ($$);
+sub add_serializer_suffix ($);
+sub cache_retrieve ($);
+sub cache_store ($$);
 sub meta_url ($);
 sub get_ua ();
 sub fetch_error_check ($);
@@ -84,6 +88,8 @@ mkdir $author_cache, 0755 if !-d $author_cache;
 my $meta_cache = "$cache_root/meta";
 mkdir $meta_cache, 0755 if !-d $meta_cache;
 
+my $serializer = get_config("serializer") || 'Storable';
+
 my $amendments_yml = "$realbin/cpantesters_amendments.yml";
 if (!-e $amendments_yml) {
     # Maybe using the cgi-bin/data layout?
@@ -92,7 +98,8 @@ if (!-e $amendments_yml) {
 	$amendments_yml = $try;
     }
 }
-(my $amendments_st = $amendments_yml) =~ s{\.yml$}{.st};
+(my $amendments_st = $amendments_yml) =~ s{\.yml$}{};
+$amendments_st = add_serializer_suffix($amendments_st);
 my $amendments;
 
 my $q = CGI->new;
@@ -651,14 +658,14 @@ sub fetch_meta_yml ($) {
 	} else {
 	    eval {
 		$meta = yaml_load($resp->decoded_content);
-		lock_nstore($meta, $cachefile);
+		cache_store $meta, $cachefile;
 	    };
 	    if ($@) {
 		warn "While loading and storing meta data from $url: $!";
 	    }
 	}
     } else {
-	$meta = lock_retrieve($cachefile)
+	$meta = cache_retrieve $cachefile
 	    or warn "Could not load cached meta data";
     }
     return { meta => $meta,
@@ -767,7 +774,7 @@ EOF
     }
 
     if ($good_cachefile) {
-	$data = lock_retrieve($cachefile)
+	$data = cache_retrieve $cachefile
 	    or die "Could not load cached data";
 	# Fix distribution name
 	eval { $dist = $data->[-1]->{distribution} };
@@ -778,7 +785,7 @@ EOF
 	    amend_result($result);
 	}
 	eval {
-	    lock_nstore($data, $cachefile);
+	    cache_store $data, $cachefile;
 	};
 	if ($@) {
 	    warn $!;
@@ -803,7 +810,7 @@ sub fetch_author_data ($) {
     my $resp;
     my $good_cachefile;
     my $url;
-    my $cachefile = $author_cache."/".$author.".st";
+    my $cachefile = get_cache_filename_from_author($author_cache, $author);
     my $error;
 
     # Avoid multiple simultaneous fetches
@@ -865,7 +872,7 @@ EOF
     }
 
     if ($good_cachefile) {
-	$author_dist = lock_retrieve($cachefile)
+	$author_dist = cache_retrieve $cachefile
 	    or die "Could not load cached data";
     } elsif ($resp && $resp->is_success) {
 	if ($url =~ m{\.(ya?ml|json)$}) {
@@ -929,7 +936,7 @@ EOF
 	    }
 	}
 	eval {
-	    lock_nstore($author_dist, $cachefile);
+	    cache_store $author_dist, $cachefile;
 	};
 	if ($@) {
 	    warn $!;
@@ -1202,8 +1209,22 @@ sub get_cache_filename_from_dist ($$) {
     my($cachedir, $dist) = @_;
     (my $safe_dist = $dist) =~ s{[^a-zA-Z0-9_.-]}{_}g;
     ($safe_dist) = $safe_dist =~ m{^(.*)$};
-    my $cachefile = $cachedir."/".$safe_dist.".st";
-    $cachefile;
+    add_serializer_suffix($cachedir."/".$safe_dist);
+}
+
+# Note: this function assumes that $author is already sanitized, see fetch_author_data
+sub get_cache_filename_from_author ($$) {
+    my($author_cache, $author) = @_;
+    add_serializer_suffix($author_cache."/".$author);
+}
+
+sub add_serializer_suffix ($) {
+    my($file) = @_;
+    if ($serializer eq 'Sereal') {
+	$file . '.sereal';
+    } else {
+	$file . '.st';
+    }
 }
 
 sub meta_url ($) {
@@ -1408,7 +1429,7 @@ sub get_amendments {
     my $amendments = {};
     eval {
 	if (-r $amendments_st && -s $amendments_st && -M $amendments_st < -M $amendments_yml) {
-	    $amendments = lock_retrieve $amendments_st;
+	    $amendments = cache_retrieve $amendments_st;
 	} elsif (-r $amendments_yml) {
 	    require_yaml;
 	    my $raw_amendments = yaml_load_file($amendments_yml);
@@ -1417,7 +1438,7 @@ sub get_amendments {
 		    $amendments->{$id} = $amendment;
 		}
 	    }
-	    lock_nstore($amendments, $amendments_st);
+	    cache_store $amendments, $amendments_st;
 	} else {
 	    warn "$amendments_yml not readable!";
 	}
@@ -1605,6 +1626,41 @@ sub obfuscate_from ($) {
 	$from_to_obfuscated{$from} = $obfuscated_from;
     }
     $obfuscated_from;
+}
+
+sub cache_store ($$) {
+    my($data, $cachefile) = @_;
+    if ($serializer eq 'Storable') {
+	require Storable;
+	Storable::lock_nstore($data, $cachefile);
+    } elsif ($serializer eq 'Sereal') {
+	require Sereal::Encoder;
+	open my $ofh, ">", "$cachefile.$$"
+	    or die "Can't write to $cachefile.$$: $!";
+	print $ofh Sereal::Encoder::encode_sereal($data);
+	close $ofh
+	    or die "While writing to $cachefile.$$: $!";
+	rename "$cachefile.$$", $cachefile
+	    or die "While renaming $cachefile.$$ to $cachefile: $!";
+    } else {
+	die "Unknown serializer '$serializer'";
+    }
+}
+
+sub cache_retrieve ($) {
+    my($cachefile) = @_;
+    if ($serializer eq 'Storable') {
+	require Storable;
+	Storable::lock_retrieve($cachefile);
+    } elsif ($serializer eq 'Sereal') {
+	require Sereal::Decoder;
+	open my $fh, "<", $cachefile
+	    or die "Can't read from $cachefile: $!";
+	local $/;
+	Sereal::Decoder::decode_sereal(<$fh>);
+    } else {
+	die "Unknown serializer '$serializer'";
+    }
 }
 
 {
