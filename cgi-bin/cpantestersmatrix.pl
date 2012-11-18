@@ -1610,6 +1610,7 @@ sub obfuscate_from ($) {
 	return $from_to_obfuscated{$from} if exists $from_to_obfuscated{$from};
 
 	for ($obfuscated_from) {
+	    s/\s+\(\(root|Charlie &\)\)$//; # "root" is meaningless, strip it
 	    s/.+\(([^\)]+)\).*/$1/;
 	    last if s/.*\(\"([^"]+)\"\)/$1/;
 	    last if s/.+\(([^\)]+)\)/$1/;
