@@ -94,6 +94,7 @@ while(<$fh>) {
     chomp;
     next if /^The last \d+ reports/;
     next if /^\.\.\./;
+    s/[\200-\377]/?/g;
     if (my($date1, $author, $status, $distpath, $archname, $perl, $guid, $date2) = $_ =~
 	m{^\[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\]$}) {
 	# I need:
