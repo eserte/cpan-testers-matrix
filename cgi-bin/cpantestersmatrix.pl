@@ -1,4 +1,3 @@
-#!/usr/perl5.16.1d/bin/perl
 #!/usr/bin/perl -T
 # -*- perl -*-
 
