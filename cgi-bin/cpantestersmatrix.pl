@@ -1560,7 +1560,7 @@ sub require_json () {
 }
 
 sub beta_html () {
-    q{<span style="font:xx-small sans-serif; border:1px solid red; padding:0px 2px 0px 2px; background-color:yellow; color:black;">&#x0299;&#x1D07;&#x1D1B;&#x1D00;</span>};
+    q{<span style="font-size:5pt; font-family: sans-serif; border:1px solid red; padding:0px 2px 0px 2px; background-color:yellow; color:black;">BETA</span>};
 }
 
 sub bot_check () {
