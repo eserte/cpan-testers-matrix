@@ -584,7 +584,7 @@ EOF
     for my $stylesheet (sort keys %stylesheets) {
 	my $selected = $stylesheet eq $prefs{stylesheet}
 	    ? q{checked="checked"} : "";
-	$q->print(qq{<input type="radio" name="stylesheet" value="$stylesheet" $selected>$stylesheets{$stylesheet}{name}</input>});
+	$q->print(qq{<label style="padding-right:1em;"><input type="radio" name="stylesheet" value="$stylesheet" $selected>$stylesheets{$stylesheet}{name}</input></label>});
     }
 
     my $steal_focus = $prefs{steal_focus}
@@ -596,12 +596,12 @@ EOF
     <br />
 
     <label for="steal_focus">Steal Focus:</label>
-    <input type="checkbox" name="steal_focus" $steal_focus></input>
+    <input type="checkbox" name="steal_focus" id="steal_focus" $steal_focus></input>
 
     <br />
 
     <label for="exclude_old_devel">Exclude old development versions:</label>
-    <input type="checkbox" name="exclude_old_devel" $exclude_old_devel></input>
+    <input type="checkbox" id="exclude_old_devel" name="exclude_old_devel" $exclude_old_devel></input>
 
     <br />
 
