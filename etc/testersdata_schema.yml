@@ -1,0 +1,77 @@
+type: seq
+sequence:
+  - type: map
+    mapping:
+
+      # three fields describing the status -- which one is normative?
+      status: &status_type
+        type: text
+        enum: ["PASS", "FAIL", "UNKNOWN", "NA"]
+      action: *status_type
+      state:
+        type: text
+        enum: ["pass", "fail", "unknown", "na"]
+
+      # two fields describing the OS --- which one is normative?
+      osname:
+        type: text
+        enum: ["aix", "beos", "cygwin", "darwin", "dec_osf", "dragonfly", "freebsd", "gnu", "gnukfreebsd", "haiku", "hpux", "irix", "linux", "macos", "midnightbsd", "mirbsd", "mswin32", "netbsd", "openbsd", "solaris"]
+      ostext:
+        type: text
+        enum: ["AIX", "BeOS", "Windows (Cygwin)", "Mac OS X", "Tru64", "Dragonfly BSD", "FreeBSD", "GNU Hurd", "Debian GNU/kFreeBSD", "Haiku", "HP-UX", "IRIX", "GNU/Linux", "Mac OS classic", "MidnightBSD", "MirOS BSD", "Windows (Win32)", "NetBSD", "OpenBSD", "SunOS/Solaris"]
+
+      osvers:
+        type: text
+
+      # two fields
+      archname: &archname_type
+        type: text
+      platform: *archname_type
+
+      perl:
+        type: text
+        # patch may be irregular: a perforce commit number or "blead", or "v5.11.2-23-g0b93a79"
+        pattern: /^[\d_]+(\.[\d_]+)*( RC\d+| patch .*| patchlevel \d+)?$/
+
+      # dist name and version
+      version:
+        type: text
+        ## don't restrict --- versions may be anything
+        #pattern: /^[\d_]+(\.[\d_]+)*$/
+      distribution:
+        type: text
+      dist:
+        type: text
+      distversion:
+        type: text
+        ## don't restrict --- versions may be anything
+        #pattern: /^.*-[\d_]+(\.[\d_]+)*$/
+
+      # dates
+      postdate:
+        type: text
+        pattern: /^\d{6}$/
+      fulldate:
+        type: text
+        pattern: /^\d{12}$/
+
+      # ids (old and new)
+      guid:
+        type: text
+        pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      id:
+        type: text
+        pattern: /^\d+$/
+
+      tester:
+        type: text
+
+      csspatch:
+        type: text
+        enum: ["unp", "pat"]
+      cssperl:
+        type: text
+        enum: ["rel", "dev"]
+      type:
+        type: text
+        enum: ["2"]
