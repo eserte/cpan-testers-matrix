@@ -58,6 +58,7 @@ sub zdjela_meda ();
 sub trim ($);
 sub get_config ($);
 sub obfuscate_from ($);
+sub _normalize_version ($);
 
 my $cache_days = 1/4;
 my $ua_timeout = 10;
@@ -536,17 +537,18 @@ EOF
 <h2>Other versions</h2>
 EOF
 	my $html = "<ul>";
-	my $seen_latest_version = defined $latest_version && $latest_version eq $dist_version;
+	my $latest_normalized_version = _normalize_version $latest_version;
+	my $seen_latest_version = defined $latest_normalized_version && $latest_normalized_version eq $dist_version;
 	my $possibly_outdated_meta;
 	for my $version (sort { cmp_version($b, $a) } keys %other_dist_versions) {
 	    my $qq = CGI->new($q);
 	    $qq->param(dist => "$dist $version");
 	    $html .= qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>};
-	    if (defined $latest_version && $latest_version eq $version) {
+	    if (defined $latest_normalized_version && $latest_normalized_version eq $version) {
 		$html .= qq{ <span class="sml"> (latest distribution according to <a href="} . meta_url($dist) . qq{">META.yml</a>)</span>};
 		$seen_latest_version++;
 	    }
-	    if (defined $latest_version && cmp_version($version, $latest_version) > 0) {
+	    if (defined $latest_normalized_version && cmp_version($version, $latest_normalized_version) > 0) {
 		$possibly_outdated_meta++;
 	    }
 	    $html .= "\n";
@@ -555,8 +557,8 @@ EOF
 # 	if ($possibly_outdated_meta) {
 # 	    print qq{<div class="warn">NOTE: the latest <a href="} . meta_url($dist) .qq{">META.yml</a>};
 # 	}
-	if ($latest_version && !$seen_latest_version) {
-	    print qq{<div class="warn">NOTE: no report for latest version $latest_version</div>};
+	if ($latest_normalized_version && !$seen_latest_version) {
+	    print qq{<div class="warn">NOTE: no report for latest version $latest_normalized_version</div>};
 	}
 	$html .= "</ul>\n";
 	print $html;
@@ -1724,6 +1726,15 @@ sub trim ($) {
 #     }
 #     $cmp;
 # }
+
+# currently removed leading "v"
+sub _normalize_version ($) {
+    my $v = shift;
+    if (defined $v) {
+	$v =~ s{^v}{};
+    }
+    $v;
+}
 
 __END__
 
