@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.65';
+$VERSION = '1.66';
 
 use vars qw($UA);
 
@@ -34,7 +34,7 @@ use URI::Query 0.08 qw();
 
 sub fetch_data ($);
 sub fetch_author_data ($);
-sub fetch_meta_yml ($);
+sub fetch_meta ($);
 sub build_success_table ($$$);
 sub build_maxver_table ($$);
 sub build_author_table ($$);
@@ -43,7 +43,8 @@ sub get_cache_filename_from_author ($$);
 sub add_serializer_suffix ($);
 sub cache_retrieve ($);
 sub cache_store ($$);
-sub meta_url ($);
+sub meta_yaml_url ($);
+sub meta_json_url ($);
 sub get_ua ();
 sub fetch_error_check ($);
 sub set_dist_and_version ($);
@@ -159,6 +160,7 @@ my $dist_version;
 my %other_dist_versions;
 my $is_latest_version;
 my $latest_version;
+my $meta_fetched_from;
 
 my @actions = qw(PASS NA UNKNOWN INVALID FAIL);
 
@@ -210,7 +212,7 @@ if ($reports) {
 
     eval {
 	my $r = fetch_data($dist);
-	apply_data_from_meta_yml($dist);
+	apply_data_from_meta($dist);
 	set_newest_dist_version($r->{data});
 	my @reports;
 	for my $rec (@{ $r->{data} }) {
@@ -328,7 +330,7 @@ if ($reports) {
 } elsif ($dist) {
     eval {
 	my $r = fetch_data($dist);
-	apply_data_from_meta_yml($dist);
+	apply_data_from_meta($dist);
 	my $data;
 	($dist, $data, $cachefile, $error) = @{$r}{qw(dist data cachefile error)};
 
@@ -545,7 +547,11 @@ EOF
 	    $qq->param(dist => "$dist $version");
 	    $html .= qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>};
 	    if (defined $latest_normalized_version && $latest_normalized_version eq $version) {
-		$html .= qq{ <span class="sml"> (latest distribution according to <a href="} . meta_url($dist) . qq{">META.yml</a>)</span>};
+		$html .= qq{ <span class="sml"> (latest distribution};
+		if ($meta_fetched_from) {
+		    $html .= qq{ according to <a href="$meta_fetched_from">latest META file</a>};
+		}
+		$html .= qq{)</span>};
 		$seen_latest_version++;
 	    }
 	    if (defined $latest_normalized_version && cmp_version($version, $latest_normalized_version) > 0) {
@@ -636,7 +642,7 @@ print <<EOF;
 </html>
 EOF
 
-sub fetch_meta_yml ($) {
+sub fetch_meta ($) {
     my($dist) = @_;
 
     my $meta;
@@ -645,25 +651,98 @@ sub fetch_meta_yml ($) {
     if (!-r $cachefile || -M $cachefile > $cache_days ||
 	($ENV{HTTP_CACHE_CONTROL} && $ENV{HTTP_CACHE_CONTROL} eq 'no-cache')
        ) {
-	require_yaml;
+	my @errors;
 
 	my $ua = get_ua;
-	my $url = meta_url($dist);
-	my $resp = $ua->get($url);
-	if (!$resp->is_success) {
-	    if ($resp->code == 500) {
-		# it happens often, ignore it...
+
+	{
+	    # First step: try the META.yml
+	    require_yaml;
+	    my $yaml_url = meta_yaml_url($dist);
+	    my $yaml_resp = $ua->get($yaml_url);
+	    if ($yaml_resp->is_success) {
+		my $yaml = $yaml_resp->decoded_content;
+		if (length $yaml) {
+		    eval {
+			$meta = yaml_load($yaml);
+			if ($meta) {
+			    $meta->{__fetched_from} = $yaml_url;
+			}
+		    };
+		    if ($@) {
+			push @errors, "While deserializing meta data from <$yaml_url>: $@";
+		    }
+		} else {
+		    push @errors, "Got empty YAML from <$yaml_url>";
+		}
 	    } else {
-		warn "No success fetching <$url>: " . $resp->status_line;
+		push @errors, "No success fetching <$yaml_url>: " . $yaml_resp->status_line;
 	    }
-	} else {
+	}
+
+	if (0 && !$meta) { # XXX NOT ACTIVATED!
+	    # Next step: try the META.json 
+	    require_json;
+	    my $json_url = meta_json_url($dist);
+	    my $json_resp = $ua->get($json_url);
+	    if ($json_resp->is_success) {
+		my $json = $json_resp->decoded_content(charset => 'none');
+		if (length $json) {
+		    eval {
+			$meta = json_load($json);
+			if ($meta) {
+			    $meta->{__fetched_from} = $json_url;
+			}
+		    };
+		    if ($@) {
+			push @errors, "While deserializing meta data from $json_url: $@";
+		    }
+		} else {
+		    push @errors, "Got empty JSON from <$json_url>";
+		}
+	    } else {
+		push @errors, "No success fetching <$json_url>: " . $json_resp->status_line;
+	    }
+	}
+
+	if (0 && !$meta) { # XXX NOT ACTIVATED!
+	    # Next step: try the MetaCPAN API
+	    require_json;
+	    my $api_url = "http://api.metacpan.org/release/" . $dist;
+	    my $api_resp = $ua->get($api_url);
+	    if ($api_resp->is_success) {
+		my $json = $api_resp->decoded_content(charset => 'none');
+		if (length $json) {
+		    eval {
+			my $data = json_load($json);
+			$meta = $data->{metadata};
+			if ($meta) {
+			    $meta->{__fetched_from} = $api_url;
+			}
+		    };
+		    if ($@) {
+			push @errors, "While deserializing meta data from $api_url: $@";
+		    }
+		} else {
+		    push @errors, "Got empty JSON from <$api_url>";
+		}
+	    } else {
+		push @errors, "No success fetching <$api_url>: " . $api_resp->status_line;
+	    }
+	}
+
+	if ($meta) {
 	    eval {
-		$meta = yaml_load($resp->decoded_content);
 		cache_store $meta, $cachefile;
 	    };
 	    if ($@) {
-		warn "While loading and storing meta data from $url: $!";
+		warn "Failed to cache the meta data into $cachefile: $@";
 	    }
+	} else {
+	    eval {
+		cache_store {}, $cachefile;
+	    };
+	    warn "Could not get META: " . (!@errors ? "(but there are no errors?!)" : join("; ", @errors));
 	}
     } else {
 	$meta = cache_retrieve $cachefile
@@ -1228,9 +1307,14 @@ sub add_serializer_suffix ($) {
     }
 }
 
-sub meta_url ($) {
+sub meta_yaml_url ($) {
     my $dist = shift;
     "http://search.cpan.org/meta/$dist/META.yml";
+}
+
+sub meta_json_url ($) {
+    my $dist = shift;
+    "http://search.cpan.org/meta/$dist/META.json";
 }
 
 sub get_ua () {
@@ -1477,18 +1561,23 @@ sub amend_result {
     }
 }
 
-sub apply_data_from_meta_yml {
+sub apply_data_from_meta {
     my($dist) = @_;
     eval {
-	my $r = fetch_meta_yml($dist);
+	my $r = fetch_meta($dist);
 	my $meta = $r->{meta};
 	$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
 	$is_latest_version = defined $latest_version && defined $dist_version && $latest_version eq $dist_version;
-	if ($meta && $meta->{resources} && $meta->{resources}->{bugtracker}) {
-	    if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
-		$dist_bugtracker_url = $meta->{resources}->{bugtracker}->{web};
-	    } else {
-		$dist_bugtracker_url = $meta->{resources}->{bugtracker};
+	if ($meta) {
+	    if ($meta->{resources} && $meta->{resources}->{bugtracker}) {
+		if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
+		    $dist_bugtracker_url = $meta->{resources}->{bugtracker}->{web};
+		} else {
+		    $dist_bugtracker_url = $meta->{resources}->{bugtracker};
+		}
+	    }
+	    if ($meta->{__fetched_from}) {
+		$meta_fetched_from = $meta->{__fetched_from};
 	    }
 	}
     };
