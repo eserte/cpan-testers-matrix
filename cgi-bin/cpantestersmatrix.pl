@@ -354,6 +354,9 @@ print <<EOF;
 <html>
  <head><title>$title$dist_title</title>
   <link type="image/ico" rel="shortcut icon" href="cpantesters_favicon.ico" />
+  <link rel="apple-touch-icon" href="images/cpantesters_icon_57.png" />
+  <link rel="apple-touch-icon" sizes="72x72" href="images/cpantesters_icon_72.png" />
+  <link rel="apple-touch-icon" sizes="114x114" href="images/cpantesters_icon_114.png" />
   <meta name="ROBOTS" content="INDEX, NOFOLLOW" />
   <style type="text/css"><!--
 EOF

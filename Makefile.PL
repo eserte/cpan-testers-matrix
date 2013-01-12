@@ -55,19 +55,19 @@ EOF
 	my($type, $host) = @$def;
 	$postamble .= <<EOF;
 
-rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmatrix-favicon rsync-$type-cpantestersmatrix-js
+rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js
 	\@echo -n "Are you sure? This is stable! CTRL-C if not! "
 	\@read yn
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix.pl
 
-rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-favicon rsync-$type-cpantestersmatrix-js
+rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
 
 rsync-$type-cpantestersmatrix-misc: fix-permissions
 	rsync -av cgi-bin/zdjelameda.pl $host:/root/work/cpantestersmatrix/zdjelameda.pl
 
-rsync-$type-cpantestersmatrix-favicon:	fix-permissions
-	rsync -av images/cpantesters_favicon.ico $host:/root/work/cpantestersmatrix/cpantesters_favicon.ico
+rsync-$type-cpantestersmatrix-images:	fix-permissions
+	rsync -av images/ $host:/root/work/cpantestersmatrix/images/
 
 rsync-$type-cpantestersmatrix-robots.txt: fix-permissions
 	rsync -av htdocs/robots.txt $host:/root/work/cpantestersmatrix/robots.txt
