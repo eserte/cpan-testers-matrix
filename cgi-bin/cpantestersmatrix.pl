@@ -169,10 +169,11 @@ my %prefs = do {
     my $cookie = $cookies{preferences}
 	if exists $cookies{preferences};
 
+    my $do_set_cookie;
     if ($update_prefs || !$cookie) {
 	$cookie = CGI::Cookie->new(
 	    -name    => 'preferences',
-	    -expires => '+10y',
+	    -expires => '+75y',
 	    -value   => {
 		stylesheet  => do {
 		    my $requested = $update_prefs && trim $q->param('stylesheet');
@@ -183,11 +184,11 @@ my %prefs = do {
 		exclude_old_devel => (defined $q->param('exclude_old_devel') ? 1 : 0),
 	    },
 	);
-
+	$do_set_cookie = 1;
     }
 
     print $q->header(
-	-cookie  => [$cookie],
+	($do_set_cookie ? (-cookie => [$cookie]) : ()),
 	-expires => ($edit_prefs ? 'now' : '+'.int($cache_days*24).'h'),
     );
 
