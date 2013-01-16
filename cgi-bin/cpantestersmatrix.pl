@@ -1676,6 +1676,7 @@ sub bot_check () {
 		 | \bXenu[ ]Link[ ]Sleuth\b # link checkers should also obey robots.txt!
 		 | \bEasouSpider\b
 		 | \bAppEngine-Google; # full UA: "AppEngine-Google; (+http://code.google.com/appengine; appid: ...)"
+		 | \bcrawl.*\blibcrawl/\d+
 		 )}x) {
 	print $q->header("text/html; charset=utf-8");
 	$q->charset('utf-8');
