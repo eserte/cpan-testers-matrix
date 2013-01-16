@@ -56,9 +56,22 @@ EOF
 	$postamble .= <<EOF;
 
 rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js
+EOF
+	if ($type eq 'live') {
+	    $postamble .= <<EOF;
 	\@echo -n "Are you sure? This is stable! CTRL-C if not! "
 	\@read yn
+EOF
+	}
+	$postamble .= <<EOF;
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix.pl
+EOF
+	if ($type eq 'live') {
+	    $postamble .= <<EOF;
+	\@echo "Call now: \${MAKE} after-deployment-set-tags"
+EOF
+	}
+	$postamble .= <<EOF;
 
 rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
@@ -84,6 +97,13 @@ fix-$type-cpantestersmatrix-permissions:
 
 EOF
     }
+
+    $postamble .= <<EOF;
+after-deployment-set-tags:
+	git tag -a -m "automatic deployment" deployment/bbbikede/`date +%Y%m%d`
+	git tag -f deployment/bbbikede/current
+
+EOF
 
     $postamble;
 }
