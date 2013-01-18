@@ -54,7 +54,7 @@ EOF
 	my($type, $host) = @$def;
 	$postamble .= <<EOF;
 
-rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js
+rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js rsync-$type-cpantestersmatrix-data
 EOF
 	if ($type eq 'live') {
 	    $postamble .= <<EOF;
@@ -72,7 +72,7 @@ EOF
 	}
 	$postamble .= <<EOF;
 
-rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js
+rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js rsync-$type-cpantestersmatrix-data
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
 
 rsync-$type-cpantestersmatrix-misc: fix-permissions
