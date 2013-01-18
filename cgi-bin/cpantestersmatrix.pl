@@ -116,10 +116,8 @@ my $dist_title = "";
 my @CORE_OSNAMES = qw(mswin32 cygwin darwin freebsd linux openbsd netbsd solaris);
 my $old_ct_domain = "cpantesters.perl.org";
 my $new_ct_domain = "www.cpantesters.org";
-my $test_ct_domain = "reports.cpantesters.org"; # not test anymore --- this is now the real thing?
 my $ct_domain = $new_ct_domain;
 #my $ct_domain = $old_ct_domain;
-#my $ct_domain = $test_ct_domain;
 my $ct_link = "http://$ct_domain";
 my $dist_bugtracker_url;
 #my $report_rooturl = "http://nntp.x.perl.org/group/perl.cpan.testers/";
@@ -912,7 +910,7 @@ sub fetch_author_data ($) {
 	require CPAN::DistnameInfo;
 
 	my $ua = get_ua;
-	if ($ct_domain eq $new_ct_domain || $ct_domain eq $test_ct_domain) {
+	if ($ct_domain eq $new_ct_domain) {
 	    $url = "http://$new_ct_domain/author/$author." . FILEFMT_AUTHOR;
 	} else {
 	    require XML::LibXML;
