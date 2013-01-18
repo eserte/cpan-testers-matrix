@@ -30,7 +30,6 @@ WriteMakefile(NAME =>         'CPAN::Testers::Matrix',
 			     'version'			   => 0.76, # may work also with CPAN::Version
 			     'JSON::XS'			   => 0,
 			     'YAML::Syck'		   => 0, # may work also with YAML, but not recommended
-			     #'XML::LibXML'                => 0, # was needed for the old .rss files
 			   },
 	     );
 
