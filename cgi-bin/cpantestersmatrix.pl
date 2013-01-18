@@ -861,8 +861,13 @@ EOF
     } elsif ($resp && $resp->is_success) {
 	$data = deserialize_dist($resp->decoded_content)
 	    or die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
-	for my $result (@$data) {
+	for(my $result_i = 0; $result_i <= $#$data; $result_i++) {
+	    my $result = $data->[$result_i];
 	    amend_result($result);
+	    if (remove_result($result)) {
+		splice @$data, $result_i, 1;
+		$result_i--;
+	    }
 	}
 	eval {
 	    cache_store $data, $cachefile;
@@ -960,7 +965,9 @@ EOF
 		$dist = $result->{dist} = $result->{distribution};
 	    }
 	    amend_result($result);
-	    push @{$author_dist->{$dist}}, $result;
+	    if (!remove_result($result)) {
+		push @{$author_dist->{$dist}}, $result;
+	    }
 	}
 	eval {
 	    cache_store $author_dist, $cachefile;
@@ -1506,6 +1513,12 @@ sub amend_result {
 	}
 	$result->{action_comment} = $amendments->{$id}->{comment};
     }
+}
+
+sub remove_result {
+    my $result = shift;
+    return 1 if $result->{action} && $result->{action} eq 'REMOVE';
+    0;
 }
 
 sub apply_data_from_meta {

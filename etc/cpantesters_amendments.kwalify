@@ -10,7 +10,7 @@ mapping:
             type: text
           action:
             type: text
-            enum: ["INVALID", "PASS", "FAIL", "NA", "UNKNOWN"]
+            enum: ["INVALID", "REMOVE", "PASS", "FAIL", "NA", "UNKNOWN"]
           id:
             type: seq
             sequence:
