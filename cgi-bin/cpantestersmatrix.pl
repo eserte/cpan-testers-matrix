@@ -1627,12 +1627,14 @@ sub bot_check () {
 		 | \bJikeSpider\b
 		 | \bSosospider\b
 		 | \bBlekkobot\b
+		 | \bScoutJet\b # appears in the UA together with Blekkobot
 		 | \+http://www\.mobilizer\.com # diese Domain steht zum Verkauf
 		 | \bSemrushBot\b
 		 | \bXenu[ ]Link[ ]Sleuth\b # link checkers should also obey robots.txt!
 		 | \bEasouSpider\b
 		 | \bAppEngine-Google; # full UA: "AppEngine-Google; (+http://code.google.com/appengine; appid: ...)"
 		 | \bcrawl.*\blibcrawl/\d+
+		 | \bRiddler\b
 		 )}x) {
 	print $q->header("text/html; charset=utf-8");
 	$q->charset('utf-8');
