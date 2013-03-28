@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2012 Slaven Rezic. All rights reserved.
+# Copyright (C) 2012,2013 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use CGI qw(-oldstyle_urls);
 my $q = CGI->new;
 my $i = $q->param('i');
 $i++;
-if ($i > 5) {
+if ($i > 2) {
     die "ZDJELAMEDA: too many retries ($i)\n";
 }
 
