@@ -1660,7 +1660,7 @@ sub zdjela_meda () {
 
 sub check_for_invalid_request () {
     my $qs = $q->query_string;
-    if ($qs && $qs =~ m{(?:%22%27|%27%22)$}) {
+    if ($qs && $qs =~ m{(?:%22%27|%27%22)=?$}) { # the equal sign is a possible artefact of the query_string method, if an equal sign was seen before
 	redirect_to_zdjela_meda;
     }
 }
