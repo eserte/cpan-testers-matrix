@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.66';
+$VERSION = '1.67';
 
 use vars qw($UA);
 
@@ -56,6 +56,8 @@ sub require_json ();
 sub beta_html ();
 sub bot_check ();
 sub zdjela_meda ();
+sub check_for_invalid_request ();
+sub redirect_to_zdjela_meda ();
 sub trim ($);
 sub get_config ($);
 sub obfuscate_from ($);
@@ -105,6 +107,7 @@ my $amendments;
 
 my $q = CGI->new;
 bot_check;
+check_for_invalid_request;
 
 my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
 
@@ -1653,6 +1656,18 @@ EOF
 sub zdjela_meda () {
     no warnings 'uninitialized'; # $dist may be undef
     qq{<span style="font-size:1px; color:#ffffff; background-color:#ffffff; visibility:hidden;"><a href="/ZDJELAMEDA.php?dist=$dist">If you're a bot, then click here</a></span>};
+}
+
+sub check_for_invalid_request () {
+    my $qs = $q->query_string;
+    if ($qs && $qs =~ m{(?:%22%27|%27%22)$}) {
+	redirect_to_zdjela_meda;
+    }
+}
+
+sub redirect_to_zdjela_meda () {
+    print $q->redirect('/ZDJELAMEDA.php');
+    exit 0;
 }
 
 # Taken CPAN/Blame/Model/Solved.pm from git://repo.or.cz/andk-cpan-tools.git
