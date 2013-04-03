@@ -99,8 +99,8 @@ EOF
 
     $postamble .= <<EOF;
 after-deployment-set-tags:
-	git tag -a -m "automatic deployment" deployment/bbbikede/`date +%Y%m%d`
 	git tag -f deployment/bbbikede/current
+	git tag -a -m "automatic deployment" deployment/bbbikede/`date +%Y%m%d` || echo "If setting this tag fails, then try using a suffix e.g. _2"
 
 EOF
 
