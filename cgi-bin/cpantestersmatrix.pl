@@ -55,6 +55,7 @@ sub require_yaml ();
 sub require_json ();
 sub beta_html ();
 sub bot_check ();
+sub human_check ();
 sub zdjela_meda ();
 sub check_for_invalid_request ();
 sub redirect_to_zdjela_meda ();
@@ -105,8 +106,12 @@ if (!-e $amendments_yml) {
 $amendments_st = add_serializer_suffix($amendments_st);
 my $amendments;
 
+# XXX hmm, some globals ...
+my $title = "CPAN Testers Matrix";
+
 my $q = CGI->new;
 bot_check;
+human_check;
 check_for_invalid_request;
 
 my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
@@ -114,7 +119,6 @@ my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
 #XXX { local $ENV{PATH} = "/bin:/usr/bin";system("/usr/bin/ktrace", "-f", "/tmp/cpanktrace", "-p", $$);}
 
 # XXX hmm, some globals ...
-my $title = "CPAN Testers Matrix";
 my $dist_title = "";
 my @CORE_OSNAMES = qw(mswin32 cygwin darwin freebsd linux openbsd netbsd solaris);
 my $new_ct_domain = "www.cpantesters.org";
@@ -1651,6 +1655,29 @@ EOF
 	print $q->end_html;
 	exit 0;
     }
+}
+
+sub human_check () {
+    if (
+	($q->referer||'') eq '' &&
+	$q->user_agent =~ m{\bMSIE\b} &&
+	$q->param('author') &&
+	!$q->param('human_checked')
+       ) {
+	print $q->header("text/html; charset=utf-8");
+	$q->charset('utf-8');
+	warn "INFO: human check for " . $q->remote_addr . " needed\n";
+	binmode STDOUT, ':utf8';
+	print $q->start_html($title);
+	my $qq = CGI->new($q);
+	$qq->param('human_checked', 1);
+	print <<EOF;
+Please click <a href="@{[ $qq->self_url ]}">here</a> to proceed to @{[ $q->param('author') ]}'s result page.<br/>
+EOF
+	print $q->end_html;
+	exit 0;
+    }
+    $q->delete('human_checked');
 }
 
 sub zdjela_meda () {
