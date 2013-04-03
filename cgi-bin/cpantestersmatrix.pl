@@ -111,8 +111,8 @@ my $title = "CPAN Testers Matrix";
 
 my $q = CGI->new;
 bot_check;
-human_check;
 check_for_invalid_request;
+human_check;
 
 my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
 
