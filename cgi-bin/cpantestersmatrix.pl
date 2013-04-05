@@ -1642,6 +1642,7 @@ sub bot_check () {
 		 | \bAppEngine-Google; # full UA: "AppEngine-Google; (+http://code.google.com/appengine; appid: ...)"
 		 | \bcrawl.*\blibcrawl/\d+
 		 | \bRiddler\b
+		 | \bYandexBot\b
 		 )}x) {
 	print $q->header("text/html; charset=utf-8");
 	$q->charset('utf-8');
