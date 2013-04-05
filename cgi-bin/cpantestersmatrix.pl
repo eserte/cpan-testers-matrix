@@ -21,12 +21,16 @@ $VERSION = '1.68';
 
 use vars qw($UA);
 
+use FindBin;
+my $realbin;
+BEGIN { ($realbin) = $FindBin::RealBin =~ m{^(.*)$} } # untaint it
+use lib $realbin;
+
 use CGI qw(escapeHTML);
-use CGI::Carp qw();
+#use CGI::Carp qw();
 use CGI::Cookie;
 use CPAN::Version;
 use File::Basename qw(basename);
-use FindBin;
 use HTML::Table;
 use List::Util qw(reduce);
 use POSIX qw(strftime);
@@ -69,7 +73,6 @@ use constant FILEFMT_AUTHOR => 'json';
 #use constant FILEFMT_DIST   => 'yaml';
 use constant FILEFMT_DIST   => 'json';
 
-my($realbin) = $FindBin::RealBin =~ m{^(.*)$}; # untaint it
 my $config_yml = "$realbin/cpantestersmatrix.yml";
 
 my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
@@ -106,7 +109,10 @@ my $title = "CPAN Testers Matrix";
 
 my $q = CGI->new;
 if (eval { require Botchecker; 1 }) {
-    Botchecker::run();
+    eval {
+	Botchecker::run($q);
+    };
+    warn $@ if $@;
 }
 
 my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
