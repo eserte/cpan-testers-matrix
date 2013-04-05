@@ -45,6 +45,11 @@ fix-permissions:
 	chmod ugo+rx cgi-bin/cpantestersmatrix.pl cgi-bin/zdjelameda.pl
 	chmod ugo+r data/*.yml htdocs/* images/*
 
+AUXFILES=	${HOME}/src/botchecker/Botchecker.pm
+
+auxiliary-files-exist-check:
+	for i in ${AUXFILES}; do [ -r $$i ] || exit 1; done
+
 EOF
 
     for my $def (
@@ -54,7 +59,7 @@ EOF
 	my($type, $host) = @$def;
 	$postamble .= <<EOF;
 
-rsync-$type-cpantestersmatrix-stable:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js rsync-$type-cpantestersmatrix-data
+rsync-$type-cpantestersmatrix-stable:	auxiliary-files-exist-check fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js rsync-$type-cpantestersmatrix-data
 EOF
 	if ($type eq 'live') {
 	    $postamble .= <<EOF;
@@ -63,6 +68,7 @@ EOF
 EOF
 	}
 	$postamble .= <<EOF;
+	rsync -av \${AUXFILES} $host:/root/work/cpantestersmatrix/
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix.pl
 EOF
 	if ($type eq 'live') {
