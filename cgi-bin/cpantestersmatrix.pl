@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.67';
+$VERSION = '1.68';
 
 use vars qw($UA);
 
@@ -54,11 +54,6 @@ sub require_deserializer_author ();
 sub require_yaml ();
 sub require_json ();
 sub beta_html ();
-sub bot_check ();
-sub human_check ();
-sub zdjela_meda ();
-sub check_for_invalid_request ();
-sub redirect_to_zdjela_meda ();
 sub trim ($);
 sub get_config ($);
 sub obfuscate_from ($);
@@ -110,9 +105,9 @@ my $amendments;
 my $title = "CPAN Testers Matrix";
 
 my $q = CGI->new;
-bot_check;
-check_for_invalid_request;
-human_check;
+if (eval { require Botchecker; 1 }) {
+    Botchecker::run();
+}
 
 my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
 
@@ -644,7 +639,7 @@ print <<EOF;
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
    by <a href="http://search.cpan.org/~srezic/">Slaven Rezi&#x0107;</a>
   </div>
-@{[ zdjela_meda ]}
+@{[ defined &Botchecker::zdjela_meda ? Botchecker::zdjela_meda() : '' ]}
  </body>
 </html>
 EOF
@@ -1619,84 +1614,6 @@ sub require_json () {
 
 sub beta_html () {
     q{<span style="font-size:5pt; font-family: sans-serif; border:1px solid red; padding:0px 2px 0px 2px; background-color:yellow; color:black;">BETA</span>};
-}
-
-sub bot_check () {
-    if ($q->query_string eq '') {
-	# This is the only accepted URL for bots
-	return;
-    }
-    my $ua = $q->user_agent || '';
-    if ($ua =~ m{( \bGooglebot[-/]
-		 | \bBaiduspider[-/]
-		 | \bbingbot\b
-		 | \bYahoo![ ]Slurp;
-		 | \bJikeSpider\b
-		 | \bSosospider\b
-		 | \bBlekkobot\b
-		 | \bScoutJet\b # appears in the UA together with Blekkobot
-		 | \+http://www\.mobilizer\.com # diese Domain steht zum Verkauf
-		 | \bSemrushBot\b
-		 | \bXenu[ ]Link[ ]Sleuth\b # link checkers should also obey robots.txt!
-		 | \bEasouSpider\b
-		 | \bAppEngine-Google; # full UA: "AppEngine-Google; (+http://code.google.com/appengine; appid: ...)"
-		 | \bcrawl.*\blibcrawl/\d+
-		 | \bRiddler\b
-		 | \bYandexBot\b
-		 )}x) {
-	print $q->header("text/html; charset=utf-8");
-	$q->charset('utf-8');
-	warn "INFO: bot '$ua' is not welcome \@ matrix\n";
-	binmode STDOUT, ':utf8';
-	print $q->start_html('zdjelameda');
-	print <<EOF;
-\x{212c}0\x{01ac}s not welcome. But you can continue <a href="/ZDJELAMEDA.php?i=1">here</a>.<br/>
-Not a bot? Tell me: it's srezic at cpan.
-EOF
-	print $q->end_html;
-	exit 0;
-    }
-}
-
-sub human_check () {
-    if (
-	($q->referer||'') eq '' &&
-	$q->user_agent =~ m{\bMSIE\b} &&
-	$q->param('author') &&
-	!$q->param('human_checked')
-       ) {
-	print $q->header("text/html; charset=utf-8");
-	$q->charset('utf-8');
-	warn "INFO: human check for " . $q->remote_addr . " needed\n";
-	binmode STDOUT, ':utf8';
-	print $q->start_html($title);
-	my $qq = CGI->new($q);
-	$qq->param('human_checked', 1);
-	print zdjela_meda;
-	print <<EOF;
-Please click <a href="@{[ $qq->self_url ]}">here</a> to proceed to @{[ $q->param('author') ]}'s result page.<br/>
-EOF
-	print $q->end_html;
-	exit 0;
-    }
-    $q->delete('human_checked');
-}
-
-sub zdjela_meda () {
-    no warnings 'uninitialized'; # $dist may be undef
-    qq{<span style="font-size:1px; color:#ffffff; background-color:#ffffff; visibility:hidden;"><a href="/ZDJELAMEDA.php?dist=$dist">If you're a bot, then click here</a></span>};
-}
-
-sub check_for_invalid_request () {
-    my $qs = $q->query_string;
-    if ($qs && $qs =~ m{(?:%22%27|%27%22)=?$}) { # the equal sign is a possible artefact of the query_string method, if an equal sign was seen before
-	redirect_to_zdjela_meda;
-    }
-}
-
-sub redirect_to_zdjela_meda () {
-    print $q->redirect('/ZDJELAMEDA.php');
-    exit 0;
 }
 
 # Taken CPAN/Blame/Model/Solved.pm from git://repo.or.cz/andk-cpan-tools.git
