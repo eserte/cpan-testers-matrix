@@ -1671,6 +1671,7 @@ sub human_check () {
 	print $q->start_html($title);
 	my $qq = CGI->new($q);
 	$qq->param('human_checked', 1);
+	print zdjela_meda;
 	print <<EOF;
 Please click <a href="@{[ $qq->self_url ]}">here</a> to proceed to @{[ $q->param('author') ]}'s result page.<br/>
 EOF
