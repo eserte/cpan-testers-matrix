@@ -639,7 +639,7 @@ EOF
 
 print <<EOF;
   <div>
-   <span class="sml"><a href="?prefs=1">Change Preferences</p></span>
+   <span class="sml"><a href="?prefs=1">Change Preferences</a></span>
   </div>
   <div>
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
