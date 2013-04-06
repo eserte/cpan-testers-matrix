@@ -59,6 +59,8 @@ EOF
 	my($type, $host) = @$def;
 	$postamble .= <<EOF;
 
+rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-stable rsync-$type-cpantestersmatrix-devel
+
 rsync-$type-cpantestersmatrix-stable:	auxiliary-files-exist-check fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js rsync-$type-cpantestersmatrix-data
 EOF
 	if ($type eq 'live') {
