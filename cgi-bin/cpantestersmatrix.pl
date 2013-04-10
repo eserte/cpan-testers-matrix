@@ -1426,7 +1426,7 @@ EOF
 
 sub dist_links {
     (my $faked_module = $dist) =~ s{-}{::}g;
-    my $dist_bugtracker_url = $dist_bugtracker_url || "https://rt.cpan.org/NoAuth/Bugs.html?Dist=$dist";
+    my $dist_bugtracker_url = $dist_bugtracker_url || "https://rt.cpan.org/Public/Dist/Display.html?Name=$dist";
     print <<EOF;
 <div style="float:left; margin-left:3em;">
 <h2>Other links</h2>
