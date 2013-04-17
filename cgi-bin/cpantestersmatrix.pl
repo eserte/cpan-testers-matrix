@@ -193,7 +193,11 @@ my %prefs = do {
 
     print $q->header(
 	($do_set_cookie ? (-cookie => [$cookie]) : ()),
-	-expires => ($edit_prefs ? 'now' : '+'.int($cache_days*24).'h'),
+	-expires => (
+		     $edit_prefs            ? 'now' : # prefs page
+		     $q->query_string eq '' ? '+1d' : # home page
+		     '+'.int($cache_days*24).'h'      # any other page
+		    ),
     );
 
     $cookie->value;
