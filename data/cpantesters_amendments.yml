@@ -450,3 +450,23 @@ amendments:
   - comment: 'Possibly race condition in cygwin with anti virus software, see http://cygwin.com/ml/cygwin/2009-03/msg00786.html'
     id:
       - 21024810
+# Tk 804.030_500+ failures
+  - comment: 'https://rt.cpan.org/Ticket/Display.html?id=78824 (copstashset.c missing in MANIFEST)'
+    id:
+      - 30994648
+      - 30975032
+      - 30974151
+      - 30938361
+  - comment: 'rc binary cannot be found with ActivePerl'
+    id:
+      - 30956675
+      - 30937440
+  - comment: 'zconf.h not found (Debian sid issue?)'
+    id:
+      - 30935163
+      - 30935156
+      - 30935154
+      - 30935151
+      - 30935113
+      - 30934918
+# ... and more fail reports by ANDK ...
