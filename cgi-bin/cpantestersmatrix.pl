@@ -115,7 +115,7 @@ if (eval { require Botchecker; 1 }) {
     warn $@ if $@;
 }
 
-my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/;
+my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/ || $q->virtual_host =~ m{\bbeta\b};
 
 #XXX { local $ENV{PATH} = "/bin:/usr/bin";system("/usr/bin/ktrace", "-f", "/tmp/cpanktrace", "-p", $$);}
 
