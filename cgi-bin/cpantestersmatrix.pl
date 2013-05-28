@@ -482,8 +482,12 @@ if ($reports && USE_JQUERY_TABLESORTER) {
     type: 'numeric' 
   }); 
   $(document).ready(function() {
+    var sl = [];
+    if (window.location.hash && window.location.hash.match(/sl=(\d+),(\d+)/)) {
+      sl = [[RegExp.$1,RegExp.$2]];
+    }
     $("#reports").tablesorter({
-debug:true,
+      sortList: sl,
       headers: {
         2: {
           sorter:'versions'
@@ -491,6 +495,12 @@ debug:true,
         4: {
           sorter:'versions'
         }
+      }
+    });
+    $("#reports").bind("sortEnd",function() {
+      var sl = this.config.sortList;
+      if (sl != null && sl.length) {
+        window.location.hash = "sl=" + sl[0][0] + "," + sl[0][1];
       }
     });
   });
