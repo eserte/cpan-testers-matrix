@@ -871,8 +871,13 @@ EOF
 	# Fix distribution name
 	eval { $dist = $data->[-1]->{distribution} };
     } elsif ($resp && $resp->is_success) {
-	$data = deserialize_dist($resp->decoded_content)
-	    or die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
+	eval {
+	    $data = deserialize_dist($resp->decoded_content)
+	};
+	if ($@) {
+	    die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>. Error: '$@'";
+	}
+    $data or die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
 	for(my $result_i = 0; $result_i <= $#$data; $result_i++) {
 	    my $result = $data->[$result_i];
 	    amend_result($result);
