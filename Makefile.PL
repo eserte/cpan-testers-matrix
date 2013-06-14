@@ -34,14 +34,26 @@ WriteMakefile(NAME =>         'CPAN::Testers::Matrix',
 	     );
 
 sub MY::postamble {
-    my $postamble = <<'EOF';
+    my $postamble = '';
+    my $fix_permissions_data_target = (
+				       $^O eq 'freebsd'                       ? 'fix-permissions-data-freebsd' :
+				       $^O eq 'linux' && getpwnam('www-data') ? 'fix-permissions-data-debian' :
+				       'fix-permissions-data-unhandled'
+				      );
+    $postamble .= "fix-permissions-data: $fix_permissions_data_target\n\n";
+    $postamble .= <<'EOF';
 validate-cpantestersmatrix-data:
 	pkwalify -f etc/cpantesters_amendments.kwalify data/cpantesters_amendments.yml
 
 validate-config:
 	[ ! -e cgi-bin/cpantestersmatrix.yml ] || pkwalify -f etc/cpantestersmatrix_config.kwalify cgi-bin/cpantestersmatrix.yml
 
-fix-permissions:
+update:	git-pull fix-permissions
+
+git-pull:
+	git pull --ff-only
+
+fix-permissions: fix-permissions-data
 	chmod ugo+rx cgi-bin/cpantestersmatrix.pl cgi-bin/zdjelameda.pl
 	chmod ugo+r data/*.yml htdocs/* images/*
 
