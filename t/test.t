@@ -43,6 +43,8 @@ my $cgi = "$FindBin::RealBin/../cgi-bin/cpantestersmatrix.pl";
 sub _fetch_cpantestersmatrix {
     my(@cgi_args) = @_;
     local $ENV{SCRIPT_NAME} = "cpantestersmatrix.pl"; # to avoid warnings
+    local $ENV{HTTP_USER_AGENT} = 'Mozilla/5.0 (X11; Linux i386; rv:20.0) Gecko/20100101 Firefox/20.0';
+    local $ENV{REMOTE_ADDR} = '127.0.0.1';
     my $cmd = "$^X -wT $cgi @cgi_args";
     my $content = `$cmd`;
     $content;
