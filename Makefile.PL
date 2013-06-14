@@ -45,6 +45,14 @@ fix-permissions:
 	chmod ugo+rx cgi-bin/cpantestersmatrix.pl cgi-bin/zdjelameda.pl
 	chmod ugo+r data/*.yml htdocs/* images/*
 
+fix-permissions-data-freebsd:
+	sudo chgrp www data
+	sudo chmod g+w data
+
+fix-permissions-data-debian:
+	sudo chgrp www-data data
+	sudo chmod g+w data
+
 AUXFILES=	${HOME}/src/botchecker/Botchecker.pm
 
 auxiliary-files-exist-check:

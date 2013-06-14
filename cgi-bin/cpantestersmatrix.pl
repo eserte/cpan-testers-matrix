@@ -101,6 +101,7 @@ if (!-e $amendments_yml) {
     }
 }
 (my $amendments_st = $amendments_yml) =~ s{\.yml$}{};
+$amendments_st .= "." . $<;
 $amendments_st = add_serializer_suffix($amendments_st);
 my $amendments;
 
