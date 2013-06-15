@@ -65,6 +65,8 @@ fix-permissions-data-debian:
 	sudo chgrp www-data data
 	sudo chmod g+w data
 
+BOTCHECKER=	${HOME}/src/botchecker/Botchecker.pm
+
 AUXFILES=	${HOME}/src/botchecker/Botchecker.pm
 
 auxiliary-files-exist-check:
@@ -79,9 +81,17 @@ EOF
 	my($type, $host) = @$def;
 	$postamble .= <<EOF;
 
-rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-stable rsync-$type-cpantestersmatrix-devel
+rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-beta rsync-$type-cpantestersmatrix-stable
 
-rsync-$type-cpantestersmatrix-stable:	auxiliary-files-exist-check fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js rsync-$type-cpantestersmatrix-data
+rsync-$type-cpantestersmatrix-beta:
+	rsync -av \${BOTCHECKER} $host:/root/work/cpan-testers-matrix.beta/cgi-bin/
+
+rsync-$type-cpantestersmatrix-stable:
+	rsync -av \${BOTCHECKER} $host:/root/work/cpan-testers-matrix/cgi-bin/
+
+old-rsync-$type-cpantestersmatrix:	old-rsync-$type-cpantestersmatrix-stable old-rsync-$type-cpantestersmatrix-devel
+
+old-rsync-$type-cpantestersmatrix-stable:	auxiliary-files-exist-check fix-permissions old-rsync-$type-cpantestersmatrix-images old-rsync-$type-cpantestersmatrix-js old-rsync-$type-cpantestersmatrix-data
 EOF
 	if ($type eq 'live') {
 	    $postamble .= <<EOF;
@@ -100,22 +110,22 @@ EOF
 	}
 	$postamble .= <<EOF;
 
-rsync-$type-cpantestersmatrix-devel:	fix-permissions rsync-$type-cpantestersmatrix-images rsync-$type-cpantestersmatrix-js rsync-$type-cpantestersmatrix-data
+old-rsync-$type-cpantestersmatrix-devel:	fix-permissions old-rsync-$type-cpantestersmatrix-images old-rsync-$type-cpantestersmatrix-js old-rsync-$type-cpantestersmatrix-data
 	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
 
-rsync-$type-cpantestersmatrix-misc: fix-permissions
+old-rsync-$type-cpantestersmatrix-misc: fix-permissions
 	rsync -av cgi-bin/zdjelameda.pl $host:/root/work/cpantestersmatrix/zdjelameda.pl
 
-rsync-$type-cpantestersmatrix-images:	fix-permissions
+old-rsync-$type-cpantestersmatrix-images:	fix-permissions
 	rsync -av images/ $host:/root/work/cpantestersmatrix/images/
 
-rsync-$type-cpantestersmatrix-robots.txt: fix-permissions
+old-rsync-$type-cpantestersmatrix-robots.txt: fix-permissions
 	rsync -av htdocs/robots.txt $host:/root/work/cpantestersmatrix/robots.txt
 
-rsync-$type-cpantestersmatrix-js: fix-permissions
+old-rsync-$type-cpantestersmatrix-js: fix-permissions
 	rsync -av htdocs/matrix_cpantesters.js $host:/root/work/cpantestersmatrix/matrix_cpantesters.js
 
-rsync-$type-cpantestersmatrix-data:	fix-permissions validate-cpantestersmatrix-data
+old-rsync-$type-cpantestersmatrix-data:	fix-permissions validate-cpantestersmatrix-data
 	rsync -av data/cpantesters_amendments.yml $host:/root/work/cpantestersmatrix/cpantesters_amendments.yml
 
 fix-$type-cpantestersmatrix-permissions:
