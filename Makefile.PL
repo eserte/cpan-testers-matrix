@@ -67,11 +67,6 @@ fix-permissions-data-debian:
 
 BOTCHECKER=	${HOME}/src/botchecker/Botchecker.pm
 
-AUXFILES=	${HOME}/src/botchecker/Botchecker.pm
-
-auxiliary-files-exist-check:
-	for i in ${AUXFILES}; do [ -r $$i ] || exit 1; done
-
 EOF
 
     for my $def (
@@ -88,45 +83,6 @@ rsync-$type-cpantestersmatrix-beta:
 
 rsync-$type-cpantestersmatrix-stable:
 	rsync -av \${BOTCHECKER} $host:/root/work/cpan-testers-matrix/cgi-bin/
-
-old-rsync-$type-cpantestersmatrix:	old-rsync-$type-cpantestersmatrix-stable old-rsync-$type-cpantestersmatrix-devel
-
-old-rsync-$type-cpantestersmatrix-stable:	auxiliary-files-exist-check fix-permissions old-rsync-$type-cpantestersmatrix-images old-rsync-$type-cpantestersmatrix-js old-rsync-$type-cpantestersmatrix-data
-EOF
-	if ($type eq 'live') {
-	    $postamble .= <<EOF;
-	\@echo -n "Are you sure? This is stable! CTRL-C if not! "
-	\@read yn
-EOF
-	}
-	$postamble .= <<EOF;
-	rsync -av \${AUXFILES} $host:/root/work/cpantestersmatrix/
-	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix.pl
-EOF
-	if ($type eq 'live') {
-	    $postamble .= <<EOF;
-	\@echo "Call now: \${MAKE} after-deployment-set-tags"
-EOF
-	}
-	$postamble .= <<EOF;
-
-old-rsync-$type-cpantestersmatrix-devel:	fix-permissions old-rsync-$type-cpantestersmatrix-images old-rsync-$type-cpantestersmatrix-js old-rsync-$type-cpantestersmatrix-data
-	rsync -av cgi-bin/cpantestersmatrix.pl $host:/root/work/cpantestersmatrix/cpantestersmatrix2.pl
-
-old-rsync-$type-cpantestersmatrix-misc: fix-permissions
-	rsync -av cgi-bin/zdjelameda.pl $host:/root/work/cpantestersmatrix/zdjelameda.pl
-
-old-rsync-$type-cpantestersmatrix-images:	fix-permissions
-	rsync -av images/ $host:/root/work/cpantestersmatrix/images/
-
-old-rsync-$type-cpantestersmatrix-robots.txt: fix-permissions
-	rsync -av htdocs/robots.txt $host:/root/work/cpantestersmatrix/robots.txt
-
-old-rsync-$type-cpantestersmatrix-js: fix-permissions
-	rsync -av htdocs/matrix_cpantesters.js $host:/root/work/cpantestersmatrix/matrix_cpantesters.js
-
-old-rsync-$type-cpantestersmatrix-data:	fix-permissions validate-cpantestersmatrix-data
-	rsync -av data/cpantesters_amendments.yml $host:/root/work/cpantestersmatrix/cpantesters_amendments.yml
 
 fix-$type-cpantestersmatrix-permissions:
 	ssh $host chgrp www-data /root/work/cpantestersmatrix
