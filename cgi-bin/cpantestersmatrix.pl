@@ -968,7 +968,7 @@ EOF
 	if ($@) {
 	    die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>. Error: '$@'";
 	}
-    $data or die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
+	$data or die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
 	for(my $result_i = 0; $result_i <= $#$data; $result_i++) {
 	    my $result = $data->[$result_i];
 	    amend_result($result);
