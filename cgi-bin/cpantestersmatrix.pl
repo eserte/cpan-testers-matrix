@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '1.68';
+$VERSION = '2.00';
 
 use vars qw($UA);
 
@@ -72,6 +72,8 @@ my $current_stable_perl = "5.16.0"; # this is actually 5.16.x
 use constant FILEFMT_AUTHOR => 'json';
 #use constant FILEFMT_DIST   => 'yaml';
 use constant FILEFMT_DIST   => 'json';
+
+use constant USE_JQUERY_TABLESORTER => 1;
 
 my $config_yml = "$realbin/cpantestersmatrix.yml";
 
@@ -285,43 +287,58 @@ if ($reports) {
 	}
 
 	my $leader_sort_order = $sort_column_defs[0]->[0];
-	my $sort_href = sub {
-	    my($label, $column) = @_;
-	    my $qq = CGI->new($q);
-	    my $this_is_leader_column = $sort_column_defs[0]->[1] eq $column;
-	    my $this_sort_order = ($this_is_leader_column
-				   ? ($leader_sort_order eq '+' ? '-' : '+') # toggle
-				   : '+'                                     # always ascending
-				  );
-	    my @new_sort_column_defs = (
-					[$this_sort_order, $column],
-					grep { $_->[1] ne $column } @sort_column_defs
-				       );
-	    $qq->param("sort", map {
-		my($sort_order, $column) = @$_;
-		$sort_order = '' if $sort_order eq '+'; # some browsers cannot deal with a (correctly escaped) +
-		$sort_order . $column;
-	    } @new_sort_column_defs);
-	    qq{<a href="@{[ $qq->self_url ]}">$label</a>} .
-		($this_is_leader_column ? ' ' . ($leader_sort_order eq '+' ? '&#x25BC;' : '&#x25B2;') : '');
-	};
-	$table = HTML::Table->new(-head    => [$sort_href->("Result", "action"),
-					       $sort_href->("Id", "id"),
-					       $sort_href->("OS vers", "osvers"),
-					       $sort_href->("archname", "archname"),
-					       (!defined $dist_version ? $sort_href->("Dist version", "version") : ()),
-					       (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
-					       (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
-					       ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
-					       $sort_href->("Tester", "tester"),
-					       $sort_href->("Date", "fulldate"),
-					       $sort_href->("Comment", "action_comment"),
-					      ],
+	my $sort_href;
+	if (USE_JQUERY_TABLESORTER) {
+	    $sort_href = sub {
+		my($label, $column) = @_;
+		$label;
+	    };
+	} else {
+	    $sort_href = sub {
+		my($label, $column) = @_;
+		my $qq = CGI->new($q);
+		my $this_is_leader_column = $sort_column_defs[0]->[1] eq $column;
+		my $this_sort_order = ($this_is_leader_column
+				       ? ($leader_sort_order eq '+' ? '-' : '+') # toggle
+				       : '+'                                     # always ascending
+				      );
+		my @new_sort_column_defs = (
+					    [$this_sort_order, $column],
+					    grep { $_->[1] ne $column } @sort_column_defs
+					   );
+		$qq->param("sort", map {
+		    my($sort_order, $column) = @$_;
+		    $sort_order = '' if $sort_order eq '+'; # some browsers cannot deal with a (correctly escaped) +
+		    $sort_order . $column;
+		} @new_sort_column_defs);
+		qq{<a href="@{[ $qq->self_url ]}">$label</a>} .
+		    ($this_is_leader_column ? ' ' . ($leader_sort_order eq '+' ? '&#x25BC;' : '&#x25B2;') : '');
+	    };
+	}
+	my @head = (
+		    $sort_href->("Result", "action"),
+		    $sort_href->("Id", "id"),
+		    $sort_href->("OS vers", "osvers"),
+		    $sort_href->("archname", "archname"),
+		    (!defined $dist_version ? $sort_href->("Dist version", "version") : ()),
+		    (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
+		    (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
+		    ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
+		    $sort_href->("Tester", "tester"),
+		    $sort_href->("Date", "fulldate"),
+		    $sort_href->("Comment", "action_comment"),
+		   );
+	$table = HTML::Table->new(
 				  -spacing => 0,
-				  -data    => \@matrix,
-				  -class   => 'reports',
+				  -class   => 'reports' . (USE_JQUERY_TABLESORTER ? ' tablesorter' : ''),
 				 );
-	$table->setColHead(1);
+	$table->setAttr('id="reports"');
+	$table->addSectionRow('thead', 0, @head);
+	$table->setSectionRCellsHead('thead', 0, 1, 1);
+	for my $data_row (@matrix) {
+	    $table->addSectionRow('tbody', 0, @$data_row);
+	}
+	$table->setSectionColHead('tbody', 0, 1, 1);
 	$dist_title = ": $dist $dist_version";
 	$ct_link = "http://$ct_domain/show/$dist.html#$dist-$dist_version";
     };
@@ -401,7 +418,21 @@ print <<EOF;
   .warn           { color:red; font-weight:bold; }
   .sml            { font-size: x-small; }
   .unimpt         { font-size: smaller; }
-
+EOF
+if ($reports && USE_JQUERY_TABLESORTER) {
+    print <<EOF;
+  table.tablesorter thead tr .header {
+    background-image: url(jquery.tablesorter.blue/bg.gif);
+    background-repeat: no-repeat;
+    background-position: center right;
+    cursor: pointer;
+    padding-right: 20px;
+  }
+  table.tablesorter thead tr .headerSortUp { background-image: url(jquery.tablesorter.blue/asc.gif); }
+  table.tablesorter thead tr .headerSortDown { background-image: url(jquery.tablesorter.blue/desc.gif); }
+EOF
+}
+print <<EOF;
   --></style>
   <script type="text/javascript">
   <!-- Hide script
@@ -425,6 +456,59 @@ print <<EOF;
   // End script hiding -->
   </script>
   <script type="text/javascript" src="matrix_cpantesters.js"></script>
+EOF
+if ($reports && USE_JQUERY_TABLESORTER) {
+    print <<'EOF';
+  <script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+  <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+  <script type="text/javascript">
+  <!-- Hide script
+  $.tablesorter.addParser({ 
+    id: 'versions', 
+    is: function(s) { 
+      // return false so this parser is not auto detected 
+      return false; 
+    }, 
+    format: function(s) {
+      var verArr = s.split(".");
+      var makeInt = function(v) {
+        var madeInt = parseInt(v);
+        if (!isFinite(madeInt)) { madeInt = 0 }
+        return madeInt;
+      };
+      var ret = makeInt(verArr[0]) + makeInt(verArr[1])/1000 + makeInt(verArr[2])/1000000;
+      return ret;
+    }, 
+    type: 'numeric' 
+  }); 
+  $(document).ready(function() {
+    var sl = [];
+    if (window.location.hash && window.location.hash.match(/sl=(\d+),(\d+)/)) {
+      sl = [[RegExp.$1,RegExp.$2]];
+    }
+    $("#reports").tablesorter({
+      sortList: sl,
+      headers: {
+        2: {
+          sorter:'versions'
+        },
+        4: {
+          sorter:'versions'
+        }
+      }
+    });
+    $("#reports").bind("sortEnd",function() {
+      var sl = this.config.sortList;
+      if (sl != null && sl.length) {
+        window.location.hash = "sl=" + sl[0][0] + "," + sl[0][1];
+      }
+    });
+  });
+  // End script hiding -->
+  </script>
+EOF
+}
+print <<EOF;
  </head>
 EOF
 print qq{<body onload="} .
@@ -488,6 +572,12 @@ EOF
 
     if ($table) {
 	$table->print;
+    }
+
+    if (USE_JQUERY_TABLESORTER) {
+	print <<EOF;
+<noscript><div style="margin-top:5px; font-size:smaller;">Column sorting is only possible with Javascript enabled!</div></noscript>
+EOF
     }
 
     dist_links();
