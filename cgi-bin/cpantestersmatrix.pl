@@ -1604,9 +1604,16 @@ sub amend_result {
     $result->{action} = $result->{state}  if !defined $result->{action};
     # Another one: 'archname' is now 'platform'
     $result->{archname} = $result->{platform} if !exists $result->{archname};
-## This is not needed:
-#    # canonify perl version: strip leading "v"
-#    $result->{perl} =~ s{^v}{} if exists $result->{perl};
+
+    ## Happens after 2011-10 (again?)
+    ## canonify perl version: strip leading "v"
+    #$result->{perl} =~ s{^v}{} if exists $result->{perl};
+
+    # Happens after 2013-XX
+    # normalize osnames (everything should be lowercase now)
+    if ($result->{osname}) {
+	$result->{osname} = lc $result->{osname};
+    }
 
     # Some normalizations
     $result->{fulldate} =~ s{^(....)(..)(..)(..)(..)$}{$1-$2-$3 $4:$5} if exists $result->{fulldate};
