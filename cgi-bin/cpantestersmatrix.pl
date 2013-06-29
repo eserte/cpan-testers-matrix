@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.00';
+$VERSION = '2.01';
 
 use vars qw($UA);
 
@@ -1531,7 +1531,7 @@ sub dist_links {
 <div style="float:left; margin-left:3em;">
 <h2>Other links</h2>
 <ul>
-<li><a href="http://cpandeps.cantrell.org.uk/?module=$faked_module">CPAN Dependencies</a>
+<li><a href="http://deps.cpantesters.org/?module=$faked_module">CPAN Dependencies</a>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
 <li><a href="https://metacpan.org/release/$dist">metacpan.org</a>
@@ -1886,7 +1886,7 @@ Contributions by: Florian Ragwitz and Sebastien Aperghis-Tramoni
 
 =head1 SEE ALSO
 
-L<http://cpandeps.cantrell.org.uk/>,
+L<http://deps.cpantesters.org/>,
 L<http://www.cpantesters.org/>
 
 =cut
