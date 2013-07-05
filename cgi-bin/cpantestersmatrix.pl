@@ -543,7 +543,7 @@ print <<EOF;
 
   <form>
    <div>
-    CPAN User ID <span class="unimpt">(e.g. GAAS, TIMB, JHI)</span>: <input name="author" /> <input type="submit" />
+    CPAN User ID <span class="unimpt">(e.g. TIMB, JHI, ANDK)</span>: <input name="author" /> <input type="submit" />
    </div>
   </form>
 EOF
