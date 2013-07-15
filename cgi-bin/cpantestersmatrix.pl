@@ -64,7 +64,7 @@ sub obfuscate_from ($);
 sub _normalize_version ($);
 sub downtime_teaser ();
 
-my $cache_days = 1/4;
+my $cache_days = 1/8;
 my $ua_timeout = 10;
 
 my $current_stable_perl = "5.16.0"; # this is actually 5.16.x
