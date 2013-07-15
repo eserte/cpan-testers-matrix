@@ -62,6 +62,7 @@ sub trim ($);
 sub get_config ($);
 sub obfuscate_from ($);
 sub _normalize_version ($);
+sub downtime_teaser ();
 
 my $cache_days = 1/4;
 my $ua_timeout = 10;
@@ -418,6 +419,8 @@ print <<EOF;
   .warn           { color:red; font-weight:bold; }
   .sml            { font-size: x-small; }
   .unimpt         { font-size: smaller; }
+
+  div.downtime_teaser { float:right; font-size:x-small; background-color:#fffff0; color:#000000; border: 1px solid black; -moz-border-radius:10px; border-radius:10px; padding:10px; }
 EOF
 if ($reports && USE_JQUERY_TABLESORTER) {
     print <<EOF;
@@ -455,7 +458,7 @@ EOF
 print <<EOF;
   // End script hiding -->
   </script>
-  <script type="text/javascript" src="matrix_cpantesters.js"></script>
+  <script type="text/javascript" src="matrix_cpantesters.js?v=20130715"></script>
 EOF
 if ($reports && USE_JQUERY_TABLESORTER) {
     print <<'EOF';
@@ -511,8 +514,10 @@ EOF
 print <<EOF;
  </head>
 EOF
+my $downtime_teaser = downtime_teaser;
 print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
+    ($downtime_teaser ? qq{rewrite_server_datetime(); } : '') .
     qq{init_cachedate();">\n};
 print <<EOF;
   <h1>$title@{[ $is_beta ? beta_html : "" ]}$dist_title <span class="unimpt">$latest_distribution_string</span></h1>
@@ -525,6 +530,9 @@ if ($error) {
   An error was encountered:<br/>$html_error<br/>
 </div>
 EOF
+}
+if ($downtime_teaser) {
+    print $downtime_teaser;
 }
 
 print <<EOF;
@@ -1790,6 +1798,26 @@ sub cache_retrieve ($) {
     } else {
 	die "Unknown serializer '$serializer'";
     }
+}
+
+sub downtime_teaser () {
+    my @downtimes = (
+		     [1374012000, 1374033600], # 2013-07-17T06:00:00 CEST - 2013-07-17T00:00:00 CEST
+		     [1374098400, 1374120000], # 2013-07-18T06:00:00 CEST - 2013-07-18T00:00:00 CEST
+		     [1374616800, 1374638400], # 2013-07-24T06:00:00 CEST - 2013-07-24T00:00:00 CEST
+		    );
+    my @active_downtimes = grep { $_->[1] >= time } @downtimes;
+    return if !@active_downtimes;
+
+    my $html = '<div class="downtime_teaser">';
+    $html .= '&#x26a0; There will be shorter downtimes of matrix.cpantesters.org in the following period' . (@active_downtimes > 1 ? 's' : '') . ":\n<ul>\n";
+    for my $active_downtime (@active_downtimes) {
+	my($from_epoch, $to_epoch) = @$active_downtime;
+	my($from_iso, $to_iso) = map { strftime "%FT%T %Z", localtime $_ } $from_epoch, $to_epoch;
+	$html .= qq{<li>from <span data-time="$from_epoch">$from_iso</span> until <span data-time="$to_epoch">$to_iso</span>}
+    }
+    $html .= "</ul></div>\n";
+    $html;
 }
 
 {
