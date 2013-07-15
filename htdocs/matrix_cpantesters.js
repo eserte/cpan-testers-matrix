@@ -130,3 +130,12 @@ function update_cachedate() {
 	window.setTimeout("update_cachedate()",next_update*1000);
     }
 }
+
+function rewrite_server_datetime() {
+    var elems = document.querySelectorAll("*[data-time]");
+    for (var i = 0; i < elems.length; i++) {
+	var elem = elems[i];
+	var d = new Date(elem.getAttribute("data-time")*1000);
+	elem.innerHTML = d.toLocaleString();
+    }
+}
