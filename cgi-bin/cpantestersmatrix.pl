@@ -136,6 +136,7 @@ my $table;
 my $tables;
 my $cachefile;
 my $reports_header;
+my $report_stats;
 
 my %stylesheets = (
     hicontrast => {
@@ -367,6 +368,10 @@ if ($reports) {
 	} else {
 	    set_newest_dist_version($data);
 	    $r = build_success_table($data, $dist, $dist_version);
+	    $report_stats = join("<br>\n",
+				 ($r->{first_report_date} ? "First report: $r->{first_report_date}" : ()),
+				 (%{ $r->{total_actions} } ? (map { qq{<span class="action_$_">&nbsp;</span> $_: $r->{total_actions}->{$_}} } keys %{ $r->{total_actions} }) : ()),
+				);
 	}
 	$table = $r->{table};
 	$ct_link = $r->{ct_link};
@@ -688,6 +693,10 @@ EOF
 
     if ($table) {
 	show_legend();
+    }
+
+    if ($report_stats) {
+	show_stats($report_stats);
     }
 
 } elsif ($edit_prefs) {
@@ -1112,6 +1121,8 @@ sub build_success_table ($$$) {
     my %perl_patches;
     my %osname;
     my %action;
+    my %total_actions;
+    my $first_report_date;
 
     for my $r (@$data) {
 	if ($r->{version} ne $dist_version) {
@@ -1121,10 +1132,21 @@ sub build_success_table ($$$) {
 	my($perl, $patch) = get_perl_and_patch($r);
 	$perl{$perl}++;
 	$perl_patches{$perl}->{$patch}++ if $patch;
-	$osname{$r->{osname}}++;
+	my $osname = $r->{osname};
+	$osname{$osname}++;
 
-	$action{$perl}->{$r->{osname}}->{$r->{action}}++;
-	$action{$perl}->{$r->{osname}}->{__TOTAL__}++;
+	my $action = $r->{action};
+	$action{$perl}->{$osname}->{$action}++;
+	$action{$perl}->{$osname}->{__TOTAL__}++;
+
+	my $date = $r->{fulldate};
+	if (defined $date &&
+	    (!defined $first_report_date || $first_report_date gt $date)
+	   ) {
+	    $first_report_date = $date;
+	}
+
+	$total_actions{$action}++;
     }
 
     # Here trap errors in source yaml/json (perl version=0, osname="")
@@ -1214,6 +1236,8 @@ sub build_success_table ($$$) {
     return { table => $table,
 	     title => "$dist $dist_version",
 	     ct_link => $ct_link,
+	     first_report_date => $first_report_date,
+	     total_actions => \%total_actions,
 	   };
 }
 
@@ -1240,6 +1264,16 @@ EOF
 	}
 	print <<EOF;
   </table>
+</div>
+EOF
+}
+
+sub show_stats {
+    my($report_stats) = @_;
+    print <<EOF;
+<div style="float:left; margin-left:3em; margin-bottom:5px;">
+  <h2>Stats</h2>
+$report_stats
 </div>
 EOF
 }
