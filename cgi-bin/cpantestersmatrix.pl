@@ -458,7 +458,7 @@ EOF
 print <<EOF;
   // End script hiding -->
   </script>
-  <script type="text/javascript" src="matrix_cpantesters.js?v=20130715"></script>
+  <script type="text/javascript" src="matrix_cpantesters.js?v=20130831"></script>
 EOF
 if ($reports && USE_JQUERY_TABLESORTER) {
     print <<'EOF';
@@ -536,7 +536,7 @@ if ($downtime_teaser) {
 }
 
 print <<EOF;
-  <form>
+  <form onsubmit="reset_location_hash()">
    <div>
     Distribution <span class="unimpt">(e.g. DBI, CPAN-Reporter, YAML-Syck)</span>: <input name="dist" /> <input type="submit" />
 EOF
@@ -549,7 +549,7 @@ print <<EOF;
    </div>
   </form>
 
-  <form>
+  <form onsubmit="reset_location_hash()">
    <div>
     CPAN User ID <span class="unimpt">(e.g. TIMB, JHI, ANDK)</span>: <input name="author" /> <input type="submit" />
    </div>

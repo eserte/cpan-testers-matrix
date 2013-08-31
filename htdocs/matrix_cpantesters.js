@@ -139,3 +139,11 @@ function rewrite_server_datetime() {
 	elem.innerHTML = d.toLocaleString();
     }
 }
+
+//////////////////////////////////////////////////////////////////////
+
+function reset_location_hash() {
+    if (location.hash != "" && location.hash != "#") {
+	location.replace("#");
+    }
+}
