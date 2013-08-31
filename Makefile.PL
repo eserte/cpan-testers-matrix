@@ -74,8 +74,28 @@ EOF
 		 ['pps', 'pps-matrix'],
 		) {
 	my($type, $host) = @$def;
-	$postamble .= <<EOF;
+	if ($type eq 'pps') {
+	    $postamble .= <<EOF;
+update-$type-from-home: rsync-$type-cpantestersmatrix
+	ssh -A $host 'cd /root/work/cpan-testers-matrix.beta && git fetch cvrsnica && git checkout cvrsnica/master'
+	ssh -A $host 'cd /root/work/cpan-testers-matrix && git fetch cvrsnica && git checkout cvrsnica/master'
 
+update-$type: rsync-$type-cpantestersmatrix
+	ssh -A $host 'cd /root/work/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
+	ssh -A $host 'cd /root/work/cpan-testers-matrix && git checkout master && git pull --ff-only'
+
+EOF
+	} else {
+	    $postamble .= <<EOF;
+update-$type-beta: rsync-$type-cpantestersmatrix-beta
+	ssh -A $host 'cd /root/work/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
+
+update-$type-stable: rsync-$type-cpantestersmatrix
+	ssh -A $host 'cd /root/work/cpan-testers-matrix && git checkout master && git pull --ff-only'
+
+EOF
+	}
+	$postamble .= <<EOF;
 rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-beta rsync-$type-cpantestersmatrix-stable
 
 rsync-$type-cpantestersmatrix-beta:
