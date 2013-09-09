@@ -369,7 +369,7 @@ if ($reports) {
 	    set_newest_dist_version($data);
 	    $r = build_success_table($data, $dist, $dist_version);
 	    $report_stats = join("<br>\n",
-				 ($r->{first_report_date} ? "First report: $r->{first_report_date}" : ()),
+				 ($r->{first_report_date} ? "First report: $r->{first_report_date} UTC" : ()),
 				 (%{ $r->{total_actions} } ? (map { qq{<span class="action_$_">&nbsp;</span> $_: $r->{total_actions}->{$_}} } keys %{ $r->{total_actions} }) : ()),
 				);
 	}
