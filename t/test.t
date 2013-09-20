@@ -83,7 +83,7 @@ sub test_cpantestersmatrix_other_links {
     my($what, @cgi_args) = @_;
     my $content = _fetch_cpantestersmatrix(@cgi_args);
     if ($what eq 'bugtracker') {
-	like $content, qr{<a href="http://[^"]+">Bugtracker}, "Found bugtracker for @cgi_args";
+	like $content, qr{<a href="https?://[^"]+">Bugtracker}, "Found bugtracker for @cgi_args";
     } else {
 	die "Unhandled <$what>";
     }
