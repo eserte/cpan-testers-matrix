@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.02';
+$VERSION = '2.03';
 
 use vars qw($UA);
 
@@ -370,6 +370,7 @@ if ($reports) {
 	    $r = build_success_table($data, $dist, $dist_version);
 	    $report_stats = join("<br>\n",
 				 ($r->{first_report_date} ? "First report: $r->{first_report_date} UTC" : ()),
+				 ($r->{last_report_date} ? "Last report: $r->{last_report_date} UTC" : ()),
 				 (%{ $r->{total_actions} } ? (map { qq{<span class="action_$_">&nbsp;</span> $_: $r->{total_actions}->{$_}} } keys %{ $r->{total_actions} }) : ()),
 				);
 	}
@@ -1123,6 +1124,7 @@ sub build_success_table ($$$) {
     my %action;
     my %total_actions;
     my $first_report_date;
+    my $last_report_date;
 
     for my $r (@$data) {
 	if ($r->{version} ne $dist_version) {
@@ -1140,10 +1142,13 @@ sub build_success_table ($$$) {
 	$action{$perl}->{$osname}->{__TOTAL__}++;
 
 	my $date = $r->{fulldate};
-	if (defined $date &&
-	    (!defined $first_report_date || $first_report_date gt $date)
-	   ) {
-	    $first_report_date = $date;
+	if (defined $date) {
+	    if (!defined $first_report_date || $first_report_date gt $date) {
+		$first_report_date = $date;
+	    }
+	    if (!defined $last_report_date || $last_report_date lt $date) {
+		$last_report_date = $date;
+	    }
 	}
 
 	$total_actions{$action}++;
@@ -1237,6 +1242,7 @@ sub build_success_table ($$$) {
 	     title => "$dist $dist_version",
 	     ct_link => $ct_link,
 	     first_report_date => $first_report_date,
+	     last_report_date => $last_report_date,
 	     total_actions => \%total_actions,
 	   };
 }
