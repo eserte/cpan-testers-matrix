@@ -9,7 +9,7 @@ use strict;
 use FindBin;
 use Test::More;
 
-if ((getpwuid($<))[0] ne 'eserte' && !$ENV{PERL_AUTHOR_TEST}) {
+if ((getpwuid($<))[0] ne 'eserte' && !$ENV{PERL_AUTHOR_TEST} && ($ENV{TRAVIS}||"") ne 'true') {
     plan skip_all => 'Author tests only --- set PERL_AUTHOR_TEST to run';
     exit 0;
 }
