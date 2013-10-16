@@ -1590,8 +1590,16 @@ EOF
 <li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> @{[ beta_html ]}
 EOF
     }
-    print <<EOF;
+    if (get_config('static_dist_dir')) { # we're on the log.txt view, show link back
+	print <<EOF;
+<li><a class="sml" href="http://matrix.cpantesters.org/?dist=$dist">Regular matrix</a> <span class="sml"></span>
+EOF
+    } else {
+	print <<EOF;
 <li><a class="sml" href="http://217.199.168.174/cgi-bin/cpantestersmatrix.pl?dist=$dist">Matrix via log.txt</a> <span class="sml">(temporary!)</span>
+EOF
+    }
+    print <<EOF;
 </ul>
 </div>
 EOF
