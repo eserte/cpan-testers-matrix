@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.03';
+$VERSION = '2.04';
 
 use vars qw($UA);
 
@@ -1015,6 +1015,9 @@ sub fetch_author_data ($) {
     my($author) = @_;
     $author = uc $author;
     ($author) = $author =~ m{([A-Z-]+)};
+    if (!length $author) {
+	die "Invalid CPAN user id.\n";
+    }
 
     my $author_dist = {};
 
