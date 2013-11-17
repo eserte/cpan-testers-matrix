@@ -470,3 +470,51 @@ amendments:
       - 30935113
       - 30934918
 # ... and more fail reports by ANDK ...
+# Tk 804.031_500 failures
+  - comment: "UNRESOLVED: entry.t callbacks, listbox.t scrollinfo (strawberry)"
+    id:
+      - 36496704
+  - comment: "UNRESOLVED: X server crash (solaris)"
+    id:
+      - 36495660
+      - 36507053
+  - comment: "Bad Test.pm? (andk) -> yes, confirmed"
+    action: INVALID
+    id:
+      - 36490971
+      - 36490832
+      - 36490823
+      - 36490455
+      - 36490449
+      - 36490433
+      - 36490268
+      - 36490267
+      - 36490266
+      - 36490264
+      - 36490256
+  - comment: "UNRESOLVED: entry.t callbacks (linux)"
+    id:
+      - 36490967
+      - 36490837
+      - 36490665
+      - 36490661
+      - 36490446
+      - 36490263
+  - comment: "UNRESOLVED: listbox.t scrollinfo (linux)"
+    id:
+      - 36490962
+      - 36490835
+      - 36490652
+  - comment: "UNRESOLVED: no makefile found? (cygwin)"
+    id:
+      - 36497685
+  - comment: "RESOLVED: no make target? (MSWin32) -> inactivity_timeout too low"
+    action: INVALID
+    id:
+      - 36494312
+  - comment: "UNRESOLVED: clang compilation error"
+    id:
+      - 36507633
+      - 36518684
+      - 36523216
+      - 36526478
