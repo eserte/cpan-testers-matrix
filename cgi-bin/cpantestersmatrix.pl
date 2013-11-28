@@ -1378,6 +1378,8 @@ sub set_dist_and_version ($) {
 	($dist, $dist_version) = ($1, $2);
     } elsif ($_dist =~ m{^Acme-(?:24|6502)$}) { # XXX heuristics to get Acme-6502 right, need a better solution!
 	# keep existing global $dist
+    } elsif ($_dist =~ m{^POSIX-1003$}) { # another heuristic
+	# keep existing global $dist
     } elsif ($_dist =~ m{^(.*)[- ](v?[\d\._]+)$}) {
 	($dist, $dist_version) = ($1, $2);
     }
