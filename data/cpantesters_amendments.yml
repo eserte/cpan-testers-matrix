@@ -470,7 +470,7 @@ amendments:
       - 30935113
       - 30934918
 # ... and more fail reports by ANDK ...
-# Tk 804.031_500 failures
+# Tk 804.031_500 and _501 failures
   - comment: "UNRESOLVED: entry.t callbacks, listbox.t scrollinfo (strawberry)"
     id:
       - 36496704
@@ -508,6 +508,7 @@ amendments:
   - comment: "UNRESOLVED: no makefile found? (cygwin)"
     id:
       - 36497685
+      - 36545473
   - comment: "RESOLVED: no make target? (MSWin32) -> inactivity_timeout too low"
     action: INVALID
     id:
