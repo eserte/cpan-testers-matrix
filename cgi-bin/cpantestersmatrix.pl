@@ -753,7 +753,7 @@ EOF
 my $sponsor_blurb = "";
 use Sys::Hostname ();
 if (Sys::Hostname::hostname eq "ds8143") {
-    $sponsor_blurb = q{  <div><i>This site is gratefully hosted on a <a href="http://www.webfusion.co.uk/dedicated-servers/">Dedicated Server</a>, sponsored by <a href="http://www.webfusion"><img src="http://www.webfusion.co.uk/library/images/logo.png"/>Webfusion</a>.</i></div>
+    $sponsor_blurb = q{  <div style="background-color: #ccc;"><i>This site is gratefully hosted on a <a href="http://www.webfusion.co.uk/dedicated-servers/">Dedicated Server</a>, sponsored by <a href="http://www.webfusion"><img src="http://www.webfusion.co.uk/library/images/logo.png"/>Webfusion</a>.</i></div>
 };
 }
 
