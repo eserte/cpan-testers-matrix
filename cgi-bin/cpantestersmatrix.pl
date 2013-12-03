@@ -750,6 +750,13 @@ if ($cachefile) {
 EOF
 }
 
+my $sponsor_blurb = "";
+use Sys::Hostname ();
+if (Sys::Hostname::hostname eq "ds8143") {
+    $sponsor_blurb = q{  <div style="background-color: #ccc;"><i>This site is gratefully hosted on a <a href="http://www.webfusion.co.uk/dedicated-servers/">Dedicated Server</a>, sponsored by <a href="http://www.webfusion"><img src="http://www.webfusion.co.uk/library/images/logo.png"/>Webfusion</a>.</i></div>
+};
+}
+
 print <<EOF;
   <div>
    <span class="sml"><a href="?prefs=1">Change Preferences</a></span>
@@ -757,7 +764,7 @@ print <<EOF;
   <div>
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
    by <a href="http://search.cpan.org/~srezic/">Slaven Rezi&#x0107;</a>
-  </div>
+  </div>$sponsor_blurb
 @{[ defined &Botchecker::zdjela_meda ? Botchecker::zdjela_meda() : '' ]}
  </body>
 </html>

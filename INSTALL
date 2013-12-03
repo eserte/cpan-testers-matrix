@@ -92,6 +92,18 @@ like the following:
 
 15 0,6,12,18 * * * root perl -MCPAN -e 'CPAN::Index->reload'
 
+QUICK STEPS TO GET make test RUNNING
+------------------------------------
+
+Shell commands to enable the run of 'make test' without configuring
+for a full featured server:
+
+ t=`mktemp -d`
+ mkdir -p $t/sources/modules
+ lwp-download http://www.cpan.org/modules/02packages.details.txt.gz $t/sources/modules/02packages.details.txt.gz
+ echo "cpan_home: $t" > cgi-bin/cpantestersmatrix.yml
+ echo "plain_packages_file: $t/plain_packages_file" >> cgi-bin/cpantestersmatrix.yml
+ PERL_AUTHOR_TEST=1 make test
 
 PROBLEMS
 --------
