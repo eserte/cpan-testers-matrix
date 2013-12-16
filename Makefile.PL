@@ -114,12 +114,31 @@ fix-$type-cpantestersmatrix-permissions:
 EOF
     }
 
-    $postamble .= <<EOF;
-after-deployment-set-tags:
-	git tag -f deployment/bbbikede/current
-	git tag -a -m "automatic deployment" deployment/bbbikede/`date +%Y%m%d` || echo "If setting this tag fails, then try using a suffix e.g. _2"
+    if (defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i) {
+	$postamble .= <<'EOF';
+GIT_TAG_DATE!=	date +%Y%m%d
+GIT_TAG=	deployment/bbbikede/${GIT_TAG_DATE}
+
+git-post-tasks:
+	git diff-index --quiet --cached HEAD
+	git diff-files --quiet || (\
+	    echo "There are uncommitted changes"; \
+	    git diff-files; \
+	    false; \
+	)
+	test -z "$$(git ls-files --exclude-standard --others)" || (\
+	    echo "There are untracked files"; \
+	    git ls-files --exclude-standard --others; \
+	    false; \
+	)
+	$(NOECHO) echo -n "This will tag version $(GIT_TAG) and push the default branch and the current tag. OK? "
+	$(NOECHO) read yn
+	git tag -a -m "* $(GIT_TAG)" $(GIT_TAG) || (echo "If setting this tag fails, then try using a suffix e.g. _2"; false)
+	git push
+	git push origin $(GIT_TAG)
 
 EOF
+    }
 
     $postamble;
 }
