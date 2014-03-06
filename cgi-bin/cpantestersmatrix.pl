@@ -1387,6 +1387,8 @@ sub set_dist_and_version ($) {
 	# keep existing global $dist
     } elsif ($_dist =~ m{^POSIX-1003$}) { # another heuristic
 	# keep existing global $dist
+    } elsif ($_dist =~ m{^POSIX-2008$}) { # another heuristic
+	# keep existing global $dist
     } elsif ($_dist =~ m{^(.*)[- ](v?[\d\._]+)$}) {
 	($dist, $dist_version) = ($1, $2);
     }
