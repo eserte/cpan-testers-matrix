@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.04';
+$VERSION = '2.05';
 
 use vars qw($UA);
 
@@ -657,13 +657,13 @@ EOF
 EOF
 	my $html = "<ul>";
 	my $latest_normalized_version = _normalize_version $latest_version;
-	my $seen_latest_version = defined $latest_normalized_version && $latest_normalized_version eq $dist_version;
+	my $seen_latest_version = defined $latest_normalized_version && $latest_normalized_version eq _normalize_version($dist_version);
 	my $possibly_outdated_meta;
 	for my $version (sort { cmp_version($b, $a) } keys %other_dist_versions) {
 	    my $qq = CGI->new($q);
 	    $qq->param(dist => "$dist $version");
 	    $html .= qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>};
-	    if (defined $latest_normalized_version && $latest_normalized_version eq $version) {
+	    if (defined $latest_normalized_version && $latest_normalized_version eq _normalize_version($version)) {
 		$html .= qq{ <span class="sml"> (latest distribution};
 		if ($meta_fetched_from) {
 		    $html .= qq{ according to <a href="$meta_fetched_from">latest META file</a>};
