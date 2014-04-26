@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.07';
+$VERSION = '2.08';
 
 use vars qw($UA);
 
@@ -225,8 +225,8 @@ if ($reports) {
 
     eval {
 	my $r = fetch_data($dist);
-	apply_data_from_meta($dist);
 	set_newest_dist_version($r->{data});
+	apply_data_from_meta($dist);
 	my @reports;
 	for my $rec (@{ $r->{data} }) {
 	    next if defined $dist_version && $rec->{version} ne $dist_version;
@@ -358,7 +358,6 @@ if ($reports) {
 } elsif ($dist) {
     eval {
 	my $r = fetch_data($dist);
-	apply_data_from_meta($dist);
 	my $data;
 	($dist, $data, $cachefile, $error) = @{$r}{qw(dist data cachefile error)};
 
@@ -366,6 +365,7 @@ if ($reports) {
 	    $r = build_maxver_table($data, $dist);
 	} else {
 	    set_newest_dist_version($data);
+	    apply_data_from_meta($dist);
 	    $r = build_success_table($data, $dist, $dist_version);
 	    $report_stats = join("<br>\n",
 				 ($r->{first_report_date} ? "First report: $r->{first_report_date} UTC" : ()),
@@ -1741,7 +1741,7 @@ sub apply_data_from_meta {
 	my $r = fetch_meta($dist);
 	my $meta = $r->{meta};
 	$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
-	$is_latest_version = defined $latest_version && defined $dist_version && $latest_version eq $dist_version;
+	$is_latest_version = defined $latest_version && defined $dist_version && cmp_version($latest_version, $dist_version) == 0;
 	if ($meta) {
 	    if ($meta->{resources} && $meta->{resources}->{bugtracker}) {
 		if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
