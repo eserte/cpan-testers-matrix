@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.06';
+$VERSION = '2.07';
 
 use vars qw($UA);
 
@@ -61,7 +61,6 @@ sub beta_html ();
 sub trim ($);
 sub get_config ($);
 sub obfuscate_from ($);
-sub _normalize_version ($);
 sub downtime_teaser ();
 
 my $cache_days = 1/8;
@@ -656,14 +655,13 @@ EOF
 <h2>Other versions</h2>
 EOF
 	my $html = "<ul>";
-	my $latest_normalized_version = _normalize_version $latest_version;
-	my $seen_latest_version = defined $latest_normalized_version && $latest_normalized_version eq _normalize_version($dist_version);
+	my $seen_latest_version = defined $latest_version && cmp_version($latest_version, $dist_version) == 0;
 	my $possibly_outdated_meta;
 	for my $version (sort { cmp_version($b, $a) } keys %other_dist_versions) {
 	    my $qq = CGI->new($q);
 	    $qq->param(dist => "$dist $version");
 	    $html .= qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>};
-	    if (defined $latest_normalized_version && $latest_normalized_version eq _normalize_version($version)) {
+	    if (defined $latest_version && cmp_version($latest_version, $version) == 0) {
 		$html .= qq{ <span class="sml"> (latest distribution};
 		if ($meta_fetched_from) {
 		    $html .= qq{ according to <a href="$meta_fetched_from">latest META file</a>};
@@ -671,7 +669,7 @@ EOF
 		$html .= qq{)</span>};
 		$seen_latest_version++;
 	    }
-	    if (defined $latest_normalized_version && cmp_version($version, $latest_normalized_version) > 0) {
+	    if (defined $latest_version && cmp_version($version, $latest_version) > 0) {
 		$possibly_outdated_meta++;
 	    }
 	    $html .= "\n";
@@ -680,8 +678,8 @@ EOF
 # 	if ($possibly_outdated_meta) {
 # 	    print qq{<div class="warn">NOTE: the latest <a href="} . meta_url($dist) .qq{">META.yml</a>};
 # 	}
-	if ($latest_normalized_version && !$seen_latest_version) {
-	    print qq{<div class="warn">NOTE: no report for latest version $latest_normalized_version</div>};
+	if (defined $latest_version && !$seen_latest_version) {
+	    print qq{<div class="warn">NOTE: no report for latest version $latest_version</div>};
 	}
 	$html .= "</ul>\n";
 	print $html;
@@ -1974,15 +1972,6 @@ sub trim ($) {
 #     }
 #     $cmp;
 # }
-
-# currently removed leading "v"
-sub _normalize_version ($) {
-    my $v = shift;
-    if (defined $v) {
-	$v =~ s{^v}{};
-    }
-    $v;
-}
 
 __END__
 
