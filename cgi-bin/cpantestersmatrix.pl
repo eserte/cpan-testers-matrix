@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.05';
+$VERSION = '2.06';
 
 use vars qw($UA);
 
@@ -1502,7 +1502,38 @@ BEGIN {
 	};
     } else {
 	*cmp_version = sub {
-	    CPAN::Version->vcmp($_[0], $_[1]);
+	    my($left,$right) = @_;
+	    if ($left =~ m{-TRIAL} || $right =~ m{-TRIAL}) {
+		($left,my($left_trial)) = $left =~ m{^(.*?)(-TRIAL\d*)?$};
+		($right,my($right_trial)) = $right =~ m{^(.*?)(-TRIAL\d*)?$};
+		my $cmp = CPAN::Version->vcmp($left, $right);
+		return $cmp if $cmp != 0;
+		if (defined $left_trial) {
+		    if (defined $right_trial) {
+			if ($left_trial eq $right_trial) {
+			    return 0;
+			}
+			my($left_trial_number, $right_trial_number);
+			for my $def (
+				     [$left_trial,  \$left_trial_number],
+				     [$right_trial, \$right_trial_number],
+				    ) {
+			    my($trial, $number_ref) = @$def;
+			    $$number_ref = $trial =~ m{(\d+)$};
+			    $$number_ref = 1 if !defined $$number_ref;
+			}
+			return $left_trial_number <=> $right_trial_number;
+		    } else {
+			return -1;
+		    }
+		} elsif (defined $right_trial) {
+		    return +1;
+		} else {
+		    return 0;
+		}
+	    } else {
+		CPAN::Version->vcmp($left, $right);
+	    }
 	};
     }
 }

@@ -17,12 +17,13 @@ if ((getpwuid($<))[0] ne 'eserte' && !$ENV{PERL_AUTHOR_TEST} && ($ENV{TRAVIS}||"
 my @matrix_tests =
     (
      ['dist=Tk'],
-     ['dist=Tk 804.027'],
+     ['dist=Tk+804.027'],
      ['dist=JSON', 'maxver=1'],
      ['dist=Clarion'],
+     ['dist=CPAN+2.00'],
      ['author=srezic'],
      ['dist=Kwalify', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
-     ['dist=Kwalify 1.16', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
+     ['dist=Kwalify+1.16', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
      ['author=zoffix', { TODO => "Large author files currently not supported" }],
      ['dist=Schema::Kwalify'], # resolves to distribution
     );
@@ -36,7 +37,12 @@ my @other_links_tests =
      ['bugtracker', 'dist=MooseX-Method-Signatures 0.36'],
     );
 
-plan tests => scalar(@matrix_tests)*5 + scalar(@report_table_tests)*2 + scalar(@other_links_tests)*1;
+plan tests => scalar(@matrix_tests)*5
+            + scalar(@report_table_tests)*2
+            + scalar(@other_links_tests)*1
+            + 1 # special tests (currently only test_cpan_pm_trial_versions)
+            ;
+    
 
 my $cgi = "$FindBin::RealBin/../cgi-bin/cpantestersmatrix.pl";
 
@@ -69,6 +75,11 @@ sub test_cpantestersmatrix {
     like($content, qr{content-type:\s*text/html}i, "Seen http header");
     unlike($content, qr{error}i, "No error seen (@cgi_args)");
     like($content, qr{other links}i, "Some expected content");
+
+    # special tests
+    if ("@cgi_args" eq 'dist=CPAN+2.00') {
+	test_cpan_pm_trial_versions($content);
+    }
 }
 
 # assumes at least one PASS on a freebsd system
@@ -87,6 +98,11 @@ sub test_cpantestersmatrix_other_links {
     } else {
 	die "Unhandled <$what>";
     }
+}
+
+sub test_cpan_pm_trial_versions {
+    my $content = shift;
+    like($content, qr{Other versions.*CPAN 2\.05.*CPAN 2\.05-TRIAL2.*CPAN 2\.05-TRIAL}s, 'TRIAL version numbering');
 }
 
 for my $matrix_test (@matrix_tests) {
