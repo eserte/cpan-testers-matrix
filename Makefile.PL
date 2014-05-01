@@ -19,7 +19,9 @@ WriteMakefile(NAME =>         'CPAN::Testers::Matrix',
 	      ($eumm_recent_enough ?
 	       (META_ADD => { resources => { repository => 'git://github.com/eserte/cpan-testers-matrix.git' },
 			    }) : ()),
-	      PREREQ_PM => { 'CPAN::DistnameInfo'          => 0,
+	      PREREQ_PM => {
+			     'CGI'			   => 0,
+			     'CPAN::DistnameInfo'          => 0,
 			     'CPAN::Version'               => 0,
 			     'Gravatar::URL'               => 0, # optional
 			     'HTML::Table'                 => 0,
