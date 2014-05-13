@@ -104,9 +104,11 @@ EOF
 rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-beta rsync-$type-cpantestersmatrix-stable
 
 rsync-$type-cpantestersmatrix-beta:
+	perl -c \${BOTCHECKER}
 	rsync -av \${BOTCHECKER} $host:/root/work/cpan-testers-matrix.beta/cgi-bin/
 
 rsync-$type-cpantestersmatrix-stable:
+	perl -c \${BOTCHECKER}
 	rsync -av \${BOTCHECKER} $host:/root/work/cpan-testers-matrix/cgi-bin/
 
 fix-$type-cpantestersmatrix-permissions:
