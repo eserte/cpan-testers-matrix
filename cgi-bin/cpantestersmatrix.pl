@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.08';
+$VERSION = '2.09';
 
 use vars qw($UA);
 
@@ -781,8 +781,7 @@ sub fetch_meta ($) {
 
 	my $ua = get_ua;
 
-	{
-	    # First step: try the META.yml
+	my $fetch_meta_yaml_from_sco = sub {
 	    require_yaml;
 	    my $yaml_url = meta_yaml_url($dist);
 	    my $yaml_resp = $ua->get($yaml_url);
@@ -804,10 +803,9 @@ sub fetch_meta ($) {
 	    } else {
 		push @errors, "No success fetching <$yaml_url>: " . $yaml_resp->status_line;
 	    }
-	}
+	};
 
-	if (0 && !$meta) { # XXX NOT ACTIVATED!
-	    # Next step: try the META.json 
+	my $fetch_meta_json_from_sco = sub {
 	    require_json;
 	    my $json_url = meta_json_url($dist);
 	    my $json_resp = $ua->get($json_url);
@@ -829,10 +827,9 @@ sub fetch_meta ($) {
 	    } else {
 		push @errors, "No success fetching <$json_url>: " . $json_resp->status_line;
 	    }
-	}
+	};
 
-	if (0 && !$meta) { # XXX NOT ACTIVATED!
-	    # Next step: try the MetaCPAN API
+	my $fetch_meta_json_from_metacpan = sub {
 	    require_json;
 	    my $api_url = "http://api.metacpan.org/release/" . $dist;
 	    my $api_resp = $ua->get($api_url);
@@ -854,6 +851,15 @@ sub fetch_meta ($) {
 		}
 	    } else {
 		push @errors, "No success fetching <$api_url>: " . $api_resp->status_line;
+	    }
+	};
+
+	$fetch_meta_json_from_metacpan->();
+	if (!$meta) {
+	    warn "Could not get META from metacpan API, errors so far: " . join("; ", @errors);
+	    $fetch_meta_yaml_from_sco->();
+	    if (0 && !$meta) {
+		$fetch_meta_json_from_sco->();
 	    }
 	}
 
