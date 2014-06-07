@@ -521,3 +521,8 @@ amendments:
       - 36518684
       - 36523216
       - 36526478
+  - commant: "https://github.com/eserte/cpan-testers-matrix/issues/9 (bad perl/os info)"
+    action: REMOVE
+    id:
+      - 41070132
+      - 362441
