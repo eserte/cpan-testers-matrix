@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.10';
+$VERSION = '2.11';
 
 use vars qw($UA);
 
@@ -324,7 +324,7 @@ if ($reports) {
 		    (!defined $dist_version ? $sort_href->("Dist version", "version") : ()),
 		    (!defined $want_perl    ? $sort_href->("Perl version", "perl") : ()),
 		    (!defined $want_os      ? $sort_href->("OS", "osname") : ()),
-		    ( defined $want_perl    ? $sort_href->("Perl patch", "patch") : ()),
+		    ( defined $want_perl    ? $sort_href->("Perl patch/RC", "patch") : ()),
 		    $sort_href->("Tester", "tester"),
 		    $sort_href->("Date", "fulldate"),
 		    $sort_href->("Comment", "action_comment"),
@@ -1406,10 +1406,22 @@ sub set_newest_dist_version {
     }
 }
 
+# Return ($perl, $patch) where
+# - $perl is the perl version like "5.20.0"
+# - $patch is either a patch number or string (for non-released perls
+#   in the p4 era), an RC, or undef if nothing applies
 sub get_perl_and_patch ($) {
     my($r) = @_;
-    my($perl, $patch) = $r->{perl} =~ m{^(\S+)(?:\s+patch(?:level)?\s+(\S+))?};
+    my($perl, $rest) = $r->{perl} =~ m{^(\S+)(.*)};
     die "$r->{perl} couldn't be parsed" if !defined $perl;
+    my $patch;
+    if (defined $rest && length $rest) {
+	if ($rest =~ m{^(?:\s+patch(?:level)?\s+(\S+))$}) {
+	    $patch = $1;
+	} elsif ($rest =~ m{^\s+(RC\d+)$}) {
+	    $patch = $1;
+	}
+    }
     ($perl, $patch);
 }
 
