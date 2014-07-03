@@ -8,7 +8,6 @@ before_script:
  - (cd cgi-bin && ln -s cpantestersmatrix.yml.travis cpantestersmatrix.yml)
 language: perl
 perl:
-  - "5.19"
   - "5.18"
   - "5.14"
   - "5.10"
