@@ -35,3 +35,6 @@ Disallow: /
 
 User-agent: Riddler
 Disallow: /
+
+User-agent: ZeerchBot
+Disallow: /
