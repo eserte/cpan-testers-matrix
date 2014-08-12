@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.11';
+$VERSION = '2.12';
 
 use vars qw($UA);
 
@@ -32,7 +32,7 @@ use CGI::Cookie;
 use CPAN::Version;
 use File::Basename qw(basename);
 use HTML::Table;
-use List::Util qw(reduce);
+use List::Util qw(reduce sum);
 use POSIX qw(strftime);
 use URI::Query 0.08 qw();
 
@@ -371,6 +371,7 @@ if ($reports) {
 				 ($r->{first_report_date} ? "First report: $r->{first_report_date} UTC" : ()),
 				 ($r->{last_report_date} ? "Last report: $r->{last_report_date} UTC" : ()),
 				 (%{ $r->{total_actions} } ? (map { qq{<span class="action_$_">&nbsp;</span> $_: $r->{total_actions}->{$_}} } keys %{ $r->{total_actions} }) : ()),
+				 ($r->{total_configurations} ? "Number of tested configurations: $r->{total_configurations}" : ()),
 				);
 	}
 	$table = $r->{table};
@@ -1258,6 +1259,7 @@ sub build_success_table ($$$) {
 	     first_report_date => $first_report_date,
 	     last_report_date => $last_report_date,
 	     total_actions => \%total_actions,
+	     total_configurations => sum map { scalar values %$_ } values %action,
 	   };
 }
 
