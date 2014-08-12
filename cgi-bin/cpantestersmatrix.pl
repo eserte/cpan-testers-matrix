@@ -464,7 +464,7 @@ EOF
 print <<EOF;
   // End script hiding -->
   </script>
-  <script type="text/javascript" src="matrix_cpantesters.js?v=20130831"></script>
+  <script type="text/javascript" src="matrix_cpantesters.js?v=20140812"></script>
 EOF
 if ($reports && USE_JQUERY_TABLESORTER) {
     print <<'EOF';
@@ -524,7 +524,7 @@ my $downtime_teaser = downtime_teaser;
 print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
     ($downtime_teaser ? qq{rewrite_server_datetime(); } : '') .
-    qq{init_cachedate();">\n};
+    qq{init_cachedate(); if (false) { shift_reload_alternative(); }">\n};
 print <<EOF;
   <h1>$title@{[ $is_beta ? beta_html : "" ]}$dist_title <span class="unimpt">$latest_distribution_string</span></h1>
 EOF
@@ -744,7 +744,7 @@ if ($cachefile) {
     my $datum = strftime("%Y-%m-%d %H:%M:%S UTC", gmtime($cachefile_time));
     print <<EOF;
   <div>
-   <i>$file</i> as of <i id="cachedate">$datum</i> <span class="sml">Use Shift-Reload for forced update</span>
+   <i>$file</i> as of <i id="cachedate">$datum</i> <span class="sml" id="shift_reload">Use Shift-Reload for forced update</span>
   </div>
 EOF
 }

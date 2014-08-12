@@ -147,3 +147,12 @@ function reset_location_hash() {
 	location.replace("#");
     }
 }
+
+//////////////////////////////////////////////////////////////////////
+
+function shift_reload_alternative() {
+    var elem = document.querySelector("#shift_reload");
+    if (elem) {
+       elem.innerHTML = elem.innerHTML + ' or click <a href="javascript:window.location.reload(true)">here</a>';
+    }
+}
