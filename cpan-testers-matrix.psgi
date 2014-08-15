@@ -18,15 +18,15 @@ my $root = $FindBin::RealBin;
 
 my $favicon = Plack::App::File->new(
     file => catfile($root, 'images', 'cpantesters_favicon.ico'),
-);
+)->to_app;
 
 my @mounts;
 for my $htdoc (bsd_glob(catfile($root, 'htdocs', '*'))) {
     my $location = '/' . basename($htdoc);
     if (-d $htdoc) {
-	push @mounts,  [ $location => Plack::App::Directory->new({root => $htdoc}) ];
+	push @mounts,  [ $location => Plack::App::Directory->new({root => $htdoc})->to_app ];
     } elsif (-f $htdoc) {
-	push @mounts, [ $location => Plack::App::File->new(file => $htdoc) ];
+	push @mounts, [ $location => Plack::App::File->new(file => $htdoc)->to_app ];
     } else {
 	warn "Ignoring $htdoc...\n";
     }
