@@ -49,8 +49,9 @@ my %dists;
 my @dists = sort keys %dists;
 
 my $ofh;
-my $o_tmp = "$o.$$";
+my $o_tmp;
 if (defined $o) {
+    $o_tmp = "$o.$$";
     open $ofh, ">", $o_tmp
 	or die "Can't write to $o_tmp: $!";
 } else {
