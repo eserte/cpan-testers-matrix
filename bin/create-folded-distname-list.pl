@@ -39,7 +39,7 @@ my %dists;
 	} else {
 	    my $dist = (split /\s+/)[2];
 	    $dist = CPAN::DistnameInfo->new($dist)->dist;
-	    if (length $dist) {
+	    if (defined $dist && length $dist) {
 		$dists{$dist} = 1;
 	    }
 	}
