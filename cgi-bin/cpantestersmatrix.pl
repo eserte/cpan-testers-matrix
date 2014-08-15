@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.12';
+$VERSION = '2.13';
 
 use vars qw($UA);
 
@@ -390,6 +390,7 @@ print <<EOF;
   <link rel="apple-touch-icon" href="images/cpantesters_icon_57.png" />
   <link rel="apple-touch-icon" sizes="72x72" href="images/cpantesters_icon_72.png" />
   <link rel="apple-touch-icon" sizes="114x114" href="images/cpantesters_icon_114.png" />
+  <link rel="search" href="/opensearch.xml" type="application/opensearchdescription+xml" title="CPAN Testers Matrix">
   <meta name="ROBOTS" content="INDEX, NOFOLLOW" />
   <style type="text/css"><!--
 EOF
