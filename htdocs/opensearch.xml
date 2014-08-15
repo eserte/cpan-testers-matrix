@@ -6,5 +6,6 @@
   <OutputEncoding>us-ascii</OutputEncoding>
   <Image height="16" width="16" type="image/x-icon">cpantesters_favicon.ico</Image>
   <Url type="text/html" template="http://matrix.cpantesters.org/?dist={searchTerms}" />
+  <Url type="application/x-suggestions+json" template="http://matrix.cpantesters.org/cpantestersmatrix_suggest.pl?q={searchTerms}"/>
   <Tags>CPAN Perl</Tags>
 </OpenSearchDescription>
