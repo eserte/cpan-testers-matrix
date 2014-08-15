@@ -21,12 +21,19 @@ $VERSION = '0.01';
 use JSON::XS qw(encode_json);
 use Search::Dict;
 
-my $dist_file = "/var/tmp/cpan_folded_distname_list.txt";
-my $max_results = 9; # my firefox starts to show a scrollbar for 10 and more results
 my $ct = 'text/javascript; charset=us-ascii';
 
+sub new {
+    my $class = shift;
+    bless {
+	   dist_file => "/var/tmp/cpan_folded_distname_list.txt",
+	   max_results => 9, # my firefox starts to show a scrollbar for 10 and more results
+	  }, $class;
+}
+
 sub do_suggest {
-    my $query = shift;
+    my($self, $query) = @_;
+    my($dist_file, $max_results) = @{$self}{qw(dist_file max_results)};
     open my $fh, $dist_file
 	or die "Can't open $dist_file: $!";
     look $fh, $query, 0, 0;
@@ -47,7 +54,7 @@ sub psgi {
 	my $env = shift;
 	my $req = Plack::Request->new($env);
 	my $query = $req->param('q');
-	my $res_content = do_suggest($query);
+	my $res_content = __PACKAGE__->new->do_suggest($query);
 	return [ 200, ['Content-Type' => $ct], [$res_content] ];
     };
 }
@@ -58,6 +65,6 @@ require CGI;
 my $q = CGI->new;
 my $query = $q->param('q');
 print $q->header($ct);
-print do_suggest($query);
+print __PACKAGE__->new->do_suggest($query);
 
 __END__
