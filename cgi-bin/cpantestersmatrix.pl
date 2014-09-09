@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.13';
+$VERSION = '2.14';
 
 use vars qw($UA);
 
@@ -1656,11 +1656,11 @@ EOF
     }
     if (get_config('static_dist_dir')) { # we're on the log.txt view, show link back
 	print <<EOF;
-<li><a class="sml" href="http://matrix.cpantesters.org/?dist=$dist">Regular matrix</a> <span class="sml"></span>
+<li><a class="sml" href="http://matrix.cpantesters.org/?@{[ $q->query_string ]}">Regular matrix</a> <span class="sml"></span>
 EOF
     } else {
 	print <<EOF;
-<li><a class="sml" href="http://217.199.168.174/cgi-bin/cpantestersmatrix.pl?dist=$dist">Matrix via log.txt</a> <span class="sml">(temporary!)</span>
+<li><a class="sml" href="http://217.199.168.174/cgi-bin/cpantestersmatrix.pl?@{[ $q->query_string ]}">Matrix via log.txt</a> <span class="sml">(temporary!)</span>
 EOF
     }
     print <<EOF;
