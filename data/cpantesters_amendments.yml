@@ -521,8 +521,40 @@ amendments:
       - 36518684
       - 36523216
       - 36526478
-  - commant: "https://github.com/eserte/cpan-testers-matrix/issues/9 (bad perl/os info)"
+  - comment: "https://github.com/eserte/cpan-testers-matrix/issues/9 (bad perl/os info)"
     action: REMOVE
     id:
       - 41070132
       - 362441
+# Business-ISBN 2.09
+  - comment: "https://github.com/Test-More/test-more/issues/448 (alpha Test::More version)"
+    id:
+      - 46032443
+      - 46032442
+      - 46032405
+      - 46032314
+      - 45990828
+      - 45984277
+      - 45984276
+      - 45984269
+      - 45984264
+      - 45984263
+      - 45984261
+      - 45984259
+      - 45984257
+      - 45984255
+      - 45984253
+      - 45984251
+      - 45984249
+      - 45984248
+      - 45984246
+      - 45984242
+      - 45984239
+      - 45984238
+      - 45984236
+      - 45984235
+      - 45984233
+      - 45984232
+      - 45984222
+      - 45984220
+      - 45983432
