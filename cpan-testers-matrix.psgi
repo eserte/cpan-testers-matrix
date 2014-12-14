@@ -9,7 +9,6 @@ use Plack::App::Directory;
 use Plack::App::File;
 use Plack::App::WrapCGI;
 
-use Cwd 'cwd';
 use File::Basename 'basename';
 use File::Spec::Functions 'catfile', 'splitpath';
 use File::Glob 'bsd_glob';
