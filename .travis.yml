@@ -3,6 +3,9 @@ before_install:
  - sudo apt-get install -qq wget
  - mkdir -p /tmp/.cpan/sources/modules
  - (cd /tmp/.cpan/sources/modules && wget http://cpan.cpantesters.org/modules/02packages.details.txt.gz)
+# only needed for plack.t
+ - cpanm --quiet --notest Image::Info
+# optional, by default Storable is used
  - cpanm --quiet --notest Sereal::Encoder Sereal::Decoder
 before_script:
  - (cd cgi-bin && ln -s cpantestersmatrix.yml.travis cpantestersmatrix.yml)
