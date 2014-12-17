@@ -9,6 +9,8 @@ before_install:
  - cpanm --quiet --notest Sereal::Encoder Sereal::Decoder
 before_script:
  - (cd cgi-bin && ln -s cpantestersmatrix.yml.travis cpantestersmatrix.yml)
+# fix shebang for plackup operation
+ - (cd cgi-bin && env PERL=$(which perl) perl -pe '$_ = "#!$ENV{PERL} -T\n" if $. == 1' cpantestersmatrix.pl > cpantestersmatrix-travis.pl && chmod 755 cpantestersmatrix-travis.pl)
 language: perl
 perl:
   - "5.20"

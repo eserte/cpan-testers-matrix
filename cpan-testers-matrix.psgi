@@ -42,7 +42,7 @@ builder {
     }
 
     mount '/' => Plack::App::WrapCGI->new(
-        script  => catfile($root, 'cgi-bin', 'cpantestersmatrix.pl'),
+        script  => catfile($root, 'cgi-bin', $ENV{TRAVIS} ? 'cpantestersmatrix-travis.pl' : 'cpantestersmatrix.pl'),
         execute => 1,
     )->to_app;
 };
