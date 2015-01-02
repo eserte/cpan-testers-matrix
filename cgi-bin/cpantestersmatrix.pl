@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.14';
+$VERSION = '2.15';
 
 use vars qw($UA);
 
@@ -225,6 +225,7 @@ if ($reports) {
 
     eval {
 	my $r = fetch_data($dist);
+	$cachefile = $r->{cachefile}; # used in footer
 	set_newest_dist_version($r->{data});
 	apply_data_from_meta($dist);
 	my @reports;
