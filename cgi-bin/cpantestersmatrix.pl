@@ -764,6 +764,8 @@ if (Sys::Hostname::hostname eq "ds8143") {
       border-top: 2px solid #4FAB45;
       margin-top:1ex;
       padding-left:1em;
+      padding-top:1ex;
+      padding-bottom:1ex;
     }
     .webfusion a:link    { text-decoration:none; font-weight:bold; color: #fff; }
     .webfusion a:visited { text-decoration:none; font-weight:bold; color: #fff; }
