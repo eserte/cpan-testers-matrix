@@ -754,8 +754,27 @@ EOF
 my $sponsor_blurb = "";
 use Sys::Hostname ();
 if (Sys::Hostname::hostname eq "ds8143") {
-    $sponsor_blurb = q{  <div style="background-color: #ccc;"><i>This site is gratefully hosted on a <a href="http://www.webfusion.co.uk/dedicated-servers/">Dedicated Server</a>, sponsored by <a href="http://www.webfusion"><img src="http://www.webfusion.co.uk/library/images/logo.png"/>Webfusion</a>.</i></div>
-};
+    $sponsor_blurb = <<'EOF'
+  <style>
+    .webfusion {
+      background-color: #000;
+      color: #fff;
+      background: -moz-linear-gradient(center top , #020802 0%, #282A28 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);
+      border-bottom: 4px solid #4FAB45;
+      border-top: 2px solid #4FAB45;
+      margin-top:1ex;
+      padding-left:1em;
+      padding-top:1ex;
+      padding-bottom:1ex;
+    }
+    .webfusion a:link    { text-decoration:none; font-weight:bold; color: #fff; }
+    .webfusion a:visited { text-decoration:none; font-weight:bold; color: #fff; }
+    .webfusion a:hover   { text-decoration:none; font-weight:bold; color: #fff; }
+    .webfusion a:active  { text-decoration:underline; font-weight:bold; color: #fff; }
+    .webfusion img { vertical-align: middle; }
+  </style>
+  <div class="webfusion"><i>This site is gratefully hosted on a <a href="http://www.webfusion.co.uk/dedicated-servers/">Dedicated Server</a>, sponsored by <a alt="Webfusion" href="http://www.webfusion.co.uk"><img src="http://www.webfusion.co.uk/library/images/logo.png"/></a></i></div>
+EOF
 }
 
 print <<EOF;
