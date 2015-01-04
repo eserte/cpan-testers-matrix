@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2012 Slaven Rezic. All rights reserved.
+# Copyright (C) 2012,2015 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -104,7 +104,7 @@ while(<$fh>) {
 	# - version
 	# - dist
 	my $osname;
-	if ($archname =~ m{\b(linux|openbsd|netbsd|solaris|freebsd|MSWin32|darwin|dragonfly|cygwin|mirbsd|gnukfreebsd)\b}) {
+	if ($archname =~ m{\b(linux|openbsd|netbsd|solaris|freebsd|MSWin32|darwin|dragonfly|cygwin|mirbsd|gnukfreebsd|haiku)\b}) {
 	    $osname = lc $1
 	} else {
 	    warn "Cannot parse OS out of '$archname'\n";
