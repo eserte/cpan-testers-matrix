@@ -22,7 +22,7 @@ my @files = (
 
 for my $f (@files) {
     my @opts;
-    if ($f =~ m{^cgi-bin/cpantestersmatrix2?\.pl$}) {
+    if ($f =~ m{^cgi-bin/cpantestersmatrix(?:|2|-travis)\.pl$}) {
 	push @opts, '-T';
     }
     open my $OLDERR, ">&", \*STDERR or die;
