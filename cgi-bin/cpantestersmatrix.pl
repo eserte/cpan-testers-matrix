@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.15';
+$VERSION = '2.16';
 
 use vars qw($UA);
 
@@ -1506,6 +1506,10 @@ EOF
     } elsif ($resp->code == 404) {
 	$msg = <<EOF;
 Cannot fetch data from $ct_domain (file not found)
+EOF
+    } elsif ($resp->header('Client-Warning') =~ m{Redirect loop detected}) {
+	$msg = <<EOF;
+Cannot fetch data from $ct_domain (redirect loop)
 EOF
     } else {
 	$msg = "";
