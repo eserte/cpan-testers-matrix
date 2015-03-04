@@ -530,9 +530,16 @@ print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
     ($downtime_teaser ? qq{rewrite_server_datetime(); } : '') .
     qq{init_cachedate(); if (false) { shift_reload_alternative(); }">\n};
-print <<EOF;
-  <h1><a href="@{[ dist_version_url($q, $dist, $dist_version) ]}">$title@{[ $is_beta ? beta_html : "" ]}$dist_title <span class="unimpt">$latest_distribution_string</span></a></h1>
-EOF
+{
+    my $h1_innerhtml = $title . ($is_beta ? beta_html : '') . escapeHTML($dist_title);
+    if ($latest_distribution_string ne '') {
+	$h1_innerhtml .= qq{<span class="unimpt">$latest_distribution_string</span>};
+    }
+    if (defined $dist && defined $dist_version) {
+	$h1_innerhtml = '<a href="' . dist_version_url($q, $dist, $dist_version) . '">' . $h1_innerhtml . '</a>';
+    }
+    print "<h1>$h1_innerhtml</h1>\n";
+}
 if ($error) {
     my $html_error = escapeHTML($error);
     $html_error =~ s{\n}{<br/>\n}g;
