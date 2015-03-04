@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.16';
+$VERSION = '2.17';
 
 use vars qw($UA);
 
@@ -62,6 +62,7 @@ sub trim ($);
 sub get_config ($);
 sub obfuscate_from ($);
 sub downtime_teaser ();
+sub dist_version_url ($$$);
 
 my $cache_days = 1/8;
 my $ua_timeout = 10;
@@ -428,6 +429,8 @@ print <<EOF;
   .sml            { font-size: x-small; }
   .unimpt         { font-size: smaller; }
 
+  h1>a            { color:black; text-decoration: none; }
+
   div.downtime_teaser { float:right; font-size:x-small; background-color:#fffff0; color:#000000; border: 1px solid black; -moz-border-radius:10px; border-radius:10px; padding:10px; }
 EOF
 if ($reports && USE_JQUERY_TABLESORTER) {
@@ -528,7 +531,7 @@ print qq{<body onload="} .
     ($downtime_teaser ? qq{rewrite_server_datetime(); } : '') .
     qq{init_cachedate(); if (false) { shift_reload_alternative(); }">\n};
 print <<EOF;
-  <h1>$title@{[ $is_beta ? beta_html : "" ]}$dist_title <span class="unimpt">$latest_distribution_string</span></h1>
+  <h1><a href="@{[ dist_version_url($q, $dist, $dist_version) ]}">$title@{[ $is_beta ? beta_html : "" ]}$dist_title <span class="unimpt">$latest_distribution_string</span></a></h1>
 EOF
 if ($error) {
     my $html_error = escapeHTML($error);
@@ -661,9 +664,7 @@ EOF
 	my $seen_latest_version = defined $latest_version && cmp_version($latest_version, $dist_version) == 0;
 	my $possibly_outdated_meta;
 	for my $version (sort { cmp_version($b, $a) } keys %other_dist_versions) {
-	    my $qq = CGI->new($q);
-	    $qq->param(dist => "$dist $version");
-	    $html .= qq{<li><a href="@{[ $qq->self_url ]}">$dist $version</a>};
+	    $html .= qq{<li><a href="@{[ dist_version_url($q, $dist, $version) ]}">$dist $version</a>};
 	    if (defined $latest_version && cmp_version($latest_version, $version) == 0) {
 		$html .= qq{ <span class="sml"> (latest distribution};
 		if ($meta_fetched_from) {
@@ -1954,6 +1955,13 @@ sub downtime_teaser () {
     }
     $html .= "</ul></div>\n";
     $html;
+}
+
+sub dist_version_url ($$$) {
+    my($q, $dist, $version) = @_;
+    my $qq = CGI->new($q);
+    $qq->param(dist => "$dist $version");
+    $qq->self_url;
 }
 
 {
