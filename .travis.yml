@@ -12,8 +12,12 @@ before_script:
 # fix shebang for plackup operation
  - (cd cgi-bin && env PERL=$(which perl) perl -pe '$_ = "#!$ENV{PERL} -T\n" if $. == 1' cpantestersmatrix.pl > cpantestersmatrix-travis.pl && chmod 755 cpantestersmatrix-travis.pl)
 language: perl
-perl:
-  - "5.20"
-  - "5.18"
-  - "5.14"
-  - "5.10"
+matrix:
+  include:
+    - perl: "5.20"
+# IPv6 address of www.cpan.org is currently slow --- use another mirror instead
+    - perl: "5.20"
+      env: PERL_CPANM_OPT="--mirror http://cpan.cpantesters.org --mirror https://cpan.metacpan.org"
+    - perl: "5.18"
+    - perl: "5.14"
+    - perl: "5.10"
