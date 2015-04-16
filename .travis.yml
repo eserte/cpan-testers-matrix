@@ -1,19 +1,40 @@
+# Note: USE_SYSTEM_PERL does not work, some
+# modules are missing in the repos (Sereal, Plack::Test)
+
 before_install:
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && perlbrew off || true'
  - sudo apt-get update -qq
  - sudo apt-get install -qq wget
+# additional repo for Sereal etc.
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo chown travis /etc/apt/sources.list.d && echo "deb http://mydebs.bbbike.de precise main" > /etc/apt/sources.list.d/mydebs.bbbike.list || true'
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && wget -O- http://mydebs.bbbike.de/key/mydebs.bbbike.key | sudo apt-key add - || true'
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get update -qq || true'
+# 02packages.details.txt.gz should be fetched via cronjob or so
  - mkdir -p /tmp/.cpan/sources/modules
  - (cd /tmp/.cpan/sources/modules && wget http://cpan.cpantesters.org/modules/02packages.details.txt.gz)
 # only needed for plack.t
- - cpanm --quiet --notest Image::Info Plack::Test CGI::Emulate::PSGI CGI::Compile
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq libimage-info-perl libplack-perl libcgi-emulate-psgi-perl libcgi-compile-perl || true'
+ - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest Image::Info Plack::Test CGI::Emulate::PSGI CGI::Compile || true'
 # optional, by default Storable is used
- - cpanm --quiet --notest Sereal::Encoder Sereal::Decoder
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq libsereal-encoder-perl libseareal-decoder-perl || true'
+ - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest Sereal::Encoder Sereal::Decoder || true'
+
+install:
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq libcpan-distnameinfo-perl libgravatar-url-perl libhtml-table-perl libwww-perl liburi-query-perl libjson-xs-perl libyaml-syck-perl || true'
+ - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest --installdeps . || true'
+
 before_script:
  - (cd cgi-bin && ln -s cpantestersmatrix.yml.travis cpantestersmatrix.yml)
 # fix shebang for plackup operation
  - (cd cgi-bin && env PERL=$(which perl) perl -pe '$_ = "#!$ENV{PERL} -T\n" if $. == 1' cpantestersmatrix.pl > cpantestersmatrix-travis.pl && chmod 755 cpantestersmatrix-travis.pl)
+
 language: perl
+
 matrix:
   include:
+## XXX not ready, see above
+#    - perl: "5.14"
+#      env: USE_SYSTEM_PERL=1
     - perl: "5.20"
 # IPv6 address of www.cpan.org is currently slow --- use another mirror instead
     - perl: "5.20"
