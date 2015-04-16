@@ -1689,28 +1689,38 @@ EOF
 sub dist_links {
     (my $faked_module = $dist) =~ s{-}{::}g;
     my $dist_bugtracker_url = $dist_bugtracker_url || "https://rt.cpan.org/Public/Dist/Display.html?Name=$dist";
+    my $dist_bugtracker_icon;
+    if      ($dist_bugtracker_url =~ m{\Qrt.cpan.org}) {
+	$dist_bugtracker_icon = 'images/favicon-rt.png';
+    } elsif ($dist_bugtracker_url =~ m{\Qgithub.com}) {
+	$dist_bugtracker_icon = 'https://assets-cdn.github.com/favicon.ico';
+    }
     print <<EOF;
 <div style="float:left; margin-left:3em;">
 <h2>Other links</h2>
 <ul>
-<li><a href="http://deps.cpantesters.org/?module=$faked_module">CPAN Dependencies</a>
-<li><a href="$ct_link">CPAN Testers</a>
-<li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
-<li><a href="https://metacpan.org/release/$dist">metacpan.org</a>
-<li><a href="$dist_bugtracker_url">Bugtracker</a>
+<li style="list-style-image: url(images/favicon-deps.png);"><a href="http://deps.cpantesters.org/?module=$faked_module">CPAN Dependencies</a>
+<li style="list-style-image: url(images/favicon-cpantesters.png);"><a href="$ct_link">CPAN Testers</a>
+<li style="list-style-image: url(images/cpan_book_16.png);"><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
+<li style="list-style-image: url(https://metacpan.org/static/icons/metacpan-icon.png);><a href="https://metacpan.org/release/$dist">metacpan.org</a>
 EOF
+    print '<li';
+    if ($dist_bugtracker_icon) {
+	print qq{ style="list-style-image: url($dist_bugtracker_icon);"};
+    }
+    print qq{><a href="$dist_bugtracker_url">Bugtracker</a>\n};
     if (defined $dist_version) {
 	print <<EOF;
-<li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> @{[ beta_html ]}
+<li style="list-style-image: url(images/favicon-analysis.png);"><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> @{[ beta_html ]}
 EOF
     }
     if ($is_log_txt_view) { # we're on the log.txt view, show link back
 	print <<EOF;
-<li><a class="sml" href="http://matrix.cpantesters.org/?@{[ $q->query_string ]}">Regular matrix</a> <span class="sml"></span>
+<li style="list-style-image: url(images/cpantesters_favicon.png);"><a class="sml" href="http://matrix.cpantesters.org/?@{[ $q->query_string ]}">Regular matrix</a> <span class="sml"></span>
 EOF
     } else {
 	print <<EOF;
-<li><a class="sml" href="http://217.199.168.174/cgi-bin/cpantestersmatrix.pl?@{[ $q->query_string ]}">Matrix via log.txt</a> <span class="sml">(temporary!)</span>
+<li style="list-style-image: url(images/cpantesters_favicon.png);"><a class="sml" href="http://217.199.168.174/cgi-bin/cpantestersmatrix.pl?@{[ $q->query_string ]}">Matrix via log.txt</a> <span class="sml">(temporary!)</span>
 EOF
     }
     print <<EOF;
