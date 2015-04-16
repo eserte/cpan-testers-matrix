@@ -1002,6 +1002,9 @@ EOF
 	    my($dist) = @_;
 	    my $req;
 	    if ($static_dist_dir) {
+		if ($dist =~ m{/}) {
+		    die "Invalid distribution name";
+		}
 		$req = HTTP::Request->new('GET', "file://$static_dist_dir/$dist." . FILEFMT_DIST);
 	    } else {
 		$req = HTTP::Request->new('GET', "http://$ct_domain/show/$dist." . FILEFMT_DIST);
