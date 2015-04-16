@@ -78,6 +78,18 @@ use constant USE_JQUERY_TABLESORTER => 1;
 
 my $config_yml = "$realbin/cpantestersmatrix.yml";
 
+# Two things:
+# - if set, then the "log.txt" view is enabled, with
+#   some changes in UI and caching
+# - and this is the directory where the json files
+#   are stored
+my $static_dist_dir = get_config('static_dist_dir');
+my $is_log_txt_view;
+if ($static_dist_dir) {
+    $is_log_txt_view = 1;
+    $cache_days = 5/1440;
+}
+
 my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
 mkdir $cache_root, 0755 if !-d $cache_root;
 my $dist_cache = "$cache_root/dist";
@@ -201,7 +213,7 @@ my %prefs = do {
 	-expires => (
 		     $edit_prefs            ? 'now' : # prefs page
 		     $q->query_string eq '' ? '+1d' : # home page
-		     '+'.int($cache_days*24).'h'      # any other page
+		     '+'.int($cache_days*1440).'m'    # any other page
 		    ),
     );
 
@@ -540,6 +552,13 @@ print qq{<body onload="} .
     }
     print "<h1>$h1_innerhtml</h1>\n";
 }
+
+if ($is_log_txt_view) {
+    print <<EOF;
+<div class="warn">NOTE: This is the <a href="http://metabase.cpantesters.org/tail/log.txt">log.txt</a> view <span class="sml">(<a href="http://www.nntp.perl.org/group/perl.cpan.testers.discuss/2012/11/msg2906.html">What's this?</a>)</span></div><br/>
+EOF
+}
+
 if ($error) {
     my $html_error = escapeHTML($error);
     $html_error =~ s{\n}{<br/>\n}g;
@@ -978,7 +997,6 @@ EOF
 
 	my $fetch_dist_data = sub {
 	    my($dist) = @_;
-	    my $static_dist_dir = get_config('static_dist_dir');
 	    if ($static_dist_dir) {
 		$url = "file://$static_dist_dir/$dist." . FILEFMT_DIST;
 	    } else {
@@ -1686,7 +1704,7 @@ EOF
 <li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> @{[ beta_html ]}
 EOF
     }
-    if (get_config('static_dist_dir')) { # we're on the log.txt view, show link back
+    if ($is_log_txt_view) { # we're on the log.txt view, show link back
 	print <<EOF;
 <li><a class="sml" href="http://matrix.cpantesters.org/?@{[ $q->query_string ]}">Regular matrix</a> <span class="sml"></span>
 EOF
