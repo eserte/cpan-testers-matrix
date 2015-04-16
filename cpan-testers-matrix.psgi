@@ -35,7 +35,7 @@ builder {
     mount '/favicon.ico' => $favicon;
     mount '/cpantesters_favicon.ico' => $favicon;
 
-    mount '/images' => Plack::App::File->new(file => catfile($root, 'images'));
+    mount '/images' => Plack::App::Directory->new({ root => catfile($root, 'images') });
 
     for my $mount (@mounts) {
 	mount $mount->[0] => $mount->[1];
