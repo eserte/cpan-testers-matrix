@@ -1743,7 +1743,7 @@ EOF
 EOF
     } else {
 	print <<EOF;
-<li><a class="sml" href="http://217.199.168.174/cgi-bin/cpantestersmatrix.pl?@{[ $q->query_string ]}">Matrix via log.txt</a> <span class="sml">(temporary!)</span>
+<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ $q->query_string ]}">Matrix via log.txt</a> <!--<span class="sml">(temporary!)</span>-->
 EOF
     }
     print <<EOF;
