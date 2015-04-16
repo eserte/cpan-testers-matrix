@@ -1,0 +1,5 @@
+#cpan_home: /usr/local/src/CPAN
+#plain_packages_file: /tmp/plain_packages_file
+static_dist_dir: /home/andreas/var/metabase-log/log-as-json
+cache_root: /tmp/cpantesters_fast_cache
+serializer: Sereal
