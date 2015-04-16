@@ -1267,6 +1267,8 @@ sub build_success_table ($$$) {
     };
 
     my @matrix;
+    my %acts_per_perl; # perl -> act -> count
+    my %acts_per_osname; # osname -> act -> count
     for my $perl (@perls) {
 	next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
 	my @row;
@@ -1283,6 +1285,8 @@ sub build_success_table ($$$) {
 			$level = 16 if !defined $level;
 			push @cell, qq{<td width="${percent}%" class="action_${act} action_${act}_$level"></td>};
 			push @title, $act.":".$acts->{$act};
+			$acts_per_perl{$perl}->{$act}     += $acts->{$act};
+			$acts_per_osname{$osname}->{$act} += $acts->{$act};
 		    }
 		}
 		my $title = join(" ", @title);
@@ -1297,7 +1301,8 @@ sub build_success_table ($$$) {
 	{
 	    my $qq = $reports_param->();
 	    $qq->replace("perl", $perl);
-	    unshift @row, qq{<a href="?@{[ $qq->stringify(";") ]}">$perl</a>};
+	    my $title = join(" ", map { my $cnt = $acts_per_perl{$perl}->{$_}; $cnt ? "$_:$cnt" : () } @actions);
+	    unshift @row, qq{<a title="$title" href="?@{[ $qq->stringify(";") ]}">$perl</a>};
 	}
 	push @matrix, \@row;
     }
@@ -1312,7 +1317,8 @@ sub build_success_table ($$$) {
 					       my $osname = $_;
 					       my $qq = $reports_param->();
 					       $qq->replace("os", $osname);
-					       qq{<a href="?@{[ $qq->stringify(";") ]}">$osname</a>};
+					       my $title = join(" ", map { my $cnt = $acts_per_osname{$osname}->{$_}; $cnt ? "$_:$cnt" : () } @actions);
+					       qq{<a title="$title" href="?@{[ $qq->stringify(";") ]}">$osname</a>};
 					   } @osnames),
 					  ],
 				 -spacing => 0,
