@@ -76,6 +76,9 @@ use constant FILEFMT_DIST   => 'json';
 
 use constant USE_JQUERY_TABLESORTER => 1;
 
+# XXX experiment, maybe use it by default?
+use constant USE_IF_MODIFIED_SINCE => 0;
+
 my $config_yml = "$realbin/cpantestersmatrix.yml";
 
 # Two things:
@@ -997,12 +1000,20 @@ EOF
 
 	my $fetch_dist_data = sub {
 	    my($dist) = @_;
+	    my $req;
 	    if ($static_dist_dir) {
-		$url = "file://$static_dist_dir/$dist." . FILEFMT_DIST;
+		$req = HTTP::Request->new('GET', "file://$static_dist_dir/$dist." . FILEFMT_DIST);
 	    } else {
-		$url = "http://$ct_domain/show/$dist." . FILEFMT_DIST;
+		$req = HTTP::Request->new('GET', "http://$ct_domain/show/$dist." . FILEFMT_DIST);
+		if (USE_IF_MODIFIED_SINCE) {
+		    if (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache') {
+			if (my $mtime = (stat($cachefile))[9]) {
+			    $req->if_modified_since($mtime);
+			}
+		    }
+		}
 	    }
-	    my $resp = $ua->get($url);
+	    my $resp = $ua->request($req);
 	    $resp;
 	};
 
@@ -1016,6 +1027,19 @@ Maybe you mistyped the distribution name?
 Maybe you added the author name to the distribution string?
 Note that the distribution name is case-sensitive.
 EOF
+	} elsif ($resp->code == 304) {
+	    if (!-r $cachefile) {
+		die <<EOF;
+Unexpected error: got 304 Not Modified, but cached file
+'$cachefile' does not exist anymore or is not readable.
+EOF
+	    }
+	    my $new_mtime = $resp->date;
+	    if ($new_mtime) {
+		utime $new_mtime, $new_mtime, $cachefile;
+	    }
+	    $good_cachefile = $cachefile;
+	    last GET_DATA;
 	}
 
 	$error = fetch_error_check($resp);
