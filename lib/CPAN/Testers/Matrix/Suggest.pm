@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2014 Slaven Rezic. All rights reserved.
+# Copyright (C) 2014,2015 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -16,7 +16,7 @@ package CPAN::Testers::Matrix::Suggest;
 
 use strict;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use JSON::XS qw(encode_json);
 use Search::Dict;
@@ -43,6 +43,8 @@ sub do_suggest {
 	if (index($term, $query) == 0) {
 	    push @res, $term;
 	    last if @res >= $max_results;
+	} elsif ($term gt $query) {
+	    last;
 	}
     }
     encode_json [$query, \@res];
