@@ -77,6 +77,8 @@ use constant FILEFMT_DIST   => 'json';
 
 use constant USE_JQUERY_TABLESORTER => 1;
 
+use constant USE_DIST_AUTOCOMPLETE => 1;
+
 # XXX experiment, maybe use it by default?
 use constant USE_IF_MODIFIED_SINCE => 0;
 
@@ -497,9 +499,22 @@ print <<EOF;
   </script>
   <script type="text/javascript" src="matrix_cpantesters.js?v=20150419"></script>
 EOF
-if ($reports && USE_JQUERY_TABLESORTER) {
+if (USE_DIST_AUTOCOMPLETE || ($reports && USE_JQUERY_TABLESORTER)) {
     print <<'EOF';
   <script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+EOF
+}
+if (USE_DIST_AUTOCOMPLETE) {
+    print <<'EOF';
+  <script type="text/javascript">
+  <!-- Hide script
+  $(document).ready(function() { init_dist_autocomplete() });
+  // End script hiding -->
+  </script>
+EOF
+}
+if ($reports && USE_JQUERY_TABLESORTER) {
+    print <<'EOF';
   <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
   <script type="text/javascript">
   <!-- Hide script
@@ -601,7 +616,8 @@ if ($downtime_teaser) {
 print <<EOF;
   <form onsubmit="reset_location_hash()">
    <div>
-    Distribution <span class="unimpt">(e.g. DBI, CPAN-Reporter, YAML-Syck)</span>: <input name="dist" /> <input type="submit" />
+    Distribution <span class="unimpt">(e.g. DBI, CPAN-Reporter, YAML-Syck)</span>: <input name="dist" id="dist" list="distresults" /> <input type="submit" />
+    <datalist id="distresults"></datalist>
 EOF
 if ($q->param('maxver')) {
     print <<EOF;

@@ -166,3 +166,22 @@ function shift_reload_alternative() {
        elem.innerHTML = elem.innerHTML + ' or click <a href="javascript:window.location.reload(true)">here</a>';
     }
 }
+
+//////////////////////////////////////////////////////////////////////
+
+function init_dist_autocomplete() {
+    $("#dist").on("input", function(e) {
+	var val = $(this).val();
+	if(val === "") return;
+	$.get("cpantestersmatrix_suggest.pl", {q:val}, function(res) {
+            var newValues = res[1];
+            var oldHtml = $("#distresults").html();
+            var newHtml = newValues.map(function(elem) {
+		return '<option value="' + elem + '"></option>';
+            }).join("\n");
+            if (oldHtml != newHtml) {
+		$("#distresults").html(newHtml);
+            }
+	},"json");
+    });
+}
