@@ -54,7 +54,7 @@ manual_check_step "beta tests", "Please go to http://beta-matrix.cpantesters.org
 confirmed_step "update-live-stable", sub {
     successful_system 'make', 'update-live-stable';
 };
-manual_check_step "beta tests", "Please go to http://matrix.cpantesters.org and do some manual tests.";
+manual_check_step "stable tests", "Please go to http://matrix.cpantesters.org and do some manual tests.";
 confirmed_step "git-post-tasks", sub {
     successful_system 'make', 'git-post-tasks';
 };
@@ -186,43 +186,83 @@ finish;
 	if (!$current_commit_id) {
 	    die "Unexpected: cannot find a commit";
 	}
-	my $url = "http://api.travis-ci.org/repos/$repo/builds";
 	require LWP::UserAgent;
 	require JSON::XS;
 	my $ua = LWP::UserAgent->new;
-	my $get_current_build = sub {
-	    my $res = $ua->get($url);
-	    if (!$res->is_success) {
-		die "Request to $url failed: " . $res->status_line;
-	    }
-	    my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
-	    for my $build (@$data) {
-		if ($build->{commit} eq $current_commit_id) {
-		    return $build;
-		}
-	    }
-	    undef;
-	};
-	while () {
-	    my $build = $get_current_build->();
-	    if (!$build) {
-		print STDERR "Cannot find commit $current_commit_id at travis, will try later...\n";
-	    } elsif (defined $build->{result}) {
-		if ($build->{result} == 0) {
-		    print STDERR "travis-ci build was successful.\n";
-		    last;
-		} else {
-		    die "travis-ci build failed.\n";
-		}
-	    } else {
-		print STDERR "travis-ci build in progress, will check later...\n";
-	    }
+	my $wait = sub {
 	    for (reverse(0..14)) {
 		print STDERR "\rwait $_ second(s)";
 		sleep 1;
 	    }
 	    print STDERR "\n";
+	};
+
+	my $build_id;
+	{
+	    my $builds_url = "http://api.travis-ci.org/repos/$repo/builds";
+	    my $get_current_build = sub {
+		my $res = $ua->get($builds_url);
+		if (!$res->is_success) {
+		    die "Request to $builds_url failed: " . $res->status_line;
+		}
+		my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
+		for my $build (@$data) {
+		    if ($build->{commit} eq $current_commit_id) {
+			return $build;
+		    }
+		}
+		undef;
+	    };
+	    while () {
+		my $build = $get_current_build->();
+		if (!$build) {
+		    print STDERR "Cannot find commit $current_commit_id at travis, will try later...\n";
+		    $wait->();
+		} else {
+		    $build_id = $build->{id};
+		    if (!defined $build_id) {
+			require Data::Dumper;
+			die "Unexpected: no build id found in ". Data::Dumper::Dumper($build);
+		    }
+		}
+	    }
 	}
+
+	{
+	    my $build_url = "http://api.travis-ci.org/repos/$repo/build/$build_id";
+	    my $get_current_build = sub {
+		my $res = $ua->get($build_url);
+		if (!$res->is_success) {
+		    die "Request to $build_url failed: " . $res->status_line;
+		}
+		my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
+		return $data;
+	    };
+	    while () {
+		my $build = $get_current_build->();
+		my $successful = 0;
+		my $failures = 0;
+		my $running = 0;
+		for my $job (@{ $build->{matrix} }) {
+		    if (!defined $job->{result}) {
+			$running++;
+		    } elsif ($job->{result} == 0) {
+			$successful++;
+		    } else {
+			$failures++;
+		    }
+		}
+		if ($failures) {
+		    die "At least one job failed.\n";
+		} elsif ($running == 0) {
+		    last;
+		}
+		print STDERR "Status at travis: running=$running successful=$successful failures=$failures\n";
+		$wait->();
+	    }
+	}
+
+	print STDERR "travis-ci build was successful\n";
     }
 }
 
