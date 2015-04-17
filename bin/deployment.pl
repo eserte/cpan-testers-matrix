@@ -219,6 +219,7 @@ finish;
 	    }
 	    for (reverse(0..14)) {
 		print STDERR "\rwait $_ second(s)";
+		sleep 1;
 	    }
 	    print STDERR "\n";
 	}
