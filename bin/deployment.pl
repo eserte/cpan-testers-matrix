@@ -24,6 +24,7 @@ sub manual_check_step ($$);
 sub confirm_or_exit ($$);
 sub successful_system (@);
 sub finish ();
+sub check_travis ($);
 
 my $dry_run;
 GetOptions('n|dry-run' => \$dry_run)
@@ -39,7 +40,9 @@ init;
 confirmed_step "git-push", sub {
     successful_system 'git', 'push';
 };
-manual_check_step "travis-ci results", "Please go to https://travis-ci.org/eserte/cpan-testers-matrix and check results.";
+step "check travis", sub {
+    check_travis 'eserte/cpan-testers-matrix';
+};
 step "update-pps", sub {
     successful_system 'make', 'update-pps';
 };
@@ -176,6 +179,49 @@ finish;
 	}
     }
 
+    sub check_travis ($) {
+	my($repo) = @_;
+	chomp(my $current_commit_id = `git log -1 --format=format:'%H'`);
+	if (!$current_commit_id) {
+	    die "Unexpected: cannot find a commit";
+	}
+	my $url = "http://api.travis-ci.org/repos/$repo/builds";
+	require LWP::UserAgent;
+	require JSON::XS;
+	my $ua = LWP::UserAgent->new;
+	my $get_current_build = sub {
+	    my $res = $ua->get($url);
+	    if (!$res->is_success) {
+		die "Request to $url failed: " . $res->status_line;
+	    }
+	    my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
+	    for my $build (@$data) {
+		if ($build->{commit} eq $current_commit_id) {
+		    return $build;
+		}
+	    }
+	    undef;
+	};
+	while () {
+	    my $build = $get_current_build->();
+	    if (!$build) {
+		print STDERR "Cannot find commit $current_commit_id at travis, will try later...\n";
+	    } elsif (defined $build->{result}) {
+		if ($build->{result} == 0) {
+		    print STDERR "travis-ci build was successful.\n";
+		    last;
+		} else {
+		    die "travis-ci build failed.\n";
+		}
+	    } else {
+		print STDERR "travis-ci build in progress, will check later...\n";
+	    }
+	    for (reverse(0..14)) {
+		print STDERR "\rwait $_ second(s)";
+	    }
+	    print STDERR "\n";
+	}
+    }
 }
 
 __END__
