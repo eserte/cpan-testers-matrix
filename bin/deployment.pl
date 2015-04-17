@@ -25,10 +25,15 @@ sub confirm_or_exit ($$);
 sub successful_system (@);
 sub finish ();
 sub check_travis ($);
+sub debug ($);
 
 my $dry_run;
-GetOptions('n|dry-run' => \$dry_run)
-    or die "usage: $0 [--dry-run]\n";
+my $debug;
+GetOptions(
+	   'debug' => \$debug,
+	   'n|dry-run' => \$dry_run,
+	  )
+    or die "usage: $0 [--dry-run] [--debug]\n";
 
 init;
 {
@@ -188,7 +193,7 @@ finish;
 	}
 	require LWP::UserAgent;
 	require JSON::XS;
-	my $ua = LWP::UserAgent->new;
+	my $ua = LWP::UserAgent->new(timeout => 10);
 	my $wait = sub {
 	    for (reverse(0..14)) {
 		print STDERR "\rwait $_ second(s)";
@@ -201,16 +206,19 @@ finish;
 	{
 	    my $builds_url = "http://api.travis-ci.org/repos/$repo/builds";
 	    my $get_current_build = sub {
+		debug "About to get from $builds_url";
 		my $res = $ua->get($builds_url);
 		if (!$res->is_success) {
 		    die "Request to $builds_url failed: " . $res->status_line;
 		}
+		debug "Fetch successful";
 		my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
 		for my $build (@$data) {
 		    if ($build->{commit} eq $current_commit_id) {
 			return $build;
 		    }
 		}
+		debug "Build for commit $current_commit_id not found";
 		undef;
 	    };
 	    while () {
@@ -224,17 +232,20 @@ finish;
 			require Data::Dumper;
 			die "Unexpected: no build id found in ". Data::Dumper::Dumper($build);
 		    }
+		    last;
 		}
 	    }
 	}
 
 	{
-	    my $build_url = "http://api.travis-ci.org/repos/$repo/build/$build_id";
+	    my $build_url = "http://api.travis-ci.org/repos/$repo/builds/$build_id";
 	    my $get_current_build = sub {
+		debug "About to get from $build_url";
 		my $res = $ua->get($build_url);
 		if (!$res->is_success) {
 		    die "Request to $build_url failed: " . $res->status_line;
 		}
+		debug "Fetch successful";
 		my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
 		return $data;
 	    };
@@ -264,6 +275,14 @@ finish;
 
 	print STDERR "travis-ci build was successful\n";
     }
+
+    sub debug ($) {
+	my $msg = shift;
+	if ($debug) {
+	    print STDERR "$msg\n";
+	}
+    }
+
 }
 
 __END__
