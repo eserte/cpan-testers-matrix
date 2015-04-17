@@ -74,7 +74,8 @@ finish;
 	    }
 	}
 	$step_file = "$step_dir/deployment_steps";
-	if (open my $fh, '<', $step_file) {
+	my $fh;
+	if (do { no autodie; open $fh, '<', $step_file }) {
 	    chomp(my @last_done_steps = <$fh>);
 	    if (@last_done_steps) {
 		my $age = time - (stat($step_file))[9];
