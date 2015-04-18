@@ -45,9 +45,9 @@ init;
 confirmed_step "git pull and push", sub {
     print STDERR "Is everything checked in?\n";
     successful_system 'git', 'diff-files', '--quiet';
-    print STDERR "Fetching and comparing with origin...\n";
-    successful_system 'git', 'fetch', 'origin';
-    successful_system 'git', 'diff', '--exit-code', 'origin/master', 'master';
+    #print STDERR "Fetching and comparing with origin...\n";
+    #successful_system 'git', 'fetch', 'origin';
+    #successful_system 'git', 'diff', '--exit-code', 'origin/master', 'master';
     print STDERR "Pushing to origin...\n";
     successful_system 'git', 'push';
 };
