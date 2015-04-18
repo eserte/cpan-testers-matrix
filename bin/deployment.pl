@@ -42,7 +42,13 @@ init;
 	die "Not on branch master? Output of 'git status'\n@out";
     }
 }
-confirmed_step "git-push", sub {
+confirmed_step "git pull and push", sub {
+    print STDERR "Is everything checked in?\n";
+    successful_system 'git', 'diff-files', '--quiet';
+    print STDERR "Fetching and comparing with origin...\n";
+    successful_system 'git', 'fetch', 'origin';
+    successful_system 'git', 'diff', '--exit-code', 'origin/master', 'master';
+    print STDERR "Pushing to origin...\n";
     successful_system 'git', 'push';
 };
 step "check travis", sub {
