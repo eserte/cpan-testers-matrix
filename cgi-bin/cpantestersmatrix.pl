@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.17';
+$VERSION = '2.18';
 
 use vars qw($UA);
 
@@ -63,6 +63,7 @@ sub get_config ($);
 sub obfuscate_from ($);
 sub downtime_teaser ();
 sub dist_version_url ($$$);
+sub iso_date_to_epoch ($);
 
 my $cache_days = 1/8;
 my $ua_timeout = 10;
@@ -78,6 +79,8 @@ use constant USE_JQUERY_TABLESORTER => 1;
 
 # XXX experiment, maybe use it by default?
 use constant USE_IF_MODIFIED_SINCE => 0;
+
+use constant JS_DEBUG => 0;
 
 my $config_yml = "$realbin/cpantestersmatrix.yml";
 
@@ -222,6 +225,9 @@ my %prefs = do {
 
     $cookie->value;
 };
+
+my $first_report_epoch;
+my $last_report_epoch;
 
 if ($reports) {
     my $want_perl = $q->param("perl");
@@ -384,9 +390,15 @@ if ($reports) {
 	    set_newest_dist_version($data);
 	    apply_data_from_meta($dist);
 	    $r = build_success_table($data, $dist, $dist_version);
+	    if ($r->{first_report_date}) {
+		$first_report_epoch = iso_date_to_epoch $r->{first_report_date};
+	    }
+	    if ($r->{last_report_date}) {
+		$last_report_epoch = iso_date_to_epoch $r->{last_report_date};
+	    }
 	    $report_stats = join("<br>\n",
-				 ($r->{first_report_date} ? "First report: $r->{first_report_date} UTC" : ()),
-				 ($r->{last_report_date} ? "Last report: $r->{last_report_date} UTC" : ()),
+				 ($r->{first_report_date} ? qq{First report: <i id="first_report_date">$r->{first_report_date} UTC</i>} : ()),
+				 ($r->{last_report_date}  ?  qq{Last report: <i id="last_report_date" >$r->{last_report_date} UTC</i>} : ()),
 				 (%{ $r->{total_actions} } ? (map { qq{<span class="action_$_">&nbsp;</span> $_: $r->{total_actions}->{$_}} } keys %{ $r->{total_actions} }) : ()),
 				 ($r->{total_configurations} ? "Number of tested configurations: $r->{total_configurations}" : ()),
 				);
@@ -472,19 +484,12 @@ print <<EOF;
     }
   }
 
-  var start_epoch;
 EOF
-my $cachefile_time;
-if ($cachefile) {
-    $cachefile_time = (stat($cachefile))[9];
-    print <<EOF;
-  start_epoch = $cachefile_time;
-EOF
-}
+print qq{  var js_debug = } . (JS_DEBUG ? 'true' : 'false') . ";\n";
 print <<EOF;
   // End script hiding -->
   </script>
-  <script type="text/javascript" src="matrix_cpantesters.js?v=20140812"></script>
+  <script type="text/javascript" src="matrix_cpantesters.js?v=20150419"></script>
 EOF
 if ($reports && USE_JQUERY_TABLESORTER) {
     print <<'EOF';
@@ -541,10 +546,18 @@ print <<EOF;
  </head>
 EOF
 my $downtime_teaser = downtime_teaser;
+my $cachefile_time;
+if ($cachefile) {
+    $cachefile_time = (stat($cachefile))[9];
+}
 print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
     ($downtime_teaser ? qq{rewrite_server_datetime(); } : '') .
-    qq{init_cachedate(); if (false) { shift_reload_alternative(); }">\n};
+    ($first_report_epoch ? qq{new DynamicDate($first_report_epoch, 'first_report_date', {no_seconds:true, debug:js_debug}); } : '') .
+    ($last_report_epoch  ? qq{new DynamicDate($last_report_epoch,  'last_report_date',  {no_seconds:true, debug:js_debug}); } : '') .
+    ($cachefile_time     ? qq{new DynamicDate($cachefile_time,     'cachedate',         {no_seconds:true, debug:js_debug}); } : '') .
+    (0                   ? qq{shift_reload_alternative(); } : '') .
+    qq{">\n};
 {
     my $h1_innerhtml = $title . ($is_beta ? beta_html : '') . escapeHTML($dist_title);
     if ($latest_distribution_string ne '') {
@@ -2020,6 +2033,19 @@ sub dist_version_url ($$$) {
     my $qq = CGI->new($q);
     $qq->param(dist => "$dist $version");
     $qq->self_url;
+}
+
+sub iso_date_to_epoch ($) {
+    my $iso_date = shift;
+    # may deal with partial ISO8601 date like "2013-04-06 10:32"
+    # assume UTC timezone
+    if (my($y,$m,$d,$H,$M,$S) = $iso_date =~ m{^(\d+)-(\d+)-(\d+) (\d+):(\d+)(?::(\d+))?}) {
+	$S ||= 0;
+	require Time::Local;
+	Time::Local::timegm_nocheck($S,$M,$H,$d,$m-1,$y);
+    } else {
+	undef;
+    }
 }
 
 {

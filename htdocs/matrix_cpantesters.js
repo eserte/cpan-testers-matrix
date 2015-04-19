@@ -82,14 +82,51 @@ function sprintf()
 
 //////////////////////////////////////////////////////////////////////
 
-var start_date_formatted;
+function DynamicDate(epoch, element_id, options) {
+    this.epoch = epoch;
+    this.date_formatted = null;
+    this.element_id = element_id;
+    this.debug = options && options.debug ? true : false;
+    this.no_seconds = options && options.no_seconds ? true : false;
 
-function init_cachedate() {
-    var start_date = new Date(start_epoch*1000);
-    start_date_formatted = sprintf("%04d-%02d-%02d %02d:%02d:%02d",
-				   start_date.getFullYear(), start_date.getMonth()+1, start_date.getDate(),
-				   start_date.getHours(), start_date.getMinutes(), start_date.getSeconds());
-    var tzOffset = start_date.getTimezoneOffset();
+    this.update_date = function() {
+	var now_d = new Date;
+	var elapsed = now_d.getTime()/1000 - this.epoch;
+	var s = this.date_formatted;
+	var next_update = 60;
+	if (this.debug) {
+	    s += " (" + Math.floor(elapsed) + " seconds ago)";
+	    next_update = 5;
+	} else if (elapsed >= 86400*365.25*2) {
+	    s += " (" + Math.floor(elapsed/(86400*365.25)) + " years ago)";
+	} else if (elapsed >= 86400*2) {
+	    s += " (" + Math.floor(elapsed/86400) + " days ago)";
+	} else if (elapsed >= 86400) {
+	    s += " (a day ago)";
+	} else if (elapsed >= 3600*2) {
+	    s += " (" + Math.floor(elapsed/3600) + " hours ago)";
+	} else if (elapsed >= 3600) {
+	    s += " (an hour ago)";
+	} else if (elapsed >= 60*2) {
+	    s += " (" + Math.floor(elapsed/60) + " minutes ago)";
+	} else if (elapsed >= 60) {
+	    s += " (a minute ago)";
+	} else {
+	    next_update = 1;
+	}
+	var node = document.getElementById(this.element_id);
+	if (node) {
+	    node.innerHTML = s;
+	    var this_dynamic_date = this;
+	    window.setTimeout(function () { this_dynamic_date.update_date() }, next_update*1000);
+	}
+    };
+
+    var date = new Date(this.epoch*1000);
+    this.date_formatted = sprintf("%04d-%02d-%02d %02d:%02d" + (this.no_seconds ? "" : ":%02d"),
+				  date.getFullYear(), date.getMonth()+1, date.getDate(),
+				  date.getHours(), date.getMinutes(), date.getSeconds());
+    var tzOffset = date.getTimezoneOffset();
     var tzOffsetString;
     if (tzOffset == 0) {
 	tzOffsetString = 'UTC';
@@ -100,35 +137,8 @@ function init_cachedate() {
 	var tzOffsetM = tzOffset%60;
 	tzOffsetString = 'UTC' + sgn + tzOffsetH + (tzOffsetM == 0 ? '' : ':' + sprintf("%02d", tzOffsetM));
     }
-    start_date_formatted += " " + tzOffsetString;
-    update_cachedate();
-}
-
-function update_cachedate() {
-    var now_d = new Date;
-    var elapsed = now_d.getTime()/1000 - start_epoch;
-    var s = start_date_formatted;
-    var next_update = 60;
-    if (elapsed >= 86400*2) {
-	s += " (" + Math.floor(elapsed/86400) + " days ago)";
-    } else if (elapsed >= 86400) {
-	s += " (a day ago)";
-    } else if (elapsed >= 3600*2) {
-	s += " (" + Math.floor(elapsed/3600) + " hours ago)";
-    } else if (elapsed >= 3600) {
-	s += " (an hour ago)";
-    } else if (elapsed >= 60*2) {
-	s += " (" + Math.floor(elapsed/60) + " minutes ago)";
-    } else if (elapsed >= 60) {
-	s += " (a minute ago)";
-    } else {
-	next_update = 1;
-    }
-    var node = document.getElementById('cachedate');
-    if (node) {
-	node.innerHTML = s;
-	window.setTimeout("update_cachedate()",next_update*1000);
-    }
+    this.date_formatted += " " + tzOffsetString;
+    this.update_date();
 }
 
 function rewrite_server_datetime() {
