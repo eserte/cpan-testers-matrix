@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.18';
+$VERSION = '2.19';
 
 use vars qw($UA);
 
@@ -1011,21 +1011,22 @@ EOF
 
 	my $ua = get_ua;
 
+	if ($static_dist_dir) {
+	    if ($dist =~ m{/}) {
+		die "Invalid distribution name";
+	    }
+	    $url = "file://$static_dist_dir/$dist." . FILEFMT_DIST;
+	} else {
+	    $url = "http://$ct_domain/show/$dist." . FILEFMT_DIST;
+	}
+
 	my $fetch_dist_data = sub {
 	    my($dist) = @_;
-	    my $req;
-	    if ($static_dist_dir) {
-		if ($dist =~ m{/}) {
-		    die "Invalid distribution name";
-		}
-		$req = HTTP::Request->new('GET', "file://$static_dist_dir/$dist." . FILEFMT_DIST);
-	    } else {
-		$req = HTTP::Request->new('GET', "http://$ct_domain/show/$dist." . FILEFMT_DIST);
-		if (USE_IF_MODIFIED_SINCE) {
-		    if (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache') {
-			if (my $mtime = (stat($cachefile))[9]) {
-			    $req->if_modified_since($mtime);
-			}
+	    my $req = HTTP::Request->new('GET', $url);
+	    if (USE_IF_MODIFIED_SINCE && $url =~ m{^http}) {
+		if (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache') {
+		    if (my $mtime = (stat($cachefile))[9]) {
+			$req->if_modified_since($mtime);
 		    }
 		}
 	    }
