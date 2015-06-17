@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.19';
+$VERSION = '2.20';
 
 use vars qw($UA);
 
@@ -68,7 +68,7 @@ sub iso_date_to_epoch ($);
 my $cache_days = 1/8;
 my $ua_timeout = 10;
 
-my $current_stable_perl = "5.20.0"; # please always end with ".0"
+my $current_stable_perl = "5.22.0"; # please always end with ".0"
 
 #use constant FILEFMT_AUTHOR => 'yaml';
 use constant FILEFMT_AUTHOR => 'json';
