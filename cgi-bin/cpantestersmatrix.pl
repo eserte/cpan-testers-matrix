@@ -232,7 +232,7 @@ my $last_report_epoch;
 if ($reports) {
     my $want_perl = $q->param("perl");
     my $want_os = $q->param("os");
-    my @sort_columns = $q->param("sort");
+    my @sort_columns = $q->can('multi_param') ? $q->multi_param('sort') : $q->param('sort');
     @sort_columns = "action" if !@sort_columns;
 
     if (defined $want_perl || defined $want_os) {
