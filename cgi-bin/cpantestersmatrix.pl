@@ -453,6 +453,10 @@ print <<EOF;
   .reports td	  { border:1px solid black; padding-left:3px; padding-right:3px; }
 
   .warn           { color:red; font-weight:bold; }
+  .warn a:link    { color:red; font-weight:bold; }
+  .warn a:visited { color:red; font-weight:bold; }
+  .warn a:hover   { color:red; font-weight:bold; }
+  .warn a:active  { color:red; font-weight:bold; }
   .sml            { font-size: x-small; }
   .unimpt         { font-size: smaller; }
 
@@ -578,6 +582,7 @@ EOF
 if ($error) {
     my $html_error = escapeHTML($error);
     $html_error =~ s{\n}{<br/>\n}g;
+    $html_error =~ s{(https?://[^&]+)}{<a href="$1">$1</a>}g;
     print <<EOF;
 <div class="warn">
   An error was encountered:<br/>$html_error<br/>
