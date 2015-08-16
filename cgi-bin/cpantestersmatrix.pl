@@ -1083,10 +1083,12 @@ EOF
 	eval {
 	    $data = deserialize_dist($resp->decoded_content)
 	};
-	if ($@) {
-	    die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>. Error: '$@'";
+	if ($@ || !$data) {
+	    my $msg = "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
+	    no warnings 'uninitialized'; # $@ may be undef
+	    warn "$msg. Error: '$@'";
+	    die "$msg\n";
 	}
-	$data or die "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
 	for(my $result_i = 0; $result_i <= $#$data; $result_i++) {
 	    my $result = $data->[$result_i];
 	    amend_result($result);
