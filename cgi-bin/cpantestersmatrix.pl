@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.20';
+$VERSION = '2.21';
 
 use vars qw($UA);
 
@@ -1079,11 +1079,15 @@ EOF
 	die "Unknown error, should never happen";
     }
 
-    if ($good_cachefile) {
-	$data = cache_retrieve $cachefile
+    my $do_cache_retrieve = sub {
+	$data = cache_retrieve $good_cachefile
 	    or die "Could not load cached data";
 	# Fix distribution name
 	eval { $dist = $data->[-1]->{distribution} };
+    };
+
+    if ($good_cachefile) {
+	$do_cache_retrieve->();
     } elsif ($resp && $resp->is_success) {
 	eval {
 	    $data = deserialize_dist($resp->decoded_content)
@@ -1092,23 +1096,30 @@ EOF
 	    my $msg = "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
 	    no warnings 'uninitialized'; # $@ may be undef
 	    warn "$msg. Error: '$@'";
-	    die "$msg\n";
-	}
-	for(my $result_i = 0; $result_i <= $#$data; $result_i++) {
-	    my $result = $data->[$result_i];
-	    amend_result($result);
-	    if (remove_result($result)) {
-		splice @$data, $result_i, 1;
-		$result_i--;
+	    if (-r $cachefile) {
+		$error = $msg . "\n" . sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+		$good_cachefile = $cachefile;
+		$do_cache_retrieve->();
+	    } else {
+		die "$msg\n";
 	    }
+	} else {
+	    for(my $result_i = 0; $result_i <= $#$data; $result_i++) {
+		my $result = $data->[$result_i];
+		amend_result($result);
+		if (remove_result($result)) {
+		    splice @$data, $result_i, 1;
+		    $result_i--;
+		}
+	    }
+	    eval {
+		cache_store $data, $cachefile;
+	    };
+	    if ($@) {
+		warn $!;
+		die "Internal error (nstore)";
+	    };
 	}
-	eval {
-	    cache_store $data, $cachefile;
-	};
-	if ($@) {
-	    warn $!;
-	    die "Internal error (nstore)";
-	};
     }
 
     return { data => $data,
