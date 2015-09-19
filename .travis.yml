@@ -11,7 +11,7 @@ before_install:
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get update -qq || true'
 # 02packages.details.txt.gz should be fetched via cronjob or so
  - mkdir -p /tmp/.cpan/sources/modules
- - (cd /tmp/.cpan/sources/modules && wget http://cpan.cpantesters.org/modules/02packages.details.txt.gz)
+ - (cd /tmp/.cpan/sources/modules && wget https://cpan.metacpan.org/modules/02packages.details.txt.gz)
 # only needed for plack.t
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq libimage-info-perl libplack-perl libcgi-emulate-psgi-perl libcgi-compile-perl || true'
  - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest Image::Info Plack::Test CGI::Emulate::PSGI CGI::Compile || true'
