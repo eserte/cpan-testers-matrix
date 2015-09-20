@@ -35,6 +35,8 @@ GetOptions(
 	  )
     or die "usage: $0 [--dry-run] [--debug]\n";
 
+local $ENV{LC_ALL} = $ENV{LANG} = 'C';
+
 init;
 {
     my(@out) = qx{git status};
