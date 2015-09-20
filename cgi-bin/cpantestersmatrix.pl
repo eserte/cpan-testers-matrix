@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.21';
+$VERSION = '2.22';
 
 use vars qw($UA);
 
@@ -187,6 +187,7 @@ my $dist_version;
 my %other_dist_versions;
 my $is_latest_version;
 my $latest_version;
+my $is_deprecated;
 my $meta_fetched_from;
 
 my @actions = qw(PASS NA UNKNOWN INVALID FAIL);
@@ -410,6 +411,7 @@ if ($reports) {
     $error = $@ if $@;
 }
 
+my $deprecated_string = $is_deprecated ? " (DEPRECATED)" : '';
 my $latest_distribution_string = $is_latest_version ? " (latest distribution)" : "";
 
 print <<EOF;
@@ -564,6 +566,9 @@ print qq{<body onload="} .
     qq{">\n};
 {
     my $h1_innerhtml = $title . ($is_beta ? beta_html : '') . escapeHTML($dist_title);
+    if ($deprecated_string ne '') {
+	$h1_innerhtml .= qq{<span class="warn unimpt">$deprecated_string</span>};
+    }
     if ($latest_distribution_string ne '') {
 	$h1_innerhtml .= qq{<span class="unimpt">$latest_distribution_string</span>};
     }
@@ -1878,6 +1883,7 @@ sub apply_data_from_meta {
 	my $meta = $r->{meta};
 	$latest_version = $meta && defined $meta->{version} ? $meta->{version} : undef;
 	$is_latest_version = defined $latest_version && defined $dist_version && cmp_version($latest_version, $dist_version) == 0;
+	$is_deprecated = !!$meta->{x_deprecated};
 	if ($meta) {
 	    if ($meta->{resources} && $meta->{resources}->{bugtracker}) {
 		if (ref $meta->{resources}->{bugtracker} eq 'HASH') {
