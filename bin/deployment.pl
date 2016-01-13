@@ -29,11 +29,13 @@ sub debug ($);
 
 my $dry_run;
 my $debug;
+my $local_test_only;
 GetOptions(
 	   'debug' => \$debug,
 	   'n|dry-run' => \$dry_run,
+	   'local-test-only' => \$local_test_only,
 	  )
-    or die "usage: $0 [--dry-run] [--debug]\n";
+    or die "usage: $0 [--dry-run] [--debug] [--local-test-only]\n";
 
 local $ENV{LC_ALL} = $ENV{LANG} = 'C';
 
@@ -53,9 +55,17 @@ confirmed_step "git pull and push", sub {
     print STDERR "Pushing to origin...\n";
     successful_system 'git', 'push';
 };
-step "check travis", sub {
-    check_travis 'eserte/cpan-testers-matrix';
-};
+if ($local_test_only) {
+    step "run make test locally", sub {
+	successful_system 'perl', 'Makefile.PL';
+	successful_system 'make';
+	successful_system 'make', 'test';
+    };
+} else {
+    step "check travis", sub {
+	check_travis 'eserte/cpan-testers-matrix';
+    };
+}
 step "update-pps", sub {
     successful_system 'make', 'update-pps';
 };
