@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.22';
+$VERSION = '2.23';
 
 use vars qw($UA);
 
@@ -519,23 +519,23 @@ if ($reports && USE_JQUERY_TABLESORTER) {
       var ret = makeInt(verArr[0]) + makeInt(verArr[1])/1000 + makeInt(verArr[2])/1000000;
       return ret;
     }, 
-    type: 'numeric' 
+    type: 'numeric'
   }); 
   $(document).ready(function() {
     var sl = [];
     if (window.location.hash && window.location.hash.match(/sl=(\d+),(\d+)/)) {
       sl = [[RegExp.$1,RegExp.$2]];
     }
+    var h = {};
+    var table_colnames = $("#reports thead tr th");
+    for(i=0; i<table_colnames.length; i++) {
+      if (table_colnames[i].innerHTML.match(/(OS vers|Perl version)/)) {
+        h[i] = { sorter:'versions' };
+      }
+    }
     $("#reports").tablesorter({
       sortList: sl,
-      headers: {
-        2: {
-          sorter:'versions'
-        },
-        4: {
-          sorter:'versions'
-        }
-      }
+      headers: h
     });
     $("#reports").bind("sortEnd",function() {
       var sl = this.config.sortList;
