@@ -558,3 +558,9 @@ amendments:
       - 45984222
       - 45984220
       - 45983432
+# Crypt-RIPEMD160-0.06
+  - comment: "Smells like a gcc 5.3.1 20151219 regression, maybe https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69037"
+    id:
+      - 63785680
+      - 63709286
+      - 63663328
