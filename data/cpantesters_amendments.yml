@@ -564,3 +564,8 @@ amendments:
       - 63785680
       - 63709286
       - 63663328
+# DBIx-Class-Schema-Loader-0.07045
+  - comment: "@INC too long"
+    action: INVALID
+    id:
+      - 64781504
