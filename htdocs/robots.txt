@@ -38,3 +38,6 @@ Disallow: /
 
 User-agent: ZeerchBot
 Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
