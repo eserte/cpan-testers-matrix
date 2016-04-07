@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.23';
+$VERSION = '2.24';
 
 use vars qw($UA);
 
@@ -1764,6 +1764,7 @@ sub dist_links {
 <h2>Other links</h2>
 <ul>
 <li><a href="http://deps.cpantesters.org/?module=$faked_module">CPAN Dependencies</a>
+<li><a href="http://deps.cpantesters.org/depended-on-by.pl?dist=$dist">Reverse deps</a>
 <li><a href="$ct_link">CPAN Testers</a>
 <li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
 <li><a href="https://metacpan.org/release/$dist">metacpan.org</a>
