@@ -30,12 +30,14 @@ sub debug ($);
 my $dry_run;
 my $debug;
 my $local_test_only;
+my $skip_ci_test;
 GetOptions(
 	   'debug' => \$debug,
 	   'n|dry-run' => \$dry_run,
 	   'local-test-only' => \$local_test_only,
+	   'skip-ci-test' => \$skip_ci_test,
 	  )
-    or die "usage: $0 [--dry-run] [--debug] [--local-test-only]\n";
+    or die "usage: $0 [--dry-run] [--debug] [--skip-ci-test | --local-test-only]\n";
 
 local $ENV{LC_ALL} = $ENV{LANG} = 'C';
 
@@ -61,6 +63,8 @@ if ($local_test_only) {
 	successful_system 'make';
 	successful_system 'make', 'test';
     };
+} elsif ($skip_ci_test) {
+    print STDERR "Skipping CI testing...\n";
 } else {
     step "check travis", sub {
 	check_travis 'eserte/cpan-testers-matrix';
