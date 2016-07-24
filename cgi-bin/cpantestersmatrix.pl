@@ -1595,7 +1595,7 @@ sub fetch_error_check ($) {
 	$msg = <<EOF;
 Timeout while fetching data from $ct_domain: timeout=${ua_timeout}s
 EOF
-    } elsif ($resp->code == 500) {
+    } elsif ($resp->code >= 500) {
 	$msg = <<EOF;
 Error while fetching data from $ct_domain: <@{[ $resp->status_line ]}>
 EOF
