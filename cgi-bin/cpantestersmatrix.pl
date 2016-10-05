@@ -190,7 +190,7 @@ my $latest_version;
 my $is_deprecated;
 my $meta_fetched_from;
 
-my @actions = qw(PASS NA UNKNOWN INVALID FAIL);
+my @actions = qw(PASS NA UNKNOWN FAIL INVALID);
 
 my %prefs = do {
     my %cookies = CGI::Cookie->fetch;
