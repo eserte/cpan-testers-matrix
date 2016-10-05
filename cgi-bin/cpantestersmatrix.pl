@@ -1677,6 +1677,15 @@ BEGIN {
     }
 }
 
+sub _action_invalid {
+    <<EOF;
+  .action_INVALID {
+    background-color: gray;
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,.5) 8px, rgba(255,255,255,.5) 16px);
+  }
+EOF
+}
+
 sub stylesheet_hicontrast {
     <<EOF;
   .action_PASS    { background:#00ff00; }
@@ -1700,10 +1709,10 @@ EOF
 sub stylesheet_matrix {
     <<EOF;
   .action_PASS    { background:green;  }
-  .action_NA      { background:orange; }
+  .action_NA      { background:coral; }
   .action_UNKNOWN { background:orange; }
   .action_FAIL    { background:red;    }
-  .action_INVALID { background:orange; }
+@{[ _action_invalid() ]}
 EOF
 }
 
