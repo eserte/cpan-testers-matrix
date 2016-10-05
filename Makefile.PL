@@ -67,6 +67,11 @@ fix-permissions-data-debian:
 	sudo chgrp www-data data
 	sudo chmod g+w data
 
+cpan_folded_distname_list: /var/tmp/cpan_folded_distname_list.txt
+
+/var/tmp/cpan_folded_distname_list.txt:
+	./bin/create-folded-distname-list.pl -o /var/tmp/cpan_folded_distname_list.txt
+
 BOTCHECKER=	${HOME}/src/botchecker/Botchecker.pm
 
 EOF
