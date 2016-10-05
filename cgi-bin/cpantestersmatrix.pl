@@ -537,6 +537,10 @@ if ($reports && USE_JQUERY_TABLESORTER) {
       sortList: sl,
       headers: h
     });
+    // XXX hack: set sortInitialOrder=desc for some columns
+    $.each(['Id','OS','Perl','Date'], function(index, header) {
+      $("#reports th:contains('" + header + "')").each(function () { this.order = this.count = 1; });
+    })
     $("#reports").bind("sortEnd",function() {
       var sl = this.config.sortList;
       if (sl != null && sl.length) {
