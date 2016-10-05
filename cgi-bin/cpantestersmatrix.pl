@@ -400,7 +400,7 @@ if ($reports) {
 	    $report_stats = join("<br>\n",
 				 ($r->{first_report_date} ? qq{First report: <i id="first_report_date">$r->{first_report_date} UTC</i>} : ()),
 				 ($r->{last_report_date}  ?  qq{Last report: <i id="last_report_date" >$r->{last_report_date} UTC</i>} : ()),
-				 (%{ $r->{total_actions} } ? (map { qq{<span class="action_$_">&nbsp;</span> $_: $r->{total_actions}->{$_}} } keys %{ $r->{total_actions} }) : ()),
+				 (%{ $r->{total_actions} } ? (map { qq{<span class="action_$_">&nbsp;</span> $_: $r->{total_actions}->{$_}} } grep { $r->{total_actions}->{$_} } @actions) : ()),
 				 ($r->{total_configurations} ? "Number of tested configurations: $r->{total_configurations}" : ()),
 				);
 	}
