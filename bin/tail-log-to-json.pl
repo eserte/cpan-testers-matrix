@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2012,2015 Slaven Rezic. All rights reserved.
+# Copyright (C) 2012,2015,2016 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -44,17 +44,19 @@ sub mydie ($) {
 
 my $o_dir;
 my $o_statusfile;
+my $do_seek = 1;
 GetOptions("o=s" => \$o_dir,
            "statusfile=s" => \$o_statusfile,
            "logfile=s" => \$o_logfile,
+	   'seek!' => \$do_seek,
           )
     or die "usage: $0 -o output_directory log.txt\n";
 $o_dir
     or die "Please specify -o option (destination directory for the .json files)\n";
-$o_logfile
-    or die "Please specify -logfile option";
 $o_statusfile
     or die "Please specify -statusfile option";
+$o_logfile
+    or die "Please specify -logfile option";
 my $tail_log = shift
     or die "Please provide path to log.txt\n";
 
@@ -63,7 +65,6 @@ my $tail_log = shift
 
 my %distinfo;
 
-my $seek = 0;
 my $lfh;
 my $lockfile = $o_statusfile;
 unless (open $lfh, "+<", $lockfile) {
@@ -85,7 +86,8 @@ my $status_content = do { open my $fh, $o_statusfile or mydie "could not open: $
 my $status = $status_content ? $json->decode($status_content) : {};
 open my $fh, $tail_log
     or mydie "Can't open $tail_log: $!";
-if ($status->{tell}) {
+binmode $fh, ':utf8';
+if ($do_seek && $status->{tell}) {
     seek $fh, $status->{tell}, SEEK_SET;
 }
 my $count = 0;
@@ -94,7 +96,6 @@ while(<$fh>) {
     chomp;
     next if /^The last \d+ reports/;
     next if /^\.\.\./;
-    s/[\200-\377]/?/g;
     if (my($date1, $author, $status, $distpath, $archname, $perl, $guid, $date2) = $_ =~
 	m{^\[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\] \[(.*?)\]$}) {
 	# I need:
