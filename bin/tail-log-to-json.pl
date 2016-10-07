@@ -81,7 +81,7 @@ if (flock $lfh, LOCK_EX|LOCK_NB) {
     mydie "FATAL[$$]: lockfile '$lockfile' locked by a different process; cannot continue";
 }
 
-my $json = JSON::XS->new->pretty(1)->indent(1)->space_before(1)->space_after(0);
+my $json = JSON::XS->new->pretty(1)->utf8(1)->indent(1)->space_before(1)->space_after(0);
 my $status_content = do { open my $fh, $o_statusfile or mydie "could not open: $!"; local $/; <$fh>};
 my $status = $status_content ? $json->decode($status_content) : {};
 open my $fh, $tail_log
