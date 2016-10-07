@@ -1662,7 +1662,7 @@ BEGIN {
 				     [$right_trial, \$right_trial_number],
 				    ) {
 			    my($trial, $number_ref) = @$def;
-			    $$number_ref = $trial =~ m{(\d+)$};
+			    ($$number_ref) = $trial =~ m{(\d+)$};
 			    $$number_ref = 1 if !defined $$number_ref;
 			}
 			return $left_trial_number <=> $right_trial_number;
