@@ -20,7 +20,8 @@ my @matrix_tests =
      ['dist=Tk+804.027'],
      ['dist=JSON', 'maxver=1'],
      ['dist=Clarion'],
-     ['dist=CPAN+2.00'],
+     #['dist=CPAN+2.00'], # for TRIAL sorting
+     ['dist=Memcached-libmemcached+0.4406'], # for TRIAL sorting, smaller than CPAN.json
      ['author=srezic'],
      ['dist=Kwalify', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
      ['dist=Kwalify+1.16', 'reports=1', 'os=freebsd', 'perl=5.8.8'],
@@ -79,6 +80,8 @@ sub test_cpantestersmatrix {
     # special tests
     if ("@cgi_args" eq 'dist=CPAN+2.00') {
 	test_cpan_pm_trial_versions($content);
+    } elsif ("@cgi_args" eq 'dist=Memcached-libmemcached+0.4406') {
+	test_memcached_libmemcached_0_4406_trial_versions($content);
     }
 }
 
@@ -103,6 +106,18 @@ sub test_cpantestersmatrix_other_links {
 sub test_cpan_pm_trial_versions {
     my $content = shift;
     like($content, qr{Other versions.*CPAN 2\.05.*CPAN 2\.05-TRIAL2.*CPAN 2\.05-TRIAL}s, 'TRIAL version numbering');
+}
+
+sub test_memcached_libmemcached_0_4406_trial_versions {
+    my $content = shift;
+    like($content, qr{
+			 Other[ ]versions.*
+			 Memcached-libmemcached[ ]1.001801.*
+			 Memcached-libmemcached[ ]1.001801-TRIAL3.*
+			 Memcached-libmemcached[ ]1.001801-TRIAL2.*
+			 Memcached-libmemcached[ ]1.001800-TRIAL1.*
+			 Memcached-libmemcached[ ]1.001702
+		     }sx, 'TRIAL version numbering');
 }
 
 for my $matrix_test (@matrix_tests) {
