@@ -1176,7 +1176,7 @@ sub fetch_author_data ($) {
 	last GET_DATA if !$head_resp->is_success;
 	my $content_length = $head_resp->content_length;
 	if (defined $content_length) {
-	    my $max_content_length = $] >= 5.014 ? 150_000_000 : 15_000_000;
+	    my $max_content_length = $] >= 5.014 ? 150_000_000 : 20_000_000;
 	    if ($content_length > $max_content_length) {
 		my $msg = <<EOF;
 Sorry, $url is too large to be processed (content-length: $content_length)
