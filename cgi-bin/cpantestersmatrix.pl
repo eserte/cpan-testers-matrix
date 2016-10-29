@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.25';
+$VERSION = '2.26';
 
 use vars qw($UA);
 
@@ -1052,12 +1052,30 @@ EOF
 	last GET_DATA if $resp->is_success;
 
 	if ($resp->code == 404) {
-	    die <<EOF
+	    my $err = <<EOF;
 Distribution results for <$dist> at <$url> not found.
+EOF
+	    my $in_maintenance;
+	    if (strftime('%F', localtime) le '2016-10-31') {
+		my $resp = $ua->get("http://$new_ct_domain");
+		if ($resp->decoded_content =~ m{down for maintenance}i) {
+		    $in_maintenance = 1;
+		}
+	    }
+	    if ($in_maintenance) {
+		$err .= <<EOF;
+www.cpantesters.org is currently in maintenace.
+As a fallback you can try the alternative
+<http://fast-matrix.cpantesters.org/?@{[ $q->query_string ]}>
+EOF
+	    } else {
+		$err .= <<EOF;
 Maybe you mistyped the distribution name?
 Maybe you added the author name to the distribution string?
 Note that the distribution name is case-sensitive.
 EOF
+	    }
+	    die $err;
 	} elsif ($resp->code == 304) {
 	    if (!-r $cachefile) {
 		die <<EOF;
