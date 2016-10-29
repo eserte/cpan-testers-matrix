@@ -1056,7 +1056,7 @@ EOF
 Distribution results for <$dist> at <$url> not found.
 EOF
 	    my $in_maintenance;
-	    if (strftime('%F', localtime) le '2016-10-31') {
+	    if (strftime('%F', localtime) le '2016-10-28') {
 		my $resp = $ua->get("http://$new_ct_domain");
 		if ($resp->decoded_content =~ m{down for maintenance}i) {
 		    $in_maintenance = 1;
