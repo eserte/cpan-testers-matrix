@@ -286,7 +286,7 @@ finish;
 		    }
 		}
 		if ($failures) {
-		    die "At least one job failed.\n";
+		    die "At least one job failed. See https://travis-ci.org/$repo for more information.\n";
 		} elsif ($running == 0) {
 		    last;
 		}
