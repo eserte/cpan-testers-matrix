@@ -1064,7 +1064,7 @@ EOF
 	    }
 	    if ($in_maintenance) {
 		$err .= <<EOF;
-www.cpantesters.org is currently in maintenace.
+www.cpantesters.org is currently in maintenance.
 As a fallback you can try the alternative
 <http://fast-matrix.cpantesters.org/?@{[ $q->query_string ]}>
 EOF
