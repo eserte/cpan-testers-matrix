@@ -1,6 +1,21 @@
 # Note: USE_SYSTEM_PERL does not work, some
 # modules are missing in the repos (Sereal, Plack::Test)
 
+language: perl
+
+matrix:
+  include:
+## XXX not ready, see above
+#    - perl: "5.14"
+#      env: USE_SYSTEM_PERL=1
+    - perl: "5.20"
+# IPv6 address of www.cpan.org is currently slow --- use another mirror instead
+    - perl: "5.20"
+      env: PERL_CPANM_OPT="--mirror http://cpan.cpantesters.org --mirror https://cpan.metacpan.org"
+    - perl: "5.18"
+    - perl: "5.14"
+    - perl: "5.10"
+
 before_install:
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && perlbrew off || true'
  - sudo apt-get update -qq
@@ -28,17 +43,6 @@ before_script:
 # fix shebang for plackup operation
  - (cd cgi-bin && env PERL=$(which perl) perl -pe '$_ = "#!$ENV{PERL} -T\n" if $. == 1' cpantestersmatrix.pl > cpantestersmatrix-travis.pl && chmod 755 cpantestersmatrix-travis.pl)
 
-language: perl
-
-matrix:
-  include:
-## XXX not ready, see above
-#    - perl: "5.14"
-#      env: USE_SYSTEM_PERL=1
-    - perl: "5.20"
-# IPv6 address of www.cpan.org is currently slow --- use another mirror instead
-    - perl: "5.20"
-      env: PERL_CPANM_OPT="--mirror http://cpan.cpantesters.org --mirror https://cpan.metacpan.org"
-    - perl: "5.18"
-    - perl: "5.14"
-    - perl: "5.10"
+branches:
+ except:
+  - /appveyor/
