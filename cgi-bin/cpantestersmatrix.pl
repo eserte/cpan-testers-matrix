@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.26';
+$VERSION = '2.27';
 
 use vars qw($UA);
 
@@ -609,7 +609,7 @@ print <<EOF;
 EOF
 if ($q->param('maxver')) {
     print <<EOF;
-    <input type="hidden" name="maxver" value="@{[ $q->param("maxver") ]}" />
+    <input type="hidden" name="maxver" value="@{[ scalar $q->param("maxver") ]}" />
 EOF
 }
 print <<EOF;
