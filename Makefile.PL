@@ -1,5 +1,6 @@
 # -*- cperl -*-
 use strict;
+use Cwd 'realpath', 'getcwd';
 use ExtUtils::MakeMaker;
 
 my $eumm_recent_enough = $ExtUtils::MakeMaker::VERSION >= 6.54;
@@ -36,6 +37,7 @@ WriteMakefile(NAME =>         'CPAN::Testers::Matrix',
 	     );
 
 sub MY::postamble {
+    my $srcroot = realpath(getcwd().'/../..');
     my $postamble = '';
     my $fix_permissions_data_target = (
 				       $^O eq 'freebsd'                       ? 'fix-permissions-data-freebsd' :
@@ -43,6 +45,10 @@ sub MY::postamble {
 				       'fix-permissions-data-unhandled'
 				      );
     $postamble .= "fix-permissions-data: $fix_permissions_data_target\n\n";
+    $postamble .= <<"EOF";
+SRCROOT=	$srcroot
+
+EOF
     $postamble .= <<'EOF';
 validate-cpantestersmatrix-data:
 	pkwalify -f etc/cpantesters_amendments.kwalify data/cpantesters_amendments.yml
@@ -67,36 +73,37 @@ fix-permissions-data-debian:
 	sudo chgrp www-data data
 	sudo chmod g+w data
 
-BOTCHECKER=	${HOME}/src/botchecker/Botchecker.pm
+BOTCHECKER=	${SRCROOT}/botchecker/Botchecker.pm
 
 EOF
 
     for my $def (
-		 ['live', 'live-matrix'],
-		 ['pps', 'pps-matrix'],
+		 ['live',       'live-matrix',       '/root/work'],
+		 ['pps',        'pps-matrix',        '/root/work'],
+		 ['pps-jessie', 'pps-jessie-matrix', '/srv/www'],
 		) {
-	my($type, $host) = @$def;
-	if ($type eq 'pps') {
+	my($type, $host, $wwwroot) = @$def;
+	if ($type eq 'pps' || $type eq 'pps-jessie') {
 	    $postamble .= <<EOF;
 update-$type-from-home: rsync-$type-cpantestersmatrix
-	ssh -A $host 'cd /root/work/cpan-testers-matrix.beta && git fetch cvrsnica && git checkout cvrsnica/master'
-	ssh -A $host 'cd /root/work/cpan-testers-matrix && git fetch cvrsnica && git checkout cvrsnica/master'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git fetch cvrsnica && git checkout cvrsnica/master'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix && git fetch cvrsnica && git checkout cvrsnica/master'
 
 update-$type: rsync-$type-cpantestersmatrix
-	ssh -A $host 'cd /root/work/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
-	ssh -A $host 'cd /root/work/cpan-testers-matrix && git checkout master && git pull --ff-only'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix && git checkout master && git pull --ff-only'
 
 EOF
 	} else {
 	    $postamble .= <<EOF;
 update-$type-beta: rsync-$type-cpantestersmatrix-beta
-	ssh -A $host 'cd /root/work/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
 
 update-$type-beta-from-home: rsync-$type-cpantestersmatrix-beta
-	ssh -A $host 'cd /root/work/cpan-testers-matrix.beta && git fetch biokovo && git checkout biokovo/master'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git fetch biokovo && git checkout biokovo/master'
 
 update-$type-stable: rsync-$type-cpantestersmatrix
-	ssh -A $host 'cd /root/work/cpan-testers-matrix && git checkout master && git pull --ff-only'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix && git checkout master && git pull --ff-only'
 
 EOF
 	}
@@ -105,15 +112,15 @@ rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-beta rsync-$type-cp
 
 rsync-$type-cpantestersmatrix-beta:
 	perl -c \${BOTCHECKER}
-	rsync -av \${BOTCHECKER} $host:/root/work/cpan-testers-matrix.beta/cgi-bin/
+	rsync -av \${BOTCHECKER} $host:$wwwroot/cpan-testers-matrix.beta/cgi-bin/
 
 rsync-$type-cpantestersmatrix-stable:
 	perl -c \${BOTCHECKER}
-	rsync -av \${BOTCHECKER} $host:/root/work/cpan-testers-matrix/cgi-bin/
+	rsync -av \${BOTCHECKER} $host:$wwwroot/cpan-testers-matrix/cgi-bin/
 
 fix-$type-cpantestersmatrix-permissions:
-	ssh $host chgrp www-data /root/work/cpantestersmatrix
-	ssh $host chmod g+w /root/work/cpantestersmatrix
+	ssh $host chgrp www-data $wwwroot/cpantestersmatrix
+	ssh $host chmod g+w $wwwroot/cpantestersmatrix
 
 EOF
     }
