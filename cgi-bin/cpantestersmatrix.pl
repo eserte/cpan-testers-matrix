@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.27';
+$VERSION = '2.28';
 
 use vars qw($UA);
 
@@ -1543,7 +1543,13 @@ sub set_dist_and_version ($) {
 sub set_newest_dist_version {
     my($data) = @_;
     if (!$dist_version) {
-	$dist_version = reduce { cmp_version($a,$b) > 0 ? $a : $b } map { $_->{version} } grep { $_->{version} } @$data;
+	my %versions;
+	for (@$data) {
+	    if (exists $_->{version} && !exists $versions{$_->{version}}) {
+		$versions{$_->{version}} = 1;
+	    }
+	}
+	$dist_version = reduce { cmp_version($a,$b) > 0 ? $a : $b } keys %versions;
     }
 }
 
