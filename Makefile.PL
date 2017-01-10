@@ -100,7 +100,7 @@ update-$type-beta: rsync-$type-cpantestersmatrix-beta
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
 
 update-$type-beta-from-home: rsync-$type-cpantestersmatrix-beta
-	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git fetch biokovo && git checkout biokovo/master'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git fetch cvrsnica && git checkout cvrsnica/master'
 
 update-$type-stable: rsync-$type-cpantestersmatrix
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix && git checkout master && git pull --ff-only'
