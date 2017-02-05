@@ -78,7 +78,7 @@ BOTCHECKER=	${SRCROOT}/botchecker/Botchecker.pm
 EOF
 
     for my $def (
-		 ['live',       'live-matrix',       '/root/work'],
+		 ['live',       'live-matrix',       '/srv/www'],
 		 ['pps',        'pps-matrix',        '/root/work'],
 		 ['pps-jessie', 'pps-jessie-matrix', '/srv/www'],
 		) {
