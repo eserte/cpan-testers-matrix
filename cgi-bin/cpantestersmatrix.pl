@@ -27,7 +27,7 @@ BEGIN { ($realbin) = $FindBin::RealBin =~ m{^(.*)$} } # untaint it
 use lib $realbin;
 
 use CGI qw(escapeHTML);
-#use CGI::Carp qw();
+use CGI::Carp qw();
 use CGI::Cookie;
 use CPAN::Version;
 use File::Basename qw(basename);
