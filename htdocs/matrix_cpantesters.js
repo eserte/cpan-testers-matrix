@@ -126,18 +126,23 @@ function DynamicDate(epoch, element_id, options) {
     this.date_formatted = sprintf("%04d-%02d-%02d %02d:%02d" + (this.no_seconds ? "" : ":%02d"),
 				  date.getFullYear(), date.getMonth()+1, date.getDate(),
 				  date.getHours(), date.getMinutes(), date.getSeconds());
-    var tzOffset = date.getTimezoneOffset();
-    var tzOffsetString;
-    if (tzOffset == 0) {
-	tzOffsetString = 'UTC';
+    var date_string = date.toString();
+    if (date_string.match(/\((.+?)\)$/)) {
+        this.date_formatted += " " + RegExp.$1;
     } else {
-	var sgn = tzOffset > 0 ? '-' : '+';
-	tzOffset = Math.abs(tzOffset);
-	var tzOffsetH = Math.floor(tzOffset/60);
-	var tzOffsetM = tzOffset%60;
-	tzOffsetString = 'UTC' + sgn + tzOffsetH + (tzOffsetM == 0 ? '' : ':' + sprintf("%02d", tzOffsetM));
+        var tzOffset = date.getTimezoneOffset();
+        var tzOffsetString;
+        if (tzOffset == 0) {
+	    tzOffsetString = 'UTC';
+        } else {
+	    var sgn = tzOffset > 0 ? '-' : '+';
+	    tzOffset = Math.abs(tzOffset);
+	    var tzOffsetH = Math.floor(tzOffset/60);
+	    var tzOffsetM = tzOffset%60;
+	    tzOffsetString = 'UTC' + sgn + tzOffsetH + (tzOffsetM == 0 ? '' : ':' + sprintf("%02d", tzOffsetM));
+        }
+        this.date_formatted += " " + tzOffsetString;
     }
-    this.date_formatted += " " + tzOffsetString;
     this.update_date();
 }
 
