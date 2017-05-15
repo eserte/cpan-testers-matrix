@@ -144,12 +144,16 @@ my $is_beta = $q->script_name =~ /(cpantestersmatrix2|beta)/ || $q->virtual_host
 # XXX hmm, some globals ...
 my $dist_title = "";
 my @CORE_OSNAMES = qw(mswin32 cygwin darwin freebsd linux openbsd netbsd solaris);
-my $new_ct_domain = "www.cpantesters.org";
+## XXX temporary solution because of DNS problems
+#my $new_ct_domain = "www.cpantesters.org";
+my $new_ct_domain = "cpantesters.org";
 my $ct_domain = $new_ct_domain;
 my $ct_link = "http://$ct_domain";
 my $dist_bugtracker_url;
 #my $report_rooturl = "http://nntp.x.perl.org/group/perl.cpan.testers/";
-my $report_rooturl = "http://www.cpantesters.org/cpan/report/";
+#my $report_rooturl = "http://www.cpantesters.org/cpan/report/";
+## XXX temporary solution because of DNS problems
+my $report_rooturl = "http://cpantesters.org/cpan/report/";
 my $table;
 my $tables;
 my $cachefile;
