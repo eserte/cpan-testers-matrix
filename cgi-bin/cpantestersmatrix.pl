@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.28';
+$VERSION = '2.29';
 
 use vars qw($UA);
 
@@ -910,7 +910,7 @@ sub fetch_meta ($) {
 
 	my $fetch_meta_json_from_metacpan = sub {
 	    require_json;
-	    my $api_url = "http://api.metacpan.org/release/" . $dist;
+	    my $api_url = "https://fastapi.metacpan.org/v1/release/" . $dist;
 	    my $api_resp = $ua->get($api_url);
 	    if ($api_resp->is_success) {
 		my $json = $api_resp->decoded_content(charset => 'none');
