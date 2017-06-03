@@ -71,9 +71,9 @@ if ($local_test_only) {
     };
 }
 step "update-pps", sub {
-    successful_system 'make', 'update-pps';
+    successful_system 'make', 'update-pps-jessie';
 };
-manual_check_step "pps tests", "Please go to http://matrix-cpantesters-pps and do some manual tests.";
+manual_check_step "pps tests", "Please go to http://matrix.bbbike-pps-jessie and do some manual tests.";
 confirmed_step "update-live-beta", sub {
     successful_system 'make', 'update-live-beta';
 };
