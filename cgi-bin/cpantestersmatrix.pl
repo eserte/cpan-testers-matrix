@@ -68,7 +68,7 @@ sub iso_date_to_epoch ($);
 my $cache_days = 1/8;
 my $ua_timeout = 10;
 
-my $current_stable_perl = "5.24.0"; # please always end with ".0"
+my $current_stable_perl = "5.26.0"; # please always end with ".0"
 
 #use constant FILEFMT_AUTHOR => 'yaml';
 use constant FILEFMT_AUTHOR => 'json';
