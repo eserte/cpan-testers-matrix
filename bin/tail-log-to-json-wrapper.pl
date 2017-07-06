@@ -13,9 +13,8 @@
 #
 
 use strict;
-use POSIX 'strftime';
 
-system("wget", "-O", "/tmp/log.txt~", "http://metabase.cpantesters.org/tail/log.txt?" . POSIX::strftime("%FT%TZ", gmtime));
+system("wget", "-O", "/tmp/log.txt~", "http://metabase.cpantesters.org/tail/log.txt?" . time);
 die "Getting log.txt failed" if $? != 0;
 rename "/tmp/log.txt~", "/tmp/log.txt" or die $!;
 system("/home/eserte/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-json.pl", "-o", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/log.log", "-statusfile", "/tmp/statusfile", "/tmp/log.txt", "-no-seek");
