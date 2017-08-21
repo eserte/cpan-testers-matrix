@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.29';
+$VERSION = '2.30';
 
 use vars qw($UA);
 
@@ -1883,9 +1883,12 @@ sub amend_result {
     # Another one: 'archname' is now 'platform'
     $result->{archname} = $result->{platform} if !exists $result->{archname};
 
-    ## Happens after 2011-10 (again?)
+    ## Happens after 2011-10 (again?); deactivated 2013; reactivated 2017-08
     ## canonify perl version: strip leading "v"
-    #$result->{perl} =~ s{^v}{} if exists $result->{perl};
+    $result->{perl} =~ s{^v}{} if exists $result->{perl};
+
+    ## Happens only with log.txt-generated json files, since 2017-08
+    $result->{perl} =~ s{^perl-}{} if exists $result->{perl};
 
     # Happens after 2013-XX
     # normalize osnames (everything should be lowercase now)
