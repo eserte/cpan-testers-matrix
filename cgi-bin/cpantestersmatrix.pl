@@ -66,7 +66,7 @@ sub dist_version_url ($$$);
 sub iso_date_to_epoch ($);
 
 my $cache_days = 1/8;
-my $ua_timeout = 10;
+my $ua_timeout = 30;
 
 my $current_stable_perl = "5.26.0"; # please always end with ".0"
 
