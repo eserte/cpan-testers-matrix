@@ -41,3 +41,6 @@ Disallow: /
 
 User-agent: SemrushBot
 Disallow: /
+
+User-agent: ltx71
+Disallow: /
