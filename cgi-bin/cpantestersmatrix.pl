@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.31';
+$VERSION = '2.32';
 
 use vars qw($UA);
 
@@ -64,6 +64,7 @@ sub obfuscate_from ($);
 sub downtime_teaser ();
 sub dist_version_url ($$$);
 sub iso_date_to_epoch ($);
+sub _reusing_cache_msg ($);
 
 my $cache_days = 1/8;
 my $ua_timeout = 30;
@@ -1094,7 +1095,7 @@ EOF
 	$error = fetch_error_check($resp);
 	if ($error) {
 	    if (-r $cachefile) {
-		$error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+		$error .= _reusing_cache_msg $cachefile;
 		$good_cachefile = $cachefile;
 		last GET_DATA;
 	    } else {
@@ -1124,7 +1125,7 @@ EOF
 	    no warnings 'uninitialized'; # $@ may be undef
 	    warn "$msg. Error: '$@'";
 	    if (-r $cachefile) {
-		$error = $msg . "\n" . sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+		$error = $msg . "\n" . _reusing_cache_msg $cachefile;
 		$good_cachefile = $cachefile;
 		$do_cache_retrieve->();
 	    } else {
@@ -1212,7 +1213,7 @@ EOF
 	if ($error) {
 	    if (-r $cachefile) {
 		warn "No success fetching <$url>: " . $resp->status_line;
-		$error .= sprintf "\nReusing old cached file, %.1f day(s) old\n", -M $cachefile;
+		$error .= _reusing_cache_msg $cachefile;
 		$good_cachefile = $cachefile;
 		last GET_DATA;
 	    } else {
@@ -2112,6 +2113,12 @@ sub iso_date_to_epoch ($) {
     } else {
 	undef;
     }
+}
+
+sub _reusing_cache_msg ($) {
+    my $cachefile = shift;
+    my $days = -M $cachefile;
+    sprintf "\nReusing old cached file, %.1f day%s old\n", $days, $days != 1 ? 's' : '';
 }
 
 {
