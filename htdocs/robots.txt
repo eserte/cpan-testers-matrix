@@ -44,3 +44,6 @@ Disallow: /
 
 User-agent: ltx71
 Disallow: /
+
+User-agent: dotbot
+Disallow: /
