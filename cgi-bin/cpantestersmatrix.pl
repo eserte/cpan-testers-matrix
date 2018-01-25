@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.32';
+$VERSION = '2.33';
 
 use vars qw($UA);
 
@@ -296,10 +296,16 @@ if ($reports) {
 	} @reports) {
 	    my $action_comment_html = $rec->{action_comment}||"";
 	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
-	    #my $report_url = $report_rooturl . $rec->{id}; # prefer id over guid
-	    my $report_url = $report_rooturl . ($rec->{guid} || $rec->{id}); # prefer guid over id
+	    my($display_id, $report_url);
+	    if (!$is_log_txt_view ||
+		$rec->{fulldate} ge "2017-08-13" # since the switch to the new cpantesters API report linking on the log.txt view is possible
+	       ) {
+		my $id = ($rec->{guid} || $rec->{id}); # prefer guid over id for linking
+		$report_url = $report_rooturl . $id;
+		$display_id = ($rec->{id} || $rec->{guid}); # ... but the shorter id is used for displaying
+	    }
 	    push @matrix, [ qq{<span class="fgaction_$rec->{action}">$rec->{action}</span>},
-			    qq{<a href="$report_url">$rec->{id}</a>},
+			    ($display_id ? qq{<a href="$report_url">$display_id</a>} : ""),
 			    $rec->{osvers},
 			    $rec->{archname},
 			    (!defined $dist_version ? $rec->{version} : ()),
