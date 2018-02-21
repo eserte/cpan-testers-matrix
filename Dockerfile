@@ -10,4 +10,4 @@ RUN apt-get install -qq git starman libcgi-pm-perl libcpan-distnameinfo-perl lib
 RUN git clone --depth=1 https://github.com/eserte/cpan-testers-matrix.git
 WORKDIR cpan-testers-matrix
 
-CMD starman --listen 0.0.0.0:80 cpan-testers-matrix.psgi
+CMD starman --listen :8080 cpan-testers-matrix.psgi
