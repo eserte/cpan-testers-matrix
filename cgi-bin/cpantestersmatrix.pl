@@ -25,6 +25,7 @@ use FindBin;
 my $realbin;
 BEGIN { ($realbin) = $FindBin::RealBin =~ m{^(.*)$} } # untaint it
 use lib $realbin;
+use lib "$realbin/../extlib/lib/perl5";
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
