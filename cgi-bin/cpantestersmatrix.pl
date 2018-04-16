@@ -837,7 +837,7 @@ if (Sys::Hostname::hostname eq "ds8143") {
     .webfusion a:active  { text-decoration:underline; font-weight:bold; color: #fff; }
     .webfusion img { vertical-align: middle; }
   </style>
-  <div class="webfusion"><i>This site is gratefully hosted on a <a href="http://www.webfusion.co.uk/dedicated-servers/">Dedicated Server</a>, sponsored by <a alt="Webfusion" href="http://www.webfusion.co.uk"><img src="http://www.webfusion.co.uk/library/images/logo.png"/></a></i></div>
+  <div class="webfusion"><i>This site is gratefully hosted on a <a href="http://www.webfusion.co.uk/dedicated-servers/">Dedicated Server</a>, sponsored by <a alt="Webfusion" href="http://www.webfusion.co.uk">Webfusion<!--<img src="http://www.webfusion.co.uk/library/images/logo.png"/>--></a></i></div>
 EOF
 }
 
