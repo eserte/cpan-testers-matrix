@@ -1079,6 +1079,7 @@ EOF
 		$err .= <<EOF;
 Maybe you mistyped the distribution name?
 Maybe you added the author name to the distribution string?
+Maybe the distribution is very fresh and not yet available at CPAN Testers?
 Note that the distribution name is case-sensitive.
 EOF
 	    }
