@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.33';
+$VERSION = '2.34';
 
 use vars qw($UA);
 
@@ -69,7 +69,7 @@ sub _reusing_cache_msg ($);
 my $cache_days = 1/8;
 my $ua_timeout = 30;
 
-my $current_stable_perl = "5.26.0"; # please always end with ".0"
+my $current_stable_perl = "5.28.0"; # please always end with ".0"
 
 #use constant FILEFMT_AUTHOR => 'yaml';
 use constant FILEFMT_AUTHOR => 'json';
