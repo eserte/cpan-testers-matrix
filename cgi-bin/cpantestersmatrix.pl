@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.34';
+$VERSION = '2.35';
 
 use vars qw($UA);
 
@@ -47,8 +47,6 @@ sub get_cache_filename_from_author ($$);
 sub add_serializer_suffix ($);
 sub cache_retrieve ($);
 sub cache_store ($$);
-sub meta_yaml_url ($);
-sub meta_json_url ($);
 sub get_ua ();
 sub fetch_error_check ($);
 sub set_dist_and_version ($);
@@ -686,7 +684,6 @@ EOF
 <h2>Other links</h2>
 <ul>
 <li><a href="$ct_link">CPAN Testers</a>
-<li><a href="http://search.cpan.org/~$author/">search.cpan.org</a>
 <li><a href="https://metacpan.org/author/$author/">metacpan.org</a>
 </ul>
 </div>
@@ -847,7 +844,7 @@ print <<EOF;
   </div>
   <div>
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
-   by <a href="http://search.cpan.org/~srezic/">Slaven Rezi&#x0107;</a>
+   by <a href="https://metacpan.org/author/SREZIC">Slaven Rezi&#x0107;</a>
   </div>$sponsor_blurb
 @{[ defined &Botchecker::zdjela_meda ? Botchecker::zdjela_meda() : '' ]}
  </body>
@@ -866,54 +863,6 @@ sub fetch_meta ($) {
 	my @errors;
 
 	my $ua = get_ua;
-
-	my $fetch_meta_yaml_from_sco = sub {
-	    require_yaml;
-	    my $yaml_url = meta_yaml_url($dist);
-	    my $yaml_resp = $ua->get($yaml_url);
-	    if ($yaml_resp->is_success) {
-		my $yaml = $yaml_resp->decoded_content;
-		if (length $yaml) {
-		    eval {
-			$meta = yaml_load($yaml);
-			if ($meta) {
-			    $meta->{__fetched_from} = $yaml_url;
-			}
-		    };
-		    if ($@) {
-			push @errors, "While deserializing meta data from <$yaml_url>: $@";
-		    }
-		} else {
-		    push @errors, "Got empty YAML from <$yaml_url>";
-		}
-	    } else {
-		push @errors, "No success fetching <$yaml_url>: " . $yaml_resp->status_line;
-	    }
-	};
-
-	my $fetch_meta_json_from_sco = sub {
-	    require_json;
-	    my $json_url = meta_json_url($dist);
-	    my $json_resp = $ua->get($json_url);
-	    if ($json_resp->is_success) {
-		my $json = $json_resp->decoded_content(charset => 'none');
-		if (length $json) {
-		    eval {
-			$meta = json_load($json);
-			if ($meta) {
-			    $meta->{__fetched_from} = $json_url;
-			}
-		    };
-		    if ($@) {
-			push @errors, "While deserializing meta data from $json_url: $@";
-		    }
-		} else {
-		    push @errors, "Got empty JSON from <$json_url>";
-		}
-	    } else {
-		push @errors, "No success fetching <$json_url>: " . $json_resp->status_line;
-	    }
-	};
 
 	my $fetch_meta_json_from_metacpan = sub {
 	    require_json;
@@ -941,13 +890,6 @@ sub fetch_meta ($) {
 	};
 
 	$fetch_meta_json_from_metacpan->();
-	if (!$meta) {
-	    warn "Could not get META from metacpan API, errors so far: " . join("; ", @errors);
-	    $fetch_meta_yaml_from_sco->();
-	    if (0 && !$meta) {
-		$fetch_meta_json_from_sco->();
-	    }
-	}
 
 	if ($meta) {
 	    eval {
@@ -1602,16 +1544,6 @@ sub add_serializer_suffix ($) {
     }
 }
 
-sub meta_yaml_url ($) {
-    my $dist = shift;
-    "http://search.cpan.org/meta/$dist/META.yml";
-}
-
-sub meta_json_url ($) {
-    my $dist = shift;
-    "http://search.cpan.org/meta/$dist/META.json";
-}
-
 sub get_ua () {
     require LWP;
     LWP->VERSION(5.808); # bugs in decoded_content
@@ -1804,6 +1736,9 @@ EOF
 sub dist_links {
     (my $faked_module = $dist) =~ s{-}{::}g;
     my $dist_bugtracker_url = $dist_bugtracker_url || "https://rt.cpan.org/Public/Dist/Display.html?Name=$dist";
+    # Note: the search.cpan.org link is deliberately kept here --- for
+    # unindexed distributions this is the only link still working, the
+    # metacpan link does not work in these situations!
     print <<EOF;
 <div style="float:left; margin-left:3em;">
 <h2>Other links</h2>
@@ -1811,8 +1746,8 @@ sub dist_links {
 <li><a href="http://deps.cpantesters.org/?module=$faked_module">CPAN Dependencies</a>
 <li><a href="http://deps.cpantesters.org/depended-on-by.pl?dist=$dist">Reverse deps</a>
 <li><a href="$ct_link">CPAN Testers</a>
-<li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
 <li><a href="https://metacpan.org/release/$dist">metacpan.org</a>
+<li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
 <li><a href="$dist_bugtracker_url">Bugtracker</a>
 EOF
     if (defined $dist_version) {
