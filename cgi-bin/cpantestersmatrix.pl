@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.35';
+$VERSION = '2.36';
 
 use vars qw($UA);
 
@@ -1483,6 +1483,8 @@ sub set_dist_and_version ($) {
     } elsif ($_dist =~ m{^POSIX-1003$}) { # another heuristic
 	# keep existing global $dist
     } elsif ($_dist =~ m{^POSIX-2008$}) { # another heuristic
+	# keep existing global $dist
+    } elsif ($_dist =~ m{^Net-Cisco-FMC-v1$}) { # yet another (#19)
 	# keep existing global $dist
     } elsif ($_dist =~ m{^(.*)[- ](v?[\d\._]+)$}) {
 	($dist, $dist_version) = ($1, $2);
