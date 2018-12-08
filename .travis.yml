@@ -43,6 +43,10 @@ before_script:
 # fix shebang for plackup operation
  - (cd cgi-bin && env PERL=$(which perl) perl -pe '$_ = "#!$ENV{PERL} -T\n" if $. == 1' cpantestersmatrix.pl > cpantestersmatrix-travis.pl && chmod 755 cpantestersmatrix-travis.pl)
 
+script:
+  - perl Makefile.PL && env HARNESS_TIMER=1 HARNESS_OPTIONS=j4:c make test
+# Don't use "make disttest" here; we need the changes done in before_script
+
 branches:
  except:
   - /appveyor/
