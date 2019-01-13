@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ package # not official yet
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.36';
+$VERSION = '2.37';
 
 use vars qw($UA);
 
@@ -229,7 +229,10 @@ my %prefs = do {
 my $first_report_epoch;
 my $last_report_epoch;
 
-if ($reports) {
+if ((defined $dist   && $dist   =~ /[<>&]/) ||
+    (defined $author && $author =~ /[<>&]/)) {
+    $error = "Invalid characters found in dist or author";
+} elsif ($reports) {
     my $want_perl = $q->param("perl");
     my $want_os = $q->param("os");
     my @sort_columns = $q->can('multi_param') ? $q->multi_param('sort') : $q->param('sort');
@@ -238,10 +241,10 @@ if ($reports) {
     if (defined $want_perl || defined $want_os) {
 	$reports_header = "Reports filtered for ";
 	if (defined $want_perl) {
-	    $reports_header .= "perl=$want_perl ";
+	    $reports_header .= "perl=" . escapeHTML($want_perl) . " ";
 	}
 	if (defined $want_os) {
-	    $reports_header .= "os=$want_os";
+	    $reports_header .= "os=" . escapeHTML($want_os);
 	}
     }
 
@@ -683,8 +686,8 @@ EOF
 <div style="float:left;">
 <h2>Other links</h2>
 <ul>
-<li><a href="$ct_link">CPAN Testers</a>
-<li><a href="https://metacpan.org/author/$author/">metacpan.org</a>
+<li><a href="@{[ CGI::escapeHTML($ct_link) ]}">CPAN Testers</a>
+<li><a href="https://metacpan.org/author/@{[ CGI::escapeHTML($author) ]}/">metacpan.org</a>
 </ul>
 </div>
 EOF
@@ -1741,29 +1744,31 @@ sub dist_links {
     # Note: the search.cpan.org link is deliberately kept here --- for
     # unindexed distributions this is the only link still working, the
     # metacpan link does not work in these situations!
+    my $dist_html = CGI::escapeHTML($dist);
     print <<EOF;
 <div style="float:left; margin-left:3em;">
 <h2>Other links</h2>
 <ul>
-<li><a href="http://deps.cpantesters.org/?module=$faked_module">CPAN Dependencies</a>
-<li><a href="http://deps.cpantesters.org/depended-on-by.pl?dist=$dist">Reverse deps</a>
+<li><a href="http://deps.cpantesters.org/?module=@{[ CGI::escapeHTML($faked_module) ]}">CPAN Dependencies</a>
+<li><a href="http://deps.cpantesters.org/depended-on-by.pl?dist=$dist_html">Reverse deps</a>
 <li><a href="$ct_link">CPAN Testers</a>
-<li><a href="https://metacpan.org/release/$dist">metacpan.org</a>
-<li><a href="http://search.cpan.org/dist/$dist/">search.cpan.org</a>
-<li><a href="$dist_bugtracker_url">Bugtracker</a>
+<li><a href="https://metacpan.org/release/$dist_html">metacpan.org</a>
+<li><a href="http://search.cpan.org/dist/$dist_html/">search.cpan.org</a>
+<li><a href="@{[ CGI::escapeHTML($dist_bugtracker_url) ]}">Bugtracker</a>
 EOF
     if (defined $dist_version) {
+	my $dist_version_html = CGI::escapeHTML($dist_version);
 	print <<EOF;
-<li><a href="http://analysis.cpantesters.org/solved?distv=$dist-$dist_version">Reports analysis</a> @{[ beta_html ]}
+<li><a href="http://analysis.cpantesters.org/solved?distv=$dist_html-$dist_version_html">Reports analysis</a> @{[ beta_html ]}
 EOF
     }
     if ($is_log_txt_view) { # we're on the log.txt view, show link back
 	print <<EOF;
-<li><a class="sml" href="http://matrix.cpantesters.org/?@{[ $q->query_string ]}">Regular matrix</a> <span class="sml"></span>
+<li><a class="sml" href="http://matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Regular matrix</a> <span class="sml"></span>
 EOF
     } else {
 	print <<EOF;
-<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ $q->query_string ]}">Matrix via log.txt</a> <!--<span class="sml">(temporary!)</span>-->
+<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via log.txt</a> <!--<span class="sml">(temporary!)</span>-->
 EOF
     }
     print <<EOF;
