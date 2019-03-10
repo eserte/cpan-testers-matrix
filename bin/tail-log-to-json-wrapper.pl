@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2016,2017 Slaven Rezic. All rights reserved.
+# Copyright (C) 2016,2017,2019 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -17,7 +17,7 @@ use strict;
 system("wget", "-O", "/tmp/log.txt~", "http://metabase.cpantesters.org/tail/log.txt?" . time);
 die "Getting log.txt failed" if $? != 0;
 rename "/tmp/log.txt~", "/tmp/log.txt" or die $!;
-system("/home/eserte/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-json.pl", "-o", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/log.log", "-statusfile", "/tmp/statusfile", "/tmp/log.txt", "-no-seek");
+system("/home/e/eserte/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-json.pl", "-o", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/log.log", "-statusfile", "/tmp/statusfile", "/tmp/log.txt", "-no-seek");
 die if $? != 0;
 
 __END__
