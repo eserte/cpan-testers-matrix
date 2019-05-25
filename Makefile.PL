@@ -1,4 +1,5 @@
 # -*- cperl -*-
+use 5.010; # defined-or
 use strict;
 use Cwd 'realpath', 'getcwd';
 use ExtUtils::MakeMaker;
@@ -34,6 +35,7 @@ WriteMakefile(NAME =>         'CPAN::Testers::Matrix',
 			     'JSON::XS'			   => 0,
 			     'YAML::Syck'		   => 0, # may work also with YAML, but not recommended
 			   },
+	      MIN_PERL_VERSION => 5.10.0,
 	     );
 
 sub MY::postamble {

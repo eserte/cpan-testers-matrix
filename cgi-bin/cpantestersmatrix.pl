@@ -14,6 +14,7 @@
 package # not official yet
     CPAN::Testers::Matrix;
 
+use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
@@ -260,7 +261,7 @@ if ((defined $dist   && $dist   =~ /[<>&]/) ||
 	    next if !$perl;
 	    next if defined $want_perl && $perl ne $want_perl;
 	    next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
-	    next if defined $want_os && $rec->{osname} ne $want_os;
+	    next if defined $want_os && ($rec->{osname}//'') ne $want_os;
 	    push @reports, $rec;
 	    $rec->{patch} = $patch;
 	}
@@ -1236,6 +1237,13 @@ sub build_success_table ($$$) {
 	$perl{$perl}++;
 	$perl_patches{$perl}->{$patch}++ if $patch;
 	my $osname = $r->{osname};
+	if (!defined $osname) {
+	    our %warned_undefined_osname;
+	    if (!$warned_undefined_osname{$dist}++) {
+		warn "Undefined osname in report(s) for $dist";
+	    }
+	    $osname = '';
+	}
 	$osname{$osname}++;
 
 	my $action = $r->{action};
