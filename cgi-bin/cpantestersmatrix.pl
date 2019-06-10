@@ -794,7 +794,7 @@ EOF
     <br />
 
     <label for="exclude_old_devel">Exclude old development versions:</label>
-    <input type="checkbox" id="exclude_old_devel" name="exclude_old_devel" $exclude_old_devel></input>
+    <input type="checkbox" id="exclude_old_devel" name="exclude_old_devel" $exclude_old_devel></input><span style="font-size:smaller">(current stable perl: @{[ $current_stable_perl =~ m{^(\d+\.\d+)} ]})</span>
 
     <br />
 
