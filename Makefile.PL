@@ -127,9 +127,17 @@ fix-$type-cpantestersmatrix-permissions:
 EOF
     }
 
-    if (defined $ENV{USER} && $ENV{USER} eq 'eserte' && $^O =~ /bsd/i) {
-	$postamble .= <<'EOF';
+    if (defined $ENV{USER} && $ENV{USER} eq 'eserte') {
+	if ($^O =~ /bsd/i) { # assume BSD make
+	    $postamble .= <<'EOF';
+GIT_TAG_DATE=	$(shell date +%Y%m%d)
+EOF
+	} else { # assume GNU make
+	    $postamble .= <<'EOF';
 GIT_TAG_DATE!=	date +%Y%m%d
+EOF
+	}
+	$postamble .= <<'EOF';
 GIT_TAG=	deployment/bbbikede/${GIT_TAG_DATE}
 
 git-post-tasks:
