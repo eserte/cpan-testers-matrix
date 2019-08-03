@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.38';
+$VERSION = '2.39';
 
 use vars qw($UA);
 
@@ -1768,6 +1768,11 @@ EOF
 	my $dist_version_html = CGI::escapeHTML($dist_version);
 	print <<EOF;
 <li><a href="http://analysis.cpantesters.org/solved?distv=$dist_html-$dist_version_html">Reports analysis</a> @{[ beta_html ]}
+EOF
+    }
+    if ($is_beta) {
+	print <<EOF;
+<li><a href="https://build.opensuse.org/package/show/devel:languages:perl:CPAN-C/perl-$dist_html">SUSE Open Build System</a> @{[ beta_html ]}
 EOF
     }
     if ($is_log_txt_view) { # we're on the log.txt view, show link back
