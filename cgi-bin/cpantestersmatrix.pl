@@ -1771,8 +1771,9 @@ EOF
 EOF
     }
     if ($is_beta) {
+	my $first_letter = substr($dist, 0, 1);
 	print <<EOF;
-<li><a href="https://build.opensuse.org/package/show/devel:languages:perl:CPAN-C/perl-$dist_html">SUSE Open Build System</a> @{[ beta_html ]}
+<li><a href="https://build.opensuse.org/package/show/devel:languages:perl:CPAN-$first_letter/perl-$dist_html">SUSE Open Build System</a> @{[ beta_html ]}
 EOF
     }
     if ($is_log_txt_view) { # we're on the log.txt view, show link back
