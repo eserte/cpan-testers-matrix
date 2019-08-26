@@ -8,13 +8,18 @@ matrix:
 ## XXX not ready, see above
 #    - perl: "5.14"
 #      env: USE_SYSTEM_PERL=1
-    - perl: "5.20"
+    - perl: "5.30"
+      dist: xenial
 # IPv6 address of www.cpan.org is currently slow --- use another mirror instead
     - perl: "5.20"
       env: PERL_CPANM_OPT="--mirror http://cpan.cpantesters.org --mirror https://cpan.metacpan.org"
+      dist: trusty
     - perl: "5.18"
+      dist: trusty
     - perl: "5.14"
+      dist: trusty
     - perl: "5.10"
+      dist: precise
 
 before_install:
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && perlbrew off || true'
