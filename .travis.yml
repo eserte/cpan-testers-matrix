@@ -1,13 +1,11 @@
-# Note: USE_SYSTEM_PERL does not work, some
-# modules are missing in the repos (Sereal, Plack::Test)
-
 language: perl
 
 matrix:
   include:
-## XXX not ready, see above
-#    - perl: "5.14"
+## USE_SYSTEM_PERL=1 not yet ready --- Image::Info has to be newer (maybe again enable mydebs.bbbike.de?) and Parse::CPAN::Packages::Fast is not available as a .deb
+#    - perl: "5.26"
 #      env: USE_SYSTEM_PERL=1
+#      dist: xenial
     - perl: "5.30"
       dist: xenial
 # IPv6 address of www.cpan.org is currently slow --- use another mirror instead
@@ -26,9 +24,9 @@ before_install:
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && perlbrew off || true'
  - sudo apt-get update -qq
  - sudo apt-get install -qq wget
-# additional repo for Sereal etc.
- - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo chown travis /etc/apt/sources.list.d && echo "deb http://mydebs.bbbike.de precise main" > /etc/apt/sources.list.d/mydebs.bbbike.list || true'
- - '[ "$USE_SYSTEM_PERL"  = "1" ] && wget -O- http://mydebs.bbbike.de/key/mydebs.bbbike.key | sudo apt-key add - || true'
+## additional repo for Sereal etc. --- not needed for xenial
+# - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo chown travis /etc/apt/sources.list.d && echo "deb http://mydebs.bbbike.de precise main" > /etc/apt/sources.list.d/mydebs.bbbike.list || true'
+# - '[ "$USE_SYSTEM_PERL"  = "1" ] && wget -O- http://mydebs.bbbike.de/key/mydebs.bbbike.key | sudo apt-key add - || true'
 # 02packages.details.txt.gz should be fetched via cronjob or so
  - mkdir -p /tmp/.cpan/sources/modules
  - (cd /tmp/.cpan/sources/modules && wget https://cpan.metacpan.org/modules/02packages.details.txt.gz)
@@ -36,7 +34,7 @@ before_install:
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq libimage-info-perl libplack-perl libcgi-emulate-psgi-perl libcgi-compile-perl || true'
  - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest Image::Info Plack::Test CGI::Emulate::PSGI CGI::Compile || true'
 # optional, by default Storable is used
- - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq libsereal-encoder-perl libseareal-decoder-perl || true'
+ - '[ "$USE_SYSTEM_PERL"  = "1" ] && sudo apt-get install -qq libsereal-encoder-perl libsereal-decoder-perl || true'
  - '[ "$USE_SYSTEM_PERL" != "1" ] && cpanm --quiet --notest Sereal::Encoder Sereal::Decoder || true'
 
 install:
