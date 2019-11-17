@@ -14,10 +14,13 @@
 
 use strict;
 
-system("wget", "-O", "/tmp/log.txt~", "http://metabase.cpantesters.org/tail/log.txt?" . time);
-die "Getting log.txt failed" if $? != 0;
-rename "/tmp/log.txt~", "/tmp/log.txt" or die $!;
-system("/home/e/eserte/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-json.pl", "-o", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/log.log", "-statusfile", "/tmp/statusfile", "/tmp/log.txt", "-no-seek");
+my $fetch_url = "http://metabase.cpantesters.org/tail/log.txt?" . time;
+my $output_file = "/tmp/log.txt";
+#system("wget", "-O", "$output_file~", $fetch_url);
+system('curl', '-L', '--silent', '--compressed', '--output', "$output_file~", $fetch_url);
+die "Getting ${output_file}~ failed" if $? != 0;
+rename "$output_file~", $output_file or die $!;
+system("/home/e/eserte/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-json.pl", "-o", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/log.log", "-statusfile", "/tmp/statusfile", $output_file, "-no-seek");
 die if $? != 0;
 
 __END__
