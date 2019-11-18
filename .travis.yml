@@ -18,6 +18,7 @@ matrix:
       dist: trusty
     - perl: "5.10"
       dist: precise
+      sudo: true
 
 before_install:
  - '[ "`lsb_release -cs`" = "precise" ] && sudo rm -f /etc/apt/sources.list.d/mongodb.list || true'
