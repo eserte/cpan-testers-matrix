@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.39';
+$VERSION = '2.40';
 
 use vars qw($UA);
 
@@ -1411,14 +1411,16 @@ sub build_maxver_table ($$) {
 
     for my $r (@$data) {
 	my($perl, undef) = get_perl_and_patch($r);
+	my $osname = $r->{osname};
+	next if !defined $osname;
 	$perl{$perl}++;
-	$osname{$r->{osname}}++;
+	$osname{$osname}++;
 
-	$hasreport{$perl}->{$r->{osname}}++;
+	$hasreport{$perl}->{$osname}++;
 	if ($r->{action} eq 'PASS' &&
-	    (!$maxver{$perl}->{$r->{osname}} || cmp_version($r->{version}, $maxver{$perl}->{$r->{osname}}) > 0)
+	    (!$maxver{$perl}->{$osname} || cmp_version($r->{version}, $maxver{$perl}->{$osname}) > 0)
 	   ) {
-	    $maxver{$perl}->{$r->{osname}} = $r->{version};
+	    $maxver{$perl}->{$osname} = $r->{version};
 	}
 	if (!$maxver || cmp_version($r->{version}, $maxver) > 0) {
 	    $maxver = $r->{version};
