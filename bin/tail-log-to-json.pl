@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2012,2015,2016 Slaven Rezic. All rights reserved.
+# Copyright (C) 2012,2015,2016,2020 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -88,6 +88,13 @@ open my $fh, $tail_log
     or mydie "Can't open $tail_log: $!";
 binmode $fh, ':utf8';
 if ($do_seek && $status->{tell}) {
+    # Linux' lseek() allows to seek beyond the end of the file.
+    # This may happen if for some reasons some wrong value is written to the status file.
+    # And worse, the wrong seek value is also returned by the later tell().
+    # "Fix" the situation by "limitting" the seek value.
+    if ($status->{tell} > -s $tail_log) {
+	$status->{tell} = -s $tail_log;
+    }
     seek $fh, $status->{tell}, SEEK_SET;
 }
 my $count = 0;
