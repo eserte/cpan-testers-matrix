@@ -15,6 +15,9 @@
 #
 # If you feel confident, use a higher max count value, or no max count
 # value at all, meaning that all files will be processed.
+#
+# Note: some paths, hostnames and usernames are hardcoded and reflect
+# the actual running systems.
 
 use if !$ENV{DOIT_IN_REMOTE}, lib => "$ENV{HOME}/src/Doit/lib";
 use Doit; # install from CPAN or do "git clone git://github.com/eserte/doit.git ~/src/Doit"
@@ -84,8 +87,8 @@ for my $file_def (@file_defs) {
     info qq{Working on '$path' (@{[ strftime("%F %T", localtime $mtime) ]})};
     $remote->ssh->rsync_put({compress=>1}, $path, "/tmp")
 	or error "Error while copying $path to /tmp on remote";
-    $remote->system('id');
     my $base = basename($path);
+    # XXX should use a "proper" location for merge-json.pl
     $remote->system('/tmp/merge-json.pl', '--lockfile', "/home/andreas/var/metabase-log/log-as-json.status", "/tmp/$base", "/home/andreas/var/metabase-log/log-as-json/", "--doit");
     $doit->file_atomic_write($ts_file, sub {
 				 my $fh = shift;
