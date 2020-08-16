@@ -38,17 +38,17 @@ GetOptions(
 
 my $lfh;
 if ($lockfile) {
-    my $MAX_TRIES = 15;
-    for my $try (1..$MAX_TRIES) {
-	open $lfh, '<', $lockfile
-	    or do { warn "Can't open $lockfile ($try/$MAX_TRIES): $!"; next };
-	flock $lfh, LOCK_EX|LOCK_NB
-	    or do { warn "Can't lock $lockfile ($try/$MAX_TRIES): $!"; next };
-	last;
-    } continue {
-	sleep 1;
-    }
-    if (!$lfh) {
+ GET_LOCK: {
+	my $MAX_TRIES = 30;
+	for my $try (1..$MAX_TRIES) {
+	    open $lfh, '<', $lockfile
+		or do { warn "Can't open $lockfile ($try/$MAX_TRIES): $!"; next };
+	    flock $lfh, LOCK_EX|LOCK_NB
+		or do { warn "Can't lock $lockfile ($try/$MAX_TRIES): $!"; next };
+	    last GET_LOCK;
+	} continue {
+	    sleep 1;
+	}
 	die "Permanent error: cannot lock $lockfile\n";
     }
 }
