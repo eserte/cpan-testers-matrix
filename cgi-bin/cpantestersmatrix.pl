@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.40';
+$VERSION = '2.41';
 
 use vars qw($UA);
 
@@ -1009,7 +1009,7 @@ EOF
 Distribution results for <$dist> at <$url> not found.
 EOF
 	    my $in_maintenance;
-	    if (strftime('%F', localtime) le '2016-10-28') {
+	    if (strftime('%F', localtime) le '2020-10-15') {
 		my $resp = $ua->get("http://$new_ct_domain");
 		if ($resp->decoded_content =~ m{down for maintenance}i) {
 		    $in_maintenance = 1;
