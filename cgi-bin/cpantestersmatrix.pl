@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.42';
+$VERSION = '2.43';
 
 use vars qw($UA);
 
@@ -1558,7 +1558,7 @@ Error while fetching data from $ct_domain: <@{[ $resp->status_line ]}>
 EOF
     } elsif ($resp->code == 404) {
 	my $in_maintenance;
-	if (strftime('%F', localtime) le '2020-10-15') {
+	if (strftime('%F', localtime) le '2020-10-11') {
 	    my $ua = get_ua;
 	    my $resp = $ua->get("http://$new_ct_domain");
 	    if ($resp->decoded_content =~ m{down for maintenance}i) {
