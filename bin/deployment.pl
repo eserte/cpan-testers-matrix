@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2015 Slaven Rezic. All rights reserved.
+# Copyright (C) 2015,2020 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -226,7 +226,7 @@ finish;
 
 	my $build_id;
 	{
-	    my $builds_url = "http://api.travis-ci.org/repos/$repo/builds";
+	    my $builds_url = "https://api.travis-ci.org/repos/$repo/builds";
 	    my $get_current_build = sub {
 		debug "About to get from $builds_url";
 		my $res = $ua->get($builds_url);
@@ -260,7 +260,7 @@ finish;
 	}
 
 	{
-	    my $build_url = "http://api.travis-ci.org/repos/$repo/builds/$build_id";
+	    my $build_url = "https://api.travis-ci.org/repos/$repo/builds/$build_id";
 	    my $get_current_build = sub {
 		debug "About to get from $build_url";
 		my $res = $ua->get($build_url);
