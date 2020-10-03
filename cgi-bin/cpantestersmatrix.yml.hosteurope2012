@@ -1,4 +1,0 @@
-cpan_home: /root/.cpan
-plain_packages_file: /tmp/plain_packages
-cache_root: /var/tmp/cpantesters_cache
-serializer: Sereal
