@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.43';
+$VERSION = '2.44';
 
 use vars qw($UA);
 
@@ -1589,7 +1589,8 @@ EOF
 	$msg = "";
     }
     if (length $msg) {
-	warn $msg;
+	my($first_line) = $msg =~ m{(.*)};
+	warn $first_line, "\n";
     }
     $msg;
 }
