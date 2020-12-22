@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.44';
+$VERSION = '2.45';
 
 use vars qw($UA);
 
@@ -1758,8 +1758,7 @@ sub dist_links {
 <li><a href="http://deps.cpantesters.org/?module=@{[ CGI::escapeHTML($faked_module) ]}">CPAN Dependencies</a>
 <li><a href="http://deps.cpantesters.org/depended-on-by.pl?dist=$dist_html">Reverse deps</a>
 <li><a href="$ct_link">CPAN Testers</a>
-<li><a href="https://metacpan.org/release/$dist_html">metacpan.org</a>
-<li><a href="http://search.cpan.org/dist/$dist_html/">search.cpan.org</a>
+<li><a href="https://metacpan.org/release/$dist_html">metacpan.org</a> (<a href="http://search.cpan.org/dist/$dist_html/">alternative</a>)
 <li><a href="@{[ CGI::escapeHTML($dist_bugtracker_url) ]}">Bugtracker</a>
 EOF
     if (defined $dist_version) {
