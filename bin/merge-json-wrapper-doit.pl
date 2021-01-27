@@ -29,6 +29,10 @@ use File::Glob qw(bsd_glob);
 use Getopt::Long;
 use POSIX qw(strftime);
 
+my $merge_json = "/tmp/merge-json.pl";
+
+sub exists_merge_json { -s $merge_json }
+
 sub get_source_files {
     my($start_epoch) = @_;
 
@@ -80,6 +84,13 @@ if (!$start_epoch) {
 
 my $remote = $doit->do_ssh_connect('new-cpan-testers', as => 'andreas');
 my @file_defs = get_source_files($start_epoch);
+
+if (!$remote->call_with_runner('exists_merge_json')) {
+    require FindBin;
+    $remote->ssh->rsync_put("$FindBin::RealBin/merge-json.pl", $merge_json);
+    $remote->call_with_runner('exists_merge_json')
+	or error "Problem while syncing to $merge_json";
+}
 
 my $count = 0;
 for my $file_def (@file_defs) {
