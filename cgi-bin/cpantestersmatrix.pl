@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.45';
+$VERSION = '2.46';
 
 use vars qw($UA);
 
@@ -82,7 +82,13 @@ use constant USE_IF_MODIFIED_SINCE => 0;
 
 use constant JS_DEBUG => 0;
 
-my $config_yml = "$realbin/cpantestersmatrix.yml";
+my $cpantestersmatrix_config_file;
+if (!$ENV{CPANTESTERSMATRIX_CONFIG_FILE}) {
+    $cpantestersmatrix_config_file = "cpantestersmatrix.yml";
+} else {
+    ($cpantestersmatrix_config_file) = $ENV{CPANTESTERSMATRIX_CONFIG_FILE} =~ m{^([^/\\]+)$};
+}
+my $config_yml = "$realbin/$cpantestersmatrix_config_file";
 
 # Two things:
 # - if set, then the "log.txt" view is enabled, with
