@@ -39,7 +39,7 @@ GetOptions(
 my $lfh;
 if ($lockfile) {
  GET_LOCK: {
-	my $MAX_TRIES = 60;
+	my $MAX_TRIES = 90;
 	for my $try (1..$MAX_TRIES) {
 	    open $lfh, '<', $lockfile
 		or do { warn "Can't open $lockfile ($try/$MAX_TRIES): $!"; next };
