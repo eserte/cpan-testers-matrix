@@ -16,6 +16,9 @@
 # If you feel confident, use a higher max count value, or no max count
 # value at all, meaning that all files will be processed.
 #
+# --force-sync may be used to synchronize an update version of
+# merge-json.pl.
+# 
 # Note: some paths, hostnames and usernames are hardcoded and reflect
 # the actual running systems.
 
@@ -69,6 +72,7 @@ $doit->add_component(qw(file));
 GetOptions(
 	   "start-epoch=s" => \my $start_epoch,
 	   "max-count=i" => \my $max_count,
+	   "force-sync" => \my $force_sync,
 	  )
     or die "usage?";
 if (!$start_epoch) {
@@ -85,7 +89,7 @@ if (!$start_epoch) {
 my $remote = $doit->do_ssh_connect('new-cpan-testers', as => 'andreas');
 my @file_defs = get_source_files($start_epoch);
 
-if (!$remote->call_with_runner('exists_merge_json')) {
+if (!$remote->call_with_runner('exists_merge_json') || $force_sync) {
     require FindBin;
     $remote->ssh->rsync_put("$FindBin::RealBin/merge-json.pl", $merge_json);
     $remote->call_with_runner('exists_merge_json')
