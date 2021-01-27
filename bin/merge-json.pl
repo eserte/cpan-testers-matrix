@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2020 Slaven Rezic. All rights reserved.
+# Copyright (C) 2020,2021 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -63,7 +63,12 @@ if (-d $to_file) {
 }
 
 my $from = decode_json slurp $from_file;
-my $to   = decode_json slurp $to_file;
+my $to;
+if (-s $to_file) {
+    $to = decode_json slurp $to_file;
+} else {
+    $to = [];
+}
 
 my %to_seen_guid = map { ($_->{guid} => 1) } @$to;
 
