@@ -56,3 +56,5 @@ script:
 branches:
  except:
   - /appveyor/
+  - /github-actions/
+  - /doozer/

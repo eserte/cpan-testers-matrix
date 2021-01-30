@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - '*travis*'
+      - '*appveyor*'
+      - '*doozer*'
+
+jobs:
+
+  test_on_host:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+     matrix:
+       include:
+         - os: 'ubuntu-20.04'
+    steps:
+    - name: apt hacks
+      # /etc/apt/sources.list should be sufficient; all the other repositories are possibly problematic
+      run: |
+        sudo rm -f /etc/apt/sources.list.d/*.list
+        sudo apt-get update -qq
+      if: "startsWith(matrix.os, 'ubuntu-')"
+    - uses: actions/checkout@v2
+    - name: Build and test
+      run: |
+        set -e
+        sudo apt-get install -q --no-install-recommends \
+            wget \
+            libimage-info-perl libplack-perl libcgi-emulate-psgi-perl libcgi-compile-perl \
+            libsereal-encoder-perl libsereal-decoder-perl \
+            libcpan-distnameinfo-perl libgravatar-url-perl libhtml-table-perl libwww-perl liburi-query-perl libjson-xs-perl libyaml-syck-perl
+        mkdir -p /tmp/.cpan/sources/modules
+        (cd /tmp/.cpan/sources/modules && wget https://cpan.metacpan.org/modules/02packages.details.txt.gz)
+        (cd cgi-bin && ln -s cpantestersmatrix.yml.travis cpantestersmatrix.yml)
+        (cd cgi-bin && env PERL=$(which perl) perl -pe '$_ = "#!$ENV{PERL} -T\n" if $. == 1' cpantestersmatrix.pl > cpantestersmatrix-travis.pl && chmod 755 cpantestersmatrix-travis.pl)
+        perl Makefile.PL
+        HARNESS_TIMER=1 HARNESS_OPTIONS=j4:c make test
+      if: "!startsWith(matrix.os,'windows-')"
+
+  test_in_container:
+    name: Container tests with ${{ matrix.dist }}:${{ matrix.distver }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.dist }}:${{ matrix.distver }}
+    strategy:
+      matrix:
+        include:
+          - dist:    debian
+            distver: jessie
+          - dist:    ubuntu
+            distver: 14.04 # It seems that 14.04 is the oldest Ubuntu possible to run in a github actions container
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps on Debian and Ubuntu
+      run: |
+        set -e
+        apt-get update -qq
+        apt-get install -q --no-install-recommends -y \
+            make \
+            wget \
+            libimage-info-perl libplack-perl libcgi-emulate-psgi-perl libcgi-compile-perl \
+            libsereal-encoder-perl libsereal-decoder-perl \
+            libcpan-distnameinfo-perl libgravatar-url-perl libhtml-table-perl libwww-perl liburi-query-perl libjson-xs-perl libyaml-syck-perl
+      if: "matrix.dist == 'debian' || matrix.dist == 'ubuntu'"
+    - name: Build and test
+      run: |
+        set -e
+        mkdir -p /tmp/.cpan/sources/modules
+        (cd /tmp/.cpan/sources/modules && wget https://cpan.metacpan.org/modules/02packages.details.txt.gz)
+        (cd cgi-bin && ln -s cpantestersmatrix.yml.travis cpantestersmatrix.yml)
+        (cd cgi-bin && env PERL=$(which perl) perl -pe '$_ = "#!$ENV{PERL} -T\n" if $. == 1' cpantestersmatrix.pl > cpantestersmatrix-travis.pl && chmod 755 cpantestersmatrix-travis.pl)
+        perl Makefile.PL
+        HARNESS_TIMER=1 HARNESS_OPTIONS=j4:c make test
+      if: "!startsWith(matrix.os,'windows-')"
