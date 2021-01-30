@@ -47,8 +47,8 @@ test_psgi app => $app, client => sub {
 	ok $res->is_success, "get $icofile"
 	    or diag $res->as_string;
     SKIP: {
-	    skip 'needs Image::Info', 1
-		if !eval { require Image::Info; 1 };
+	    skip 'needs Image::Info 1.31', 1
+		if !eval { require Image::Info; Image::Info->VERSION(1.31); 1 };
 	    my $img_info = Image::Info::image_info(\$res->decoded_content);
 	    is $img_info->{file_ext}, 'ico';
 	}
