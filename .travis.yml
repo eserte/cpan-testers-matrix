@@ -7,23 +7,21 @@ matrix:
 #      env: USE_SYSTEM_PERL=1
 #      dist: xenial
     - perl: "5.30"
-      dist: xenial
+      dist: bionic
 # IPv6 address of www.cpan.org is currently slow --- use another mirror instead
-    - perl: "5.20"
+    - perl: "5.28"
       env: PERL_CPANM_OPT="--mirror http://cpan.cpantesters.org --mirror https://cpan.metacpan.org"
-      dist: trusty
-    - perl: "5.18"
-      dist: trusty
+      dist: bionic
+    - perl: "5.22"
+      dist: xenial
+    - perl: "5.20"
+      dist: xenial
     - perl: "5.14"
       dist: trusty
-    - perl: "5.10"
-      dist: precise
       sudo: true
-  allow_failures:
-    - dist: precise
 
 before_install:
- - '[ "`lsb_release -cs`" = "precise" -o "`lsb_release -cs`" = "trusty" ] && (cd /etc/apt/sources.list.d && sudo rm -f mongodb.list google-chrome.list cassandra.list github_git-lfs.list couchdb.list pgdg.list) || true'
+ - '[ "`lsb_release -cs`" = "trusty" ] && (cd /etc/apt/sources.list.d && sudo rm -f mongodb.list google-chrome.list cassandra.list github_git-lfs.list couchdb.list pgdg.list) || true'
  - '[ "$USE_SYSTEM_PERL"  = "1" ] && perlbrew off || true'
  - sudo apt-get update -qq
  - sudo apt-get install -qq wget
