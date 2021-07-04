@@ -89,10 +89,12 @@ EOF
 	    $postamble .= <<EOF;
 update-$type-from-home: rsync-$type-cpantestersmatrix
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git fetch home && git checkout home/master'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.fast && git fetch home && git checkout home/master'
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix && git fetch home && git checkout home/master'
 
 update-$type: rsync-$type-cpantestersmatrix
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git checkout master && git pull --ff-only'
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.fast && git checkout master && git pull --ff-only'
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix && git checkout master && git pull --ff-only'
 
 EOF
@@ -104,17 +106,27 @@ update-$type-beta: rsync-$type-cpantestersmatrix-beta
 update-$type-beta-from-home: rsync-$type-cpantestersmatrix-beta
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.beta && git fetch home && git checkout home/master'
 
+update-$type-fast: rsync-$type-cpantestersmatrix-fast
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.fast && git checkout master && git pull --ff-only'
+
+update-$type-fast-from-home: rsync-$type-cpantestersmatrix-fast
+	ssh -A $host 'cd $wwwroot/cpan-testers-matrix.fast && git fetch home && git checkout home/master'
+
 update-$type-stable: rsync-$type-cpantestersmatrix
 	ssh -A $host 'cd $wwwroot/cpan-testers-matrix && git checkout master && git pull --ff-only'
 
 EOF
 	}
 	$postamble .= <<EOF;
-rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-beta rsync-$type-cpantestersmatrix-stable
+rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-beta rsync-$type-cpantestersmatrix-fast rsync-$type-cpantestersmatrix-stable
 
 rsync-$type-cpantestersmatrix-beta:
 	perl -c \${BOTCHECKER}
 	rsync -av \${BOTCHECKER} $host:$wwwroot/cpan-testers-matrix.beta/cgi-bin/
+
+rsync-$type-cpantestersmatrix-fast:
+	perl -c \${BOTCHECKER}
+	rsync -av \${BOTCHECKER} $host:$wwwroot/cpan-testers-matrix.fast/cgi-bin/
 
 rsync-$type-cpantestersmatrix-stable:
 	perl -c \${BOTCHECKER}
