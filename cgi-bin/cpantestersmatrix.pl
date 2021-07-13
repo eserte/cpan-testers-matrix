@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.47';
+$VERSION = '2.48';
 
 use vars qw($UA);
 
@@ -716,11 +716,13 @@ EOF
 	if (!$q->param("maxver")) {
 	    my $qq = CGI->new($q);
 	    $qq->param("maxver" => 1);
-	    print qq{<li><a href="@{[ $qq->self_url ]}">Max version with a PASS</a>\n};
+	    my $qs = URI::Query->new($qq->query_string)->stringify(";");
+	    print qq{<li><a href="?$qs">Max version with a PASS</a>\n};
 	} else {
 	    my $qq = CGI->new($q);
 	    $qq->delete("maxver");
-	    print qq{<li><a href="@{[ $qq->self_url ]}">Per-version view</a>\n};
+	    my $qs = URI::Query->new($qq->query_string)->stringify(";");
+	    print qq{<li><a href="?$qs">Per-version view</a>\n};
 	}
 	print "</ul>";
     }
@@ -2065,7 +2067,7 @@ sub dist_version_url ($$$) {
     my($q, $dist, $version) = @_;
     my $qq = CGI->new($q);
     $qq->param(dist => "$dist $version");
-    $qq->self_url;
+    "?" . $qq->query_string;
 }
 
 sub iso_date_to_epoch ($) {
