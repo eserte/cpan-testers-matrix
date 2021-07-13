@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2015,2020 Slaven Rezic. All rights reserved.
+# Copyright (C) 2015,2020,2021 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -24,7 +24,7 @@ sub manual_check_step ($$);
 sub confirm_or_exit ($$);
 sub successful_system (@);
 sub finish ();
-sub check_travis ($);
+sub check_ci ($);
 sub debug ($);
 
 my $dry_run;
@@ -66,8 +66,8 @@ if ($local_test_only) {
 } elsif ($skip_ci_test) {
     print STDERR "Skipping CI testing...\n";
 } else {
-    step "check travis", sub {
-	check_travis 'eserte/cpan-testers-matrix';
+    step "check ci", sub {
+	check_ci 'eserte/cpan-testers-matrix';
     };
 }
 step "update-pps", sub {
@@ -207,95 +207,10 @@ finish;
 	}
     }
 
-    sub check_travis ($) {
+    sub check_ci ($) {
 	my($repo) = @_;
-	chomp(my $current_commit_id = `git log -1 --format=format:'%H'`);
-	if (!$current_commit_id) {
-	    die "Unexpected: cannot find a commit";
-	}
-	require LWP::UserAgent;
-	require JSON::XS;
-	my $ua = LWP::UserAgent->new(timeout => 10);
-	my $wait = sub {
-	    for (reverse(0..14)) {
-		print STDERR "\rwait $_ second(s)";
-		sleep 1;
-	    }
-	    print STDERR "\n";
-	};
-
-	my $build_id;
-	{
-	    my $builds_url = "https://api.travis-ci.org/repos/$repo/builds";
-	    my $get_current_build = sub {
-		debug "About to get from $builds_url";
-		my $res = $ua->get($builds_url);
-		if (!$res->is_success) {
-		    die "Request to $builds_url failed: " . $res->status_line;
-		}
-		debug "Fetch successful";
-		my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
-		for my $build (@$data) {
-		    if ($build->{commit} eq $current_commit_id) {
-			return $build;
-		    }
-		}
-		debug "Build for commit $current_commit_id not found";
-		undef;
-	    };
-	    while () {
-		my $build = $get_current_build->();
-		if (!$build) {
-		    print STDERR "Cannot find commit $current_commit_id at travis, will try later...\n";
-		    $wait->();
-		} else {
-		    $build_id = $build->{id};
-		    if (!defined $build_id) {
-			require Data::Dumper;
-			die "Unexpected: no build id found in ". Data::Dumper::Dumper($build);
-		    }
-		    last;
-		}
-	    }
-	}
-
-	{
-	    my $build_url = "https://api.travis-ci.org/repos/$repo/builds/$build_id";
-	    my $get_current_build = sub {
-		debug "About to get from $build_url";
-		my $res = $ua->get($build_url);
-		if (!$res->is_success) {
-		    die "Request to $build_url failed: " . $res->status_line;
-		}
-		debug "Fetch successful";
-		my $data = JSON::XS::decode_json($res->decoded_content(charset => 'none'));
-		return $data;
-	    };
-	    while () {
-		my $build = $get_current_build->();
-		my $successful = 0;
-		my $failures = 0;
-		my $running = 0;
-		for my $job (@{ $build->{matrix} }) {
-		    if (!defined $job->{result}) {
-			$running++;
-		    } elsif ($job->{result} == 0) {
-			$successful++;
-		    } else {
-			$failures++;
-		    }
-		}
-		if ($failures) {
-		    die "At least one job failed. See https://travis-ci.org/$repo for more information.\n";
-		} elsif ($running == 0) {
-		    last;
-		}
-		print STDERR "Status at travis: running=$running successful=$successful failures=$failures\n";
-		$wait->();
-	    }
-	}
-
-	print STDERR "travis-ci build was successful\n";
+	system 'check-ci', '--github-actions';
+	die "Checking CI status failed.\n" if $? != 0;
     }
 
     sub debug ($) {
