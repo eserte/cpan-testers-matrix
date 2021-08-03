@@ -1,24 +1,33 @@
 language: perl
+arch:
+  - arm64
 
 matrix:
   include:
-## USE_SYSTEM_PERL=1 not yet ready --- Image::Info has to be newer (maybe again enable mydebs.bbbike.de?) and Parse::CPAN::Packages::Fast is not available as a .deb
-#    - perl: "5.26"
-#      env: USE_SYSTEM_PERL=1
+    - dist: xenial
+      perl: 5.24
+    - dist: bionic
+      perl: 5.26
+    - dist: focal
+      perl: 5.32
+
+### USE_SYSTEM_PERL=1 not yet ready --- Image::Info has to be newer (maybe again enable mydebs.bbbike.de?) and Parse::CPAN::Packages::Fast is not available as a .deb
+##    - perl: "5.26"
+##      env: USE_SYSTEM_PERL=1
+##      dist: xenial
+#    - perl: "5.30"
+#      dist: bionic
+## IPv6 address of www.cpan.org is currently slow --- use another mirror instead
+#    - perl: "5.28"
+#      env: PERL_CPANM_OPT="--mirror http://cpan.cpantesters.org --mirror https://cpan.metacpan.org"
+#      dist: bionic
+#    - perl: "5.22"
 #      dist: xenial
-    - perl: "5.30"
-      dist: bionic
-# IPv6 address of www.cpan.org is currently slow --- use another mirror instead
-    - perl: "5.28"
-      env: PERL_CPANM_OPT="--mirror http://cpan.cpantesters.org --mirror https://cpan.metacpan.org"
-      dist: bionic
-    - perl: "5.22"
-      dist: xenial
-    - perl: "5.20"
-      dist: xenial
-    - perl: "5.14"
-      dist: trusty
-      sudo: true
+#    - perl: "5.20"
+#      dist: xenial
+#    - perl: "5.14"
+#      dist: trusty
+#      sudo: true
 
 before_install:
  - '[ "`lsb_release -cs`" = "trusty" ] && (cd /etc/apt/sources.list.d && sudo rm -f mongodb.list google-chrome.list cassandra.list github_git-lfs.list couchdb.list pgdg.list) || true'
