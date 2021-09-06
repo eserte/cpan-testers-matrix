@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/local/bin/perl -T
 # -*- perl -*-
 
 #
@@ -462,8 +462,11 @@ print <<EOF;
 
   table		  { border-collapse:collapse; }
   th,td           { border:1px solid black; }
+  th                { padding: 0 }
   body		  { font-family:sans-serif; }
+  form            { display: inline-block; margin: 0 0 1em 0; }
 
+  .search_container { margin: 0 2em; }
   .bt th,td	  { border:none; height:2.2ex; }
 
   .reports th	  { border:2px solid black; padding-left:3px; padding-right:3px; }
@@ -476,6 +479,11 @@ print <<EOF;
   .warn a:active  { color:red; font-weight:bold; }
   .sml            { font-size: x-small; }
   .unimpt         { font-size: smaller; }
+
+  th>a            { text-decoration: none; padding: 1px 5px; display: inline-block; min-width: 70px; margin: 0; }
+  th>a:hover      { background-color: blue; color: white; }
+
+  td.action_PASS:hover  { background-color: #050; }
 
   h1>a            { color:black; text-decoration: none; }
 
@@ -618,24 +626,28 @@ if ($downtime_teaser) {
 }
 
 print <<EOF;
+  <div>
   <form onsubmit="reset_location_hash()">
-   <div>
-    Distribution <span class="unimpt">(e.g. DBI, CPAN-Reporter, YAML-Syck)</span>: <input name="dist" /> <input type="submit" />
+   <span class="search_container">
+    <label>Distribution <input name="dist" placeholder="e.g. DBI, YAML-Syck"/></label> <input type="submit" />
 EOF
+
 if ($q->param('maxver')) {
     print <<EOF;
     <input type="hidden" name="maxver" value="@{[ scalar $q->param("maxver") ]}" />
 EOF
 }
+
 print <<EOF;
-   </div>
+   </span>
   </form>
 
   <form onsubmit="reset_location_hash()">
-   <div>
-    CPAN User ID <span class="unimpt">(e.g. TIMB, JHI, ANDK)</span>: <input name="author" /> <input type="submit" />
-   </div>
+   <span class="search_container">
+    <label>CPAN User ID <input name="author" placeholder="e.g. TIMB, JHI, ANDK"/></label> <input type="submit" />
+   </span>
   </form>
+  </div>
 EOF
 
 if ($reports) {
