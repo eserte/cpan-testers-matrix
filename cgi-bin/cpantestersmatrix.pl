@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/bin/perl -T
 # -*- perl -*-
 
 #
