@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.48';
+$VERSION = '2.49';
 
 use vars qw($UA);
 
@@ -68,7 +68,7 @@ sub _reusing_cache_msg ($);
 my $cache_days = 1/8;
 my $ua_timeout = 30;
 
-my $current_stable_perl = "5.34.0"; # please always end with ".0"
+my $current_stable_perl = "5.36.0"; # please always end with ".0"
 
 #use constant FILEFMT_AUTHOR => 'yaml';
 use constant FILEFMT_AUTHOR => 'json';
