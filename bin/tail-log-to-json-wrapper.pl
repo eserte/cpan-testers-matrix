@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2016,2017,2019 Slaven Rezic. All rights reserved.
+# Copyright (C) 2016,2017,2019,2022 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -13,6 +13,7 @@
 #
 
 use strict;
+use FindBin;
 
 my $fetch_url = "http://metabase.cpantesters.org/tail/log.txt?" . time;
 my $output_file = "/tmp/log.txt";
@@ -20,7 +21,7 @@ my $output_file = "/tmp/log.txt";
 system('curl', '-L', '--silent', '--compressed', '--output', "$output_file~", $fetch_url);
 die "Getting ${output_file}~ failed" if $? != 0;
 rename "$output_file~", $output_file or die $!;
-system("/home/e/eserte/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-json.pl", "-o", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/log.log", "-statusfile", "/tmp/statusfile", $output_file, "-no-seek");
+system("$FindBin::RealBin/tail-log-to-json.pl", "-o", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/log.log", "-statusfile", "/tmp/statusfile", $output_file, "-no-seek");
 die if $? != 0;
 
 __END__
