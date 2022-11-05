@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.49';
+$VERSION = '2.50';
 
 use vars qw($UA);
 
@@ -81,6 +81,8 @@ use constant USE_JQUERY_TABLESORTER => 1;
 use constant USE_IF_MODIFIED_SINCE => 0;
 
 use constant JS_DEBUG => 0;
+
+use constant SHOW_ANALYSIS_LINK => 0;
 
 my $cpantestersmatrix_config_file;
 if (!$ENV{CPANTESTERSMATRIX_CONFIG_FILE}) {
@@ -1781,7 +1783,7 @@ sub dist_links {
 <li><a href="https://metacpan.org/release/$dist_html">metacpan.org</a> (<a href="http://search.cpan.org/dist/$dist_html/">alternative</a>)
 <li><a href="@{[ CGI::escapeHTML($dist_bugtracker_url) ]}">Bugtracker</a>
 EOF
-    if (defined $dist_version) {
+    if (SHOW_ANALYSIS_LINK && defined $dist_version) {
 	my $dist_version_html = CGI::escapeHTML($dist_version);
 	print <<EOF;
 <li><a href="http://analysis.cpantesters.org/solved?distv=$dist_html-$dist_version_html">Reports analysis</a> @{[ beta_html ]}
