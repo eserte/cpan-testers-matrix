@@ -24,7 +24,7 @@ jobs:
         sudo rm -f /etc/apt/sources.list.d/*.list
         sudo apt-get update -qq
       if: "startsWith(matrix.os, 'ubuntu-')"
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build and test
       run: |
         set -e
@@ -53,7 +53,7 @@ jobs:
           - dist:    ubuntu
             distver: 14.04 # It seems that 14.04 is the oldest Ubuntu possible to run in a github actions container
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Install deps on Debian and Ubuntu
       run: |
         set -e
