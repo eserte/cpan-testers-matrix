@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.50';
+$VERSION = '2.51';
 
 use vars qw($UA);
 
@@ -951,9 +951,9 @@ sub fetch_data ($) {
     if ($dist =~ m{::}) {
 	my $resolve_module_to_dist_sub = sub {
 	    my $cpan_home = get_config("cpan_home");
-	    die "cpan_home not configued in $config_yml" if !$cpan_home;
+	    die "cpan_home not configured in $config_yml" if !$cpan_home;
 	    my $plain_packages_file = get_config("plain_packages_file");
-	    die "plain_packages_file not configued in $config_yml" if !$plain_packages_file;
+	    die "plain_packages_file not configured in $config_yml" if !$plain_packages_file;
 	    my $packages_file = "$cpan_home/sources/modules/02packages.details.txt.gz";
 	    die "$packages_file not readable" if !-r $packages_file;
 	    require Parse::CPAN::Packages::Fast;
