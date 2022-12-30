@@ -54,6 +54,10 @@ jobs:
             distver: 14.04 # It seems that 14.04 is the oldest Ubuntu possible to run in a github actions container
     steps:
     - uses: actions/checkout@v3
+    - name: apt hacks for older Debian
+      if: matrix.distver == 'jessie'
+      run: |
+        echo "APT::Get::AllowUnauthenticated 1;" > /etc/apt/apt.conf.d/02allow-unsigned
     - name: Install deps on Debian and Ubuntu
       run: |
         set -e
