@@ -1592,12 +1592,24 @@ As a fallback you can try the alternative
 <http://fast-matrix.cpantesters.org/?@{[ $q->query_string ]}>
 EOF
 	} else {
+	    my $first_line;
+	    my @additional_msgs;
+	    my $request_uri = eval { $resp->request->uri };
+	    if ($request_uri =~ m{^file:.*/([^/]+)$}) {
+		$first_line = "File $1 not found on local system.";
+		push @additional_msgs, "Maybe the system did not fetch the reports data for this distribution (may happen for old distributions)?";
+	    } else {
+		$first_line = "Cannot fetch data from $ct_domain (file not found)";
+	    }
 	    $msg = <<EOF;
-Cannot fetch data from $ct_domain (file not found)
+$first_line
 
 Maybe you mistyped the distribution name?
 Maybe you added the author name to the distribution string?
 Maybe the distribution is very fresh and not yet available at CPAN Testers?
+EOF
+	    $msg .= join("", map { "$_\n" } @additional_msgs);
+	    $msg .= <<EOF;
 Note that the distribution name is case-sensitive.
 EOF
 	}
