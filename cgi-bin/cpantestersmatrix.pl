@@ -56,6 +56,7 @@ sub require_deserializer_dist ();
 sub require_deserializer_author ();
 sub require_yaml ();
 sub require_json ();
+sub require_ndjson ();
 sub beta_html ();
 sub trim ($);
 sub get_config ($);
@@ -87,8 +88,8 @@ if (!$ENV{CPANTESTERSMATRIX_CONFIG_FILE}) {
 }
 my $config_yml = "$realbin/$cpantestersmatrix_config_file";
 
-my $filefmt_author = get_config('filefmt_author') || 'json'; # json, yaml
-my $filefmt_dist   = get_config('filefmt_dist')   || 'json'; # json, yaml
+my $filefmt_author = get_config('filefmt_author') || 'json'; # json, ndson, yaml
+my $filefmt_dist   = get_config('filefmt_dist')   || 'json'; # json, ndson, yaml
 
 # Two things:
 # - if set, then the "log.txt" view is enabled, with
@@ -105,13 +106,13 @@ if ($static_dist_dir) {
 my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
 mkdir $cache_root, 0755 if !-d $cache_root;
 my $dist_cache = "$cache_root/dist";
-if ($filefmt_dist eq 'json') {
-    $dist_cache .= '_json';
+if ($filefmt_dist ne 'yaml') {
+    $dist_cache .= '_' . $filefmt_dist;
 }
 mkdir $dist_cache, 0755 if !-d $dist_cache;
 my $author_cache = "$cache_root/author";
-if ($filefmt_author eq 'json') {
-    $author_cache .= '_json';
+if ($filefmt_author ne 'yaml') {
+    $author_cache .= '_' . $filefmt_author;
 }
 mkdir $author_cache, 0755 if !-d $author_cache;
 my $meta_cache = "$cache_root/meta";
@@ -1065,7 +1066,7 @@ EOF
 	$do_cache_retrieve->();
     } elsif ($resp && $resp->is_success) {
 	eval {
-	    $data = deserialize_dist($resp->decoded_content)
+	    $data = deserialize_dist($resp->decoded_content(charset => 'none'))
 	};
 	if ($@ || !$data) {
 	    my $msg = "Could not load " . uc($filefmt_dist) . " data from <$url>";
@@ -1178,7 +1179,7 @@ EOF
 	    or die "Could not load cached data";
     } elsif ($resp && $resp->is_success) {
 	require_deserializer_author;
-	my $data = deserialize_author($resp->decoded_content);
+	my $data = deserialize_author($resp->decoded_content(charset => 'none'));
 	for my $result (@$data) {
 	    my $dist;
 	    if (defined $result->{dist}) { # new style
@@ -1960,6 +1961,9 @@ sub require_deserializer_dist () {
     if ($filefmt_dist eq 'json') {
 	require_json;
 	*deserialize_dist      = \*json_load;
+    } elsif ($filefmt_dist eq 'ndjson') {
+	require_ndjson;
+	*deserialize_dist      = \*ndjson_load;
     } else {
 	require_yaml;
 	*deserialize_dist      = \*yaml_load;
@@ -1967,9 +1971,12 @@ sub require_deserializer_dist () {
 }
 
 sub require_deserializer_author () {
-    if ($filefmt_dist eq 'json') {
+    if ($filefmt_author eq 'json') {
 	require_json;
 	*deserialize_author      = \*json_load;
+    } elsif ($filefmt_author eq 'ndjson') {
+	require_ndjson;
+	*deserialize_dist        = \*ndjson_load;
     } else {
 	require_yaml;
 	*deserialize_author      = \*yaml_load;
@@ -1997,6 +2004,28 @@ sub require_json () {
 	local $/;
 	my $buf = <$fh>;
 	JSON::XS::decode_json($buf);
+    };
+}
+
+sub require_ndjson () {
+    require JSON::XS;
+    no warnings 'once';
+    *ndjson_load      = sub {
+	my @data;
+	my $line_number = 0;
+	for my $line (split /\n/, $_[0]) {
+	    $line_number++;
+	    push @data, eval { JSON::XS::decode_json($line) };
+	    if ($@) {
+		my $msg = $@;
+		$msg =~ s{(.*) (at )}{$1 (ndjson line $line_number) $2};
+		die "$msg\n";
+	    }
+	}
+	\@data;
+    };
+    *ndjson_load_file = sub {
+	die "ndjson_load_file is NYI"; # XXX is this used anywhere?
     };
 }
 
