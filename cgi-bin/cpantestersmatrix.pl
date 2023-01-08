@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007-2023 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.51';
+$VERSION = '2.52';
 
 use vars qw($UA);
 
@@ -70,11 +70,6 @@ my $ua_timeout = 30;
 
 my $current_stable_perl = "5.36.0"; # please always end with ".0"
 
-#use constant FILEFMT_AUTHOR => 'yaml';
-use constant FILEFMT_AUTHOR => 'json';
-#use constant FILEFMT_DIST   => 'yaml';
-use constant FILEFMT_DIST   => 'json';
-
 use constant USE_JQUERY_TABLESORTER => 1;
 
 # XXX experiment, maybe use it by default?
@@ -92,6 +87,9 @@ if (!$ENV{CPANTESTERSMATRIX_CONFIG_FILE}) {
 }
 my $config_yml = "$realbin/$cpantestersmatrix_config_file";
 
+my $filefmt_author = get_config('filefmt_author') || 'json'; # json, yaml
+my $filefmt_dist   = get_config('filefmt_dist')   || 'json'; # json, yaml
+
 # Two things:
 # - if set, then the "log.txt" view is enabled, with
 #   some changes in UI and caching
@@ -107,12 +105,12 @@ if ($static_dist_dir) {
 my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
 mkdir $cache_root, 0755 if !-d $cache_root;
 my $dist_cache = "$cache_root/dist";
-if (FILEFMT_DIST eq 'json') {
+if ($filefmt_dist eq 'json') {
     $dist_cache .= '_json';
 }
 mkdir $dist_cache, 0755 if !-d $dist_cache;
 my $author_cache = "$cache_root/author";
-if (FILEFMT_AUTHOR eq 'json') {
+if ($filefmt_author eq 'json') {
     $author_cache .= '_json';
 }
 mkdir $author_cache, 0755 if !-d $author_cache;
@@ -1004,9 +1002,9 @@ EOF
 	    if ($dist =~ m{/}) {
 		die "Invalid distribution name";
 	    }
-	    $url = "file://$static_dist_dir/$dist." . FILEFMT_DIST;
+	    $url = "file://$static_dist_dir/$dist." . $filefmt_dist;
 	} else {
-	    $url = "http://$ct_domain/show/$dist." . FILEFMT_DIST;
+	    $url = "http://$ct_domain/show/$dist." . $filefmt_dist;
 	}
 
 	my $fetch_dist_data = sub {
@@ -1070,7 +1068,7 @@ EOF
 	    $data = deserialize_dist($resp->decoded_content)
 	};
 	if ($@ || !$data) {
-	    my $msg = "Could not load " . (FILEFMT_DIST eq 'yaml' ? 'YAML' : 'JSON') . " data from <$url>";
+	    my $msg = "Could not load " . uc($filefmt_dist) . " data from <$url>";
 	    no warnings 'uninitialized'; # $@ may be undef
 	    warn "$msg. Error: '$@'";
 	    if (-r $cachefile) {
@@ -1137,7 +1135,7 @@ sub fetch_author_data ($) {
 	require CPAN::DistnameInfo;
 
 	my $ua = get_ua;
-	$url = "http://$new_ct_domain/author/$author." . FILEFMT_AUTHOR;
+	$url = "http://$new_ct_domain/author/$author." . $filefmt_author;
 
 	# check first if the file is too large XXX should not be necessary :-(
 	my $head_resp = $ua->head($url);
@@ -1947,7 +1945,7 @@ sub is_old_devel_perl {
 }
 
 sub require_deserializer_dist () {
-    if (FILEFMT_DIST eq 'json') {
+    if ($filefmt_dist eq 'json') {
 	require_json;
 	*deserialize_dist      = \*json_load;
     } else {
@@ -1957,7 +1955,7 @@ sub require_deserializer_dist () {
 }
 
 sub require_deserializer_author () {
-    if (FILEFMT_AUTHOR eq 'json') {
+    if ($filefmt_dist eq 'json') {
 	require_json;
 	*deserialize_author      = \*json_load;
     } else {
