@@ -1046,6 +1046,7 @@ EOF
 			if ($resp->content_length > 0) {
 			    open my $ofh, '>>', $ndjson_file
 				or die "Can't append to $ndjson_file: $!";
+			    binmode $ofh, ':utf8'; # XXX???
 			    for my $line (split /\n/, $resp->decoded_content(charset => 'none')) {
 				print $ofh $line, "\n";
 			    }
