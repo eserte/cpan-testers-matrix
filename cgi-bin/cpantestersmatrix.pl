@@ -110,6 +110,7 @@ if (defined $ndjson_append_url) {
     if ($filefmt_dist ne 'ndjson') {
 	die "If ndjson_append_url is defined in the configuration file, then filefmt_dist needs to be set to 'ndjson'";
     }
+    $ua_timeout = 180;
 }
 
 my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
