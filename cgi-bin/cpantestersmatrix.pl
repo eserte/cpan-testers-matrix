@@ -1894,7 +1894,7 @@ EOF
 	}
 
 	my $val = $config->{$key};
-	no warnings 'uninitialized';
+	return $val if !defined $val;
 	($val) = $val =~ m{^(.*)$}; # we trust everything here
 	$val;
     }
