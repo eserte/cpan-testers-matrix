@@ -7,4 +7,4 @@ cache_root: /tmp/cpantesters_fast_cache
 #cache_root: /tmp/cpantesters_beta_fast_cache
 serializer: Sereal
 filefmt_dist: ndjson
-ndjson_append_url: http://analysis2023:6081/matrixndjson
+ndjson_append_url: http://analysis2022:6081/matrixndjson
