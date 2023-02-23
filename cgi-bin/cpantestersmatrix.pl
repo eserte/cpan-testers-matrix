@@ -1048,6 +1048,7 @@ EOF
 				or die "Can't append to $ndjson_file: $!";
 			    binmode $ofh, ':utf8'; # XXX???
 			    for my $line (split /\n/, $resp->decoded_content(charset => 'none')) {
+				JSON::XS::decode_json($line); # just to make sure we're writing complete json lines --- would throw an uncontrolled exception otherwise
 				print $ofh $line, "\n";
 			    }
 			    close $ofh
