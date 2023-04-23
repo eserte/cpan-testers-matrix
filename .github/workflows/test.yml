@@ -58,6 +58,8 @@ jobs:
       if: matrix.distver == 'jessie'
       run: |
         echo "APT::Get::AllowUnauthenticated 1;" > /etc/apt/apt.conf.d/02allow-unsigned
+        echo 'deb [check-valid-until=no] http://archive.debian.org/debian jessie main'                   >  /etc/apt/sources.list
+        echo 'deb [check-valid-until=no] http://archive.debian.org/debian-security/ jessie/updates main' >> /etc/apt/sources.list
     - name: Install deps on Debian and Ubuntu
       run: |
         set -e
