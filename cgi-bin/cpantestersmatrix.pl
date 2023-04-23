@@ -102,6 +102,16 @@ if ($static_dist_dir) {
     $is_log_txt_view = 1;
     $cache_days = 5/1440;
 }
+my $ndjson_append_url = get_config('ndjson_append_url');
+if (defined $ndjson_append_url) {
+    if (!defined $static_dist_dir) {
+	die "If ndjson_append_url is defined in the configuration file, then static_dist_dir must also be defined";
+    }
+    if ($filefmt_dist ne 'ndjson') {
+	die "If ndjson_append_url is defined in the configuration file, then filefmt_dist needs to be set to 'ndjson'";
+    }
+    $ua_timeout = 180;
+}
 
 my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
 mkdir $cache_root, 0755 if !-d $cache_root;
@@ -1003,24 +1013,70 @@ EOF
 	    if ($dist =~ m{/}) {
 		die "Invalid distribution name";
 	    }
+	    ($dist) = $dist =~ m{(.*)}; # untaint
 	    $url = "file://$static_dist_dir/$dist." . $filefmt_dist;
 	} else {
 	    $url = "http://$ct_domain/show/$dist." . $filefmt_dist;
 	}
 
-	my $fetch_dist_data = sub {
-	    my($dist) = @_;
-	    my $req = HTTP::Request->new('GET', $url);
-	    if (USE_IF_MODIFIED_SINCE && $url =~ m{^http}) {
-		if (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache') {
-		    if (my $mtime = (stat($cachefile))[9]) {
-			$req->if_modified_since($mtime);
+	my $fetch_dist_data;
+	if ($ndjson_append_url) {
+	    require File::ReadBackwards;
+	    $fetch_dist_data = sub {
+		{
+		    # append data (maybe)
+		    my $ndjson_file = "$static_dist_dir/$dist.$filefmt_dist";
+		    my $last_guid;
+		    if (-e $ndjson_file) {
+			my $bw = File::ReadBackwards->new($ndjson_file)
+			    or die "Can't open $ndjson_file: $!";
+			my $last_line = $bw->readline;
+			my $last_json = JSON::XS::decode_json($last_line);
+			$last_guid = $last_json->{guid};
+			if (!defined $last_guid) {
+			    die "Unexpected: No guid defined in '$last_line' in '$ndjson_file'";
+			}
+		    }
+		    my $url = $ndjson_append_url . "?dist=$dist";
+		    if ($last_guid) {
+			$url .= "&after=$last_guid";
+		    }
+		    my $resp = $ua->get($url);
+		    if ($resp->is_success) {
+			if ($resp->content_length > 0) {
+			    open my $ofh, '>>', $ndjson_file
+				or die "Can't append to $ndjson_file: $!";
+			    binmode $ofh, ':utf8'; # XXX???
+			    for my $line (split /\n/, $resp->decoded_content(charset => 'none')) {
+				JSON::XS::decode_json($line); # just to make sure we're writing complete json lines --- would throw an uncontrolled exception otherwise
+				print $ofh $line, "\n";
+			    }
+			    close $ofh
+				or die $!;
+			}
+		    } else {
+			die "Fetching '$url' failed: " . $resp->dump;
 		    }
 		}
-	    }
-	    my $resp = $ua->request($req);
-	    $resp;
-	};
+
+		my $resp = $ua->get($url);
+		$resp;
+	    };
+	} else {
+	    $fetch_dist_data = sub {
+		my($dist) = @_;
+		my $req = HTTP::Request->new('GET', $url);
+		if (USE_IF_MODIFIED_SINCE && $url =~ m{^http}) {
+		    if (!$ENV{HTTP_CACHE_CONTROL} || $ENV{HTTP_CACHE_CONTROL} ne 'no-cache') {
+			if (my $mtime = (stat($cachefile))[9]) {
+			    $req->if_modified_since($mtime);
+			}
+		    }
+		}
+		my $resp = $ua->request($req);
+		$resp;
+	    };
+	}
 
 	$resp = $fetch_dist_data->($dist);
 	last GET_DATA if $resp->is_success;
@@ -1838,7 +1894,7 @@ EOF
 	}
 
 	my $val = $config->{$key};
-	no warnings 'uninitialized';
+	return $val if !defined $val;
 	($val) = $val =~ m{^(.*)$}; # we trust everything here
 	$val;
     }
@@ -1872,10 +1928,12 @@ sub amend_result {
     # Formerly it was called 'action', now it is 'status' (and there's
     # a 'state', which is lowercase)
     $result->{action} = $result->{status} if !exists $result->{action};
-    # May happen in author YAML/JSONs --- inconsistency!
-    $result->{action} = $result->{state}  if !defined $result->{action};
+    # May happen in author YAML/JSONs; also used in ndjson_append_url (here: lowercase)
+    $result->{action} = uc $result->{state}  if !defined $result->{action};
     # Another one: 'archname' is now 'platform'
     $result->{archname} = $result->{platform} if !exists $result->{archname};
+    # dist vs distribution (seen in ndjson_append_url output)
+    $result->{distribution} = $result->{dist} if !exists $result->{distribution};
 
     ## Happens after 2011-10 (again?); deactivated 2013; reactivated 2017-08
     ## canonify perl version: strip leading "v"
