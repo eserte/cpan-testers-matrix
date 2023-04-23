@@ -91,15 +91,17 @@ my $config_yml = "$realbin/$cpantestersmatrix_config_file";
 my $filefmt_author = get_config('filefmt_author') || 'json'; # json, ndson, yaml
 my $filefmt_dist   = get_config('filefmt_dist')   || 'json'; # json, ndson, yaml
 
+use constant APP_MODE_REGULAR    => 0;
+use constant APP_MODE_LOGTXT    => 1;
+use constant APP_MODE_NDJSONAPI => 2;
+
 # Two things:
 # - if set, then the "log.txt" view is enabled, with
 #   some changes in UI and caching
 # - and this is the directory where the json files
 #   are stored
 my $static_dist_dir = get_config('static_dist_dir');
-my $is_log_txt_view;
 if ($static_dist_dir) {
-    $is_log_txt_view = 1;
     $cache_days = 5/1440;
 }
 my $ndjson_append_url = get_config('ndjson_append_url');
@@ -112,6 +114,11 @@ if (defined $ndjson_append_url) {
     }
     $ua_timeout = 180;
 }
+
+my $app_mode =
+    defined $ndjson_append_url ? APP_MODE_NDJSONAPI :
+    $static_dist_dir           ? APP_MODE_LOGTXT :
+    APP_MODE_REGULAR;
 
 my $cache_root = (get_config("cache_root") || "/tmp/cpantesters_cache") . "_" . $<;
 mkdir $cache_root, 0755 if !-d $cache_root;
@@ -316,7 +323,7 @@ if ((defined $dist   && $dist   =~ /[<>&]/) ||
 	    my $action_comment_html = $rec->{action_comment}||"";
 	    $action_comment_html =~ s{(https?://\S+)}{<a href="$1">$1</a>}g; # simple-minded href-ify
 	    my($display_id, $report_url);
-	    if (!$is_log_txt_view ||
+	    if ($app_mode != APP_MODE_LOGTXT ||
 		$rec->{fulldate} ge "2017-08-13" # since the switch to the new cpantesters API report linking on the log.txt view is possible
 	       ) {
 		my $id = ($rec->{guid} || $rec->{id}); # prefer guid over id for linking
@@ -616,7 +623,7 @@ print qq{<body onload="} .
     print "<h1>$h1_innerhtml</h1>\n";
 }
 
-if ($is_log_txt_view) {
+if ($app_mode == APP_MODE_LOGTXT) {
     print <<EOF;
 <div class="warn">NOTE: This is the <a href="http://metabase.cpantesters.org/tail/log.txt">log.txt</a> view <span class="sml">(<a href="http://www.nntp.perl.org/group/perl.cpan.testers.discuss/2012/11/msg2906.html">What's this?</a>)</span></div><br/>
 EOF
@@ -853,6 +860,7 @@ print <<EOF;
   </div>
   <div>
    <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
+   <span class="sml">(mode @{[ $app_mode == APP_MODE_LOGTXT ? "log.txt" : $app_mode == APP_MODE_NDJSONAPI ? "ndjson API" : "regular" ]})</span>
    by <a href="https://metacpan.org/author/SREZIC">Slaven Rezi&#x0107;</a>
   </div>
 @{[ defined &Botchecker::zdjela_meda ? Botchecker::zdjela_meda() : '' ]}
@@ -1836,7 +1844,7 @@ EOF
 <li><a href="https://build.opensuse.org/package/show/devel:languages:perl:CPAN-$first_letter/perl-$dist_html">SUSE Open Build System</a> @{[ beta_html ]}
 EOF
     }
-    if ($is_log_txt_view) { # we're on the log.txt view, show link back
+    if ($app_mode != APP_MODE_REGULAR) { # we're on the log.txt or ndjson api view, show link back
 	print <<EOF;
 <li><a class="sml" href="http://matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Regular matrix</a> <span class="sml"></span>
 EOF
