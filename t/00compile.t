@@ -23,7 +23,7 @@ my @files = (
 for my $f (@files) {
  SKIP: {
 	skip "$f needs Doit", 1
-	    if $f =~ /merge-json-wrapper-doit.pl/ && !eval { require Doit; 1 };
+	    if $f =~ /(merge-json-wrapper-doit.pl|setup-cpantestersmatrix-doit.pl)/ && !eval { require Doit; 1 };
 	skip "$f needs JSON::XS", 1
 	    if $f =~ /(tail-log-to-ndjson.pl|merge-json.pl)/ && !eval { require JSON::XS; 1 };
 	skip "$f needs File::ReadBackwards", 1
