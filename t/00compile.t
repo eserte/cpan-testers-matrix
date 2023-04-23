@@ -25,7 +25,9 @@ for my $f (@files) {
 	skip "$f needs Doit", 1
 	    if $f =~ /merge-json-wrapper-doit.pl/ && !eval { require Doit; 1 };
 	skip "$f needs JSON::XS", 1
-	    if $f =~ /merge-json.pl/ && !eval { require JSON::XS; 1 };
+	    if $f =~ /(tail-log-to-ndjson.pl|merge-json.pl)/ && !eval { require JSON::XS; 1 };
+	skip "$f needs File::ReadBackwards", 1
+	    if $f =~ /tail-log-to-ndjson.pl/ && !eval { require File::ReadBackwards; 1 };
 
 	my @opts;
 	if ($f =~ m{^cgi-bin/cpantestersmatrix(?:|2|-travis)\.pl$}) {
