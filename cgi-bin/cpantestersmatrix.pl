@@ -240,6 +240,7 @@ my %prefs = do {
     }
 
     print $q->header(
+	-type => 'text/html; charset=utf-8',
 	($do_set_cookie ? (-cookie => [$cookie]) : ()),
 	-expires => (
 		     $edit_prefs            ? 'now' : # prefs page
@@ -1028,7 +1029,6 @@ EOF
 			if ($resp->content_length > 0) {
 			    open my $ofh, '>>', $ndjson_file
 				or die "Can't append to $ndjson_file: $!";
-			    binmode $ofh, ':utf8'; # XXX???
 			    for my $line (split /\n/, $resp->decoded_content(charset => 'none')) {
 				JSON::XS::decode_json($line); # just to make sure we're writing complete json lines --- would throw an uncontrolled exception otherwise
 				print $ofh $line, "\n";
