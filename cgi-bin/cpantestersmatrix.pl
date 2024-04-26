@@ -1856,7 +1856,7 @@ EOF
     }
     if ($app_mode != APP_MODE_NDJSONAPI) {
 	print <<EOF;
-<li><a class="sml" href="http://fast2-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via ndjson API ("fast2")</a> <!--<span class="sml">(temporary!)</span>-->
+<li><a class="sml" href="https://fast2-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via ndjson API ("fast2")</a> <!--<span class="sml">(temporary!)</span>-->
 EOF
     }
     print <<EOF;
