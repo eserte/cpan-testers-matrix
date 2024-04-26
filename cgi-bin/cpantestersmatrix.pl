@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007-2023 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007-2024 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.53';
+$VERSION = '2.54';
 
 use vars qw($UA);
 
@@ -1844,13 +1844,19 @@ EOF
 <li><a href="https://build.opensuse.org/package/show/devel:languages:perl:CPAN-$first_letter/perl-$dist_html">SUSE Open Build System</a> @{[ beta_html ]}
 EOF
     }
-    if ($app_mode != APP_MODE_REGULAR) { # we're on the log.txt or ndjson api view, show link back
+    if ($app_mode != APP_MODE_REGULAR) {
 	print <<EOF;
 <li><a class="sml" href="http://matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Regular matrix</a> <span class="sml"></span>
 EOF
-    } else {
+    }
+    if ($app_mode != APP_MODE_LOGTXT) {
 	print <<EOF;
-<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via log.txt</a> <!--<span class="sml">(temporary!)</span>-->
+<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via log.txt (fast")</a> <!--<span class="sml">(temporary!)</span>-->
+EOF
+    }
+    if ($app_mode != APP_MODE_NDJSONAPI) {
+	print <<EOF;
+<li><a class="sml" href="http://fast2-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via ndjson API ("fast2")</a> <!--<span class="sml">(temporary!)</span>-->
 EOF
     }
     print <<EOF;
