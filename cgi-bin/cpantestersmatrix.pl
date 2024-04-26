@@ -1851,7 +1851,7 @@ EOF
     }
     if ($app_mode != APP_MODE_LOGTXT) {
 	print <<EOF;
-<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via log.txt (fast")</a> <!--<span class="sml">(temporary!)</span>-->
+<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via log.txt ("fast")</a> <!--<span class="sml">(temporary!)</span>-->
 EOF
     }
     if ($app_mode != APP_MODE_NDJSONAPI) {
