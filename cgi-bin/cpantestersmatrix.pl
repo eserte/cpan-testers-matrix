@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.54';
+$VERSION = '2.55';
 
 use vars qw($UA);
 
@@ -448,6 +448,7 @@ if ((defined $dist   && $dist   =~ /[<>&]/) ||
 my $deprecated_string = $is_deprecated ? " (DEPRECATED)" : '';
 my $latest_distribution_string = $is_latest_version ? " (latest distribution)" : "";
 
+binmode STDOUT, ':encoding(utf-8)';
 print <<EOF;
 <html>
  <head><title>$title$dist_title</title>
