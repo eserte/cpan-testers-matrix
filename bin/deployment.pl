@@ -82,6 +82,10 @@ confirmed_step "update-live-stable", sub {
     successful_system 'make', 'update-live-stable';
 };
 manual_check_step "stable tests", "Please go to http://matrix.cpantesters.org and do some manual tests.";
+confirmed_step "update-fast2-matrix", sub {
+    successful_system $^X, "$FindBin::RealBin/setup-cpantestersmatrix-doit.pl";
+};
+manual_check_step "fast2 tests", "Please go to https://fast2-matrix.cpantesters.org and do some manual tests.";
 confirmed_step "git-post-tasks", sub {
     successful_system 'make', 'git-post-tasks';
 };
