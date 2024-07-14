@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.56';
+$VERSION = '2.57';
 
 use vars qw($UA);
 
@@ -254,6 +254,7 @@ my %prefs = do {
 
 my $first_report_epoch;
 my $last_report_epoch;
+my $excluded_old_devel;
 
 if ((defined $dist   && $dist   =~ /[<>&]/) ||
     (defined $author && $author =~ /[<>&]/)) {
@@ -285,7 +286,7 @@ if ((defined $dist   && $dist   =~ /[<>&]/) ||
 	    my($perl, $patch) = eval { get_perl_and_patch($rec) };
 	    next if !$perl;
 	    next if defined $want_perl && $perl ne $want_perl;
-	    next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
+	    do { $excluded_old_devel = 1; next } if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
 	    next if defined $want_os && ($rec->{osname}//'') ne $want_os;
 	    push @reports, $rec;
 	    $rec->{patch} = $patch;
@@ -441,6 +442,7 @@ if ((defined $dist   && $dist   =~ /[<>&]/) ||
 	$table = $r->{table};
 	$ct_link = $r->{ct_link};
 	$dist_title = ": $r->{title}";
+	$excluded_old_devel = $r->{excluded_old_devel};
     };
     $error = $@ if $@;
 }
@@ -694,6 +696,7 @@ EOF
 
     if ($table) {
 	$table->print;
+	excluded_old_devel_notice() if $excluded_old_devel;
     }
 
     if (USE_JQUERY_TABLESORTER) {
@@ -718,7 +721,9 @@ EOF
 	for my $r (@$tables) {
 	    print qq{<h2><a href="$r->{ct_link}" name="$r->{anchor}">$r->{title}</a></h2>};
 	    print $r->{table};
+	    excluded_old_devel_notice() if $r->{excluded_old_devel};
 	}
+
     }
 
     print <<EOF;
@@ -741,6 +746,7 @@ EOF
 
     if ($table) {
 	$table->print;
+	excluded_old_devel_notice() if $excluded_old_devel;
     }
 
     if ($table) {
@@ -1323,8 +1329,9 @@ sub build_success_table ($$$) {
     my @matrix;
     my %acts_per_perl; # perl -> act -> count
     my %acts_per_osname; # osname -> act -> count
+    my $excluded_old_devel;
     for my $perl (@perls) {
-	next if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
+	do { $excluded_old_devel = 1; next } if $prefs{exclude_old_devel} && is_old_devel_perl($perl);
 	my @row;
 	for my $osname (@osnames) {
 	    my $acts = $action{$perl}->{$osname};
@@ -1393,7 +1400,8 @@ sub build_success_table ($$$) {
 	     first_report_date => $first_report_date,
 	     last_report_date => $last_report_date,
 	     total_actions => \%total_actions,
-	     total_configurations => sum map { scalar values %$_ } values %action,
+	     total_configurations => (sum map { scalar values %$_ } values %action),
+	     excluded_old_devel => $excluded_old_devel,
 	   };
 }
 
@@ -2187,6 +2195,14 @@ sub _reusing_cache_msg ($) {
     my $cachefile = shift;
     my $days = -M $cachefile;
     sprintf "\nReusing old cached file, %.1f day%s old\n", $days, $days != 1 ? 's' : '';
+}
+
+sub excluded_old_devel_notice {
+    print <<EOF;
+<div style="margin-bottom:0.5cm; font-size:smaller; ">
+<b>Note</b>: results for old devel perls were excluded by preference (current stable perl: $current_stable_perl).
+</div>
+EOF
 }
 
 {
