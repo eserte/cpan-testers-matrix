@@ -11,6 +11,8 @@ my $dest_system = "analysis2022"; # requires an entry in /etc/hosts with the rea
 sub unpriv_setup {
     my $unpriv_doit = shift;
 
+    Doit::Log::set_label("\@ $dest_system(unpriv)");
+
     my $repo_localdir = "$ENV{HOME}/src/CPAN/CPAN-Testers-Matrix";
     my $repo_branch = 'master';
 
@@ -53,6 +55,8 @@ EOF
 
 sub priv_setup {
     my($priv_doit, $info) = @_;
+
+    Doit::Log::set_label("\@ $dest_system(priv)");
 
     my $repo_localdir = $info->{repo_localdir} // error "Missing information: repo_localdir";
     my $unit_restart = $info->{unit_restart} // error "Missing information:: unit_restart";
@@ -130,5 +134,15 @@ my $info = $unpriv_doit->call_with_runner('unpriv_setup');
 
 my $priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
 $priv_doit->call_with_runner('priv_setup', $info);
+
+# simple ping test
+require LWP::UserAgent;
+my $ua = LWP::UserAgent->new;
+$ua->timeout(10);
+my $url = "http://$dest_system:5002";
+my $resp = $ua->get($url);
+$resp->is_success or error "Fetching $url failed: " . $resp->dump;
+$resp->decoded_content =~ /CPAN Testers Matrix/ or error "Unexpected content on $url: " . $resp->decoded_content;
+info "Fetching $url was successful: " . $resp->status_line;
 
 __END__
