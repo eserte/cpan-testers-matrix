@@ -607,7 +607,7 @@ if ($cachefile) {
 }
 print qq{<body onload="} .
     ($prefs{steal_focus} ? qq{focus_first(); } : '') .
-    ($downtime_teaser ? qq{rewrite_server_datetime(); } : '') .
+    #($downtime_teaser ? qq{rewrite_server_datetime(); } : '') .
     ($first_report_epoch ? qq{new DynamicDate($first_report_epoch, 'first_report_date', {no_seconds:true, debug:js_debug}); } : '') .
     ($last_report_epoch  ? qq{new DynamicDate($last_report_epoch,  'last_report_date',  {no_seconds:true, debug:js_debug}); } : '') .
     ($cachefile_time     ? qq{new DynamicDate($cachefile_time,     'cachedate',         {no_seconds:true, debug:js_debug}); } : '') .
