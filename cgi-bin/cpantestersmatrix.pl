@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.57';
+$VERSION = '2.58';
 
 use vars qw($UA);
 
