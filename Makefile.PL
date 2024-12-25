@@ -76,6 +76,7 @@ fix-permissions-data-debian:
 	sudo chmod g+w data
 
 BOTCHECKER=	${SRCROOT}/botchecker/Botchecker.pm
+BOTCHECKER_JS=	${SRCROOT}/botchecker/Botchecker_js.pm
 
 EOF
 
@@ -122,15 +123,18 @@ rsync-$type-cpantestersmatrix:	rsync-$type-cpantestersmatrix-beta rsync-$type-cp
 
 rsync-$type-cpantestersmatrix-beta:
 	perl -c \${BOTCHECKER}
-	rsync -av \${BOTCHECKER} $host:$wwwroot/cpan-testers-matrix.beta/cgi-bin/
+	perl -c \${BOTCHECKER_JS}
+	rsync -av \${BOTCHECKER} \${BOTCHECKER_JS} $host:$wwwroot/cpan-testers-matrix.beta/cgi-bin/
 
 rsync-$type-cpantestersmatrix-fast:
 	perl -c \${BOTCHECKER}
-	rsync -av \${BOTCHECKER} $host:$wwwroot/cpan-testers-matrix.fast/cgi-bin/
+	perl -c \${BOTCHECKER_JS}
+	rsync -av \${BOTCHECKER} \${BOTCHECKER_JS} $host:$wwwroot/cpan-testers-matrix.fast/cgi-bin/
 
 rsync-$type-cpantestersmatrix-stable:
 	perl -c \${BOTCHECKER}
-	rsync -av \${BOTCHECKER} $host:$wwwroot/cpan-testers-matrix/cgi-bin/
+	perl -c \${BOTCHECKER_JS}
+	rsync -av \${BOTCHECKER} \${BOTCHECKER_JS} $host:$wwwroot/cpan-testers-matrix/cgi-bin/
 
 fix-$type-cpantestersmatrix-permissions:
 	ssh $host chgrp www-data $wwwroot/cpantestersmatrix
