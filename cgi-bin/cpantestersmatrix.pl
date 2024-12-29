@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.58';
+$VERSION = '2.59';
 
 use vars qw($UA);
 
@@ -26,6 +26,13 @@ use FindBin;
 my $realbin;
 BEGIN { ($realbin) = $FindBin::RealBin =~ m{^(.*)$} } # untaint it
 use lib $realbin;
+
+BEGIN {
+    if ($ENV{BOTCHECKER_JS_ENABLED}) {
+	require Botchecker_js;
+	Botchecker_js::antibot();
+    }
+}
 
 use CGI qw(escapeHTML);
 use CGI::Carp qw();
