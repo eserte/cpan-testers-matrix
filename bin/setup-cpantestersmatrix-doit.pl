@@ -96,6 +96,7 @@ After=syslog.target
 
 [Service]
 ExecStart=/usr/bin/starman -l :5002 --pid /var/run/starman_cpan-testers-matrix.pid $repo_localdir/cpan-testers-matrix.psgi
+Environment="BOTCHECKER_JS_ENABLED=1"
 Restart=always
 
 [Install]
