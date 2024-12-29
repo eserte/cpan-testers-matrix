@@ -467,6 +467,17 @@ print <<EOF;
   <link rel="apple-touch-icon" sizes="114x114" href="images/cpantesters_icon_114.png" />
   <link rel="search" href="/opensearch.xml" type="application/opensearchdescription+xml" title="CPAN Testers Matrix">
   <meta name="ROBOTS" content="INDEX, NOFOLLOW" />
+EOF
+# documented by google -- both page-read-aloud and translate are not useful here
+print <<EOF;
+  <meta name="google" content="nopagereadaloud">
+  <meta name="googlebot" content="notranslate">
+EOF
+# undocumented, found in stackoverflow
+print <<EOF;
+  <meta name="google" content="notranslate">
+EOF
+print <<EOF;
   <style type="text/css"><!--
 EOF
 print $stylesheets{ $prefs{stylesheet} }->{fun}->();
