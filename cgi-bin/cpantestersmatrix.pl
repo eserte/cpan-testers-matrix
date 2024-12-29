@@ -249,6 +249,7 @@ my %prefs = do {
     print $q->header(
 	-type => 'text/html; charset=utf-8',
 	($do_set_cookie ? (-cookie => [$cookie]) : ()),
+	(@MyCGI::TAGS ? (-x_tag => join(',', @MyCGI::TAGS)) : ()),
 	-expires => (
 		     $edit_prefs            ? 'now' : # prefs page
 		     $q->query_string eq '' ? '+1d' : # home page
