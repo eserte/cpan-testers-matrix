@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.59';
+$VERSION = '2.60';
 
 use vars qw($UA);
 
@@ -27,10 +27,12 @@ my $realbin;
 BEGIN { ($realbin) = $FindBin::RealBin =~ m{^(.*)$} } # untaint it
 use lib $realbin;
 
+my $title; BEGIN { $title = "CPAN Testers Matrix" }
+
 BEGIN {
     if ($ENV{BOTCHECKER_JS_ENABLED}) {
 	require Botchecker_js;
-	Botchecker_js::antibot();
+	Botchecker_js::antibot($title);
     }
 }
 
@@ -158,7 +160,6 @@ $amendments_st = add_serializer_suffix($amendments_st);
 my $amendments;
 
 # XXX hmm, some globals ...
-my $title = "CPAN Testers Matrix";
 
 my $q = CGI->new;
 if (eval { require Botchecker; 1 }) {
