@@ -143,7 +143,7 @@ $ua->timeout(10);
 my $url = "http://$dest_system:5002";
 my $resp = $ua->get($url);
 $resp->is_success or error "Fetching $url failed: " . $resp->dump;
-$resp->decoded_content =~ /CPAN Testers Matrix/ or error "Unexpected content on $url: " . $resp->decoded_content;
+$resp->decoded_content =~ /(CPAN Testers Matrix|JavaScript Required)/ or error "Unexpected content on $url: " . $resp->decoded_content;
 info "Fetching $url was successful: " . $resp->status_line;
 
 __END__
