@@ -65,6 +65,11 @@ test_psgi app => $app, client => sub {
 	or diag $res->as_string;
     like $res->decoded_content, qr{^Disallow: /\?$}m;
     like $res->decoded_content, qr{^Disallow: /ZDJELAMEDA$}m;
+
+    {
+	my $res = $cb->(GET '/not-found', @UA);
+	is $res->code, 404, '404 as expected';
+    }
 };
 
 __END__

@@ -62,6 +62,19 @@ for my $htdoc (bsd_glob(catfile($root, 'htdocs', '*'))) {
     }
 }
 
+my $script = catfile($root, 'cgi-bin', $ENV{TRAVIS} ? 'cpantestersmatrix-travis.pl' : 'cpantestersmatrix.pl');
+my $cgi_app = Plack::App::WrapCGI->new(
+    script  => $script,
+    execute => USE_FORK_NOEXEC ? 'noexec' : 1,
+)->to_app;
+my $cgi_app_or_404 = sub {
+    my $env = shift;
+    if ($env->{PATH_INFO} eq '/') {
+        return $cgi_app->($env);
+    }
+    return [404, ['Content-Type' => 'text/plain'], ['Not Found']];
+};
+
 builder {
     mount '/favicon.ico' => $favicon;
     mount '/cpantesters_favicon.ico' => $favicon;
@@ -71,8 +84,6 @@ builder {
     for my $mount (@mounts) {
 	mount $mount->[0] => $mount->[1];
     }
-
-    my $script = catfile($root, 'cgi-bin', $ENV{TRAVIS} ? 'cpantestersmatrix-travis.pl' : 'cpantestersmatrix.pl');
 
     if (USE_FORK_NOEXEC) {
 	mount '/slow' => Plack::App::WrapCGI->new(
@@ -85,8 +96,5 @@ builder {
 	)->to_app;
     }
 
-    mount '/' => Plack::App::WrapCGI->new(
-        script  => $script,
-	execute => USE_FORK_NOEXEC ? 'noexec' : 1,
-    )->to_app;
+    mount '/' => $cgi_app_or_404;
 };
