@@ -47,3 +47,6 @@ Disallow: /
 
 User-agent: dotbot
 Disallow: /
+
+User-agent: Bytespider
+Disallow: /
