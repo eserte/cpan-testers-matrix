@@ -16,7 +16,7 @@ jobs:
     strategy:
      matrix:
        include:
-         - os: 'ubuntu-20.04'
+         - os: 'ubuntu-22.04'
     steps:
     - name: apt hacks
       # /etc/apt/sources.list should be sufficient; all the other repositories are possibly problematic
@@ -52,6 +52,8 @@ jobs:
             distver: jessie
           - dist:    ubuntu
             distver: 14.04 # It seems that 14.04 is the oldest Ubuntu possible to run in a github actions container
+          - dist:    ubuntu
+            distver: 20.04
     steps:
     - name: apt hacks for older Debian
       if: matrix.distver == 'jessie'
@@ -64,7 +66,7 @@ jobs:
       run: |
         set -e
         apt-get update -qq
-        apt-get install -q --no-install-recommends -y \
+        env DEBIAN_FRONTEND=noninteractive apt-get install -q --no-install-recommends -y \
             make \
             wget \
             libimage-info-perl libplack-perl libcgi-emulate-psgi-perl libcgi-compile-perl \
