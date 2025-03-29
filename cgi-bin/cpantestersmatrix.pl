@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007-2024 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007-2025 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.60';
+$VERSION = '2.61';
 
 use vars qw($UA);
 
@@ -1299,9 +1299,11 @@ sub build_success_table ($$$) {
 	$perl_patches{$perl}->{$patch}++ if $patch;
 	my $osname = $r->{osname};
 	if (!defined $osname) {
-	    our %warned_undefined_osname;
-	    if (!$warned_undefined_osname{$dist}++) {
-		warn "Undefined osname in report(s) for $dist";
+	    if (!$r->{fulldate} || $r->{fulldate} ge '2021') { # in the past, there were probably bugs with the reporting tools, causing in undefined osname; do not warn about them
+		our %warned_undefined_osname;
+		if (!$warned_undefined_osname{$dist}++) {
+		    warn "Undefined osname in report(s) for $dist";
+		}
 	    }
 	    $osname = '';
 	}
