@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.61';
+$VERSION = '2.62';
 
 use vars qw($UA);
 
@@ -1299,7 +1299,7 @@ sub build_success_table ($$$) {
 	$perl_patches{$perl}->{$patch}++ if $patch;
 	my $osname = $r->{osname};
 	if (!defined $osname) {
-	    if (!$r->{fulldate} || $r->{fulldate} ge '2021') { # in the past, there were probably bugs with the reporting tools, causing in undefined osname; do not warn about them
+	    if (!$r->{fulldate} || $r->{fulldate} ge '2024') { # in the past, there were probably bugs with the reporting tools, causing in undefined osname; do not warn about them
 		our %warned_undefined_osname;
 		if (!$warned_undefined_osname{$dist}++) {
 		    warn "Undefined osname in report(s) for $dist";
