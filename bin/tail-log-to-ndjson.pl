@@ -4,11 +4,10 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2023 Slaven Rezic. All rights reserved.
+# Copyright (C) 2023,2025 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: slaven@rezic.de
 # WWW:  https://github.com/eserte/cpan-testers-matrix/
 #
 
@@ -108,7 +107,7 @@ while(<$fh>) {
 	# - version
 	# - dist
 	my $osname;
-	if ($archname =~ m{\b(linux|openbsd|netbsd|midnightbsd|solaris|freebsd|MSWin32|darwin|dragonfly|cygwin|mirbsd|gnukfreebsd|haiku|bitrig|android)\b}) {
+	if ($archname =~ m{\b(linux|openbsd|netbsd|midnightbsd|solaris|freebsd|MSWin32|darwin|dragonfly|cygwin|mirbsd|gnukfreebsd|haiku|bitrig|android|nto)\b}) {
 	    $osname = lc $1
 	} else {
 	    warn "Cannot parse OS out of '$archname'\n";
