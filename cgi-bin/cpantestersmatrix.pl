@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.62';
+$VERSION = '2.63';
 
 use vars qw($UA);
 
@@ -181,7 +181,8 @@ my $ct_domain = $new_ct_domain;
 my $ct_link = "http://$ct_domain";
 my $dist_bugtracker_url;
 #my $report_rooturl = "http://nntp.x.perl.org/group/perl.cpan.testers/";
-my $report_rooturl = "http://www.cpantesters.org/cpan/report/";
+#my $report_rooturl = "http://www.cpantesters.org/cpan/report/";
+my $report_rooturl = "https://www.cpantesters.org/cpan/report/";
 my $table;
 my $tables;
 my $cachefile;
