@@ -27,6 +27,7 @@ ndjson_append_url: http://127.0.0.1:6081/matrixndjson
 EOF
 	unit_name          => 'cpan-testers-matrix', # used also for description and pidfile name # in this caseshould be cpan-testers-matrix.fast2
 	port               => 5002,
+	external_url       => 'https://fast2-matrix.cpantesters.org', # used for ping test
     },
 );
 
@@ -169,10 +170,14 @@ $priv_doit->call_with_runner('priv_setup', $variant, $info);
 require LWP::UserAgent;
 my $ua = LWP::UserAgent->new;
 $ua->timeout(10);
-my $url = "http://$dest_system:$variant_info->{port}";
-my $resp = $ua->get($url);
-$resp->is_success or error "Fetching $url failed: " . $resp->dump;
-$resp->decoded_content =~ /(CPAN Testers Matrix|JavaScript Required)/ or error "Unexpected content on $url: " . $resp->decoded_content;
-info "Fetching $url was successful: " . $resp->status_line;
+for my $url (
+    "http://$dest_system:$variant_info->{port}",
+    ($variant_info->{external_url} ? $variant_info->{external_url} : ()),
+) {
+    my $resp = $ua->get($url);
+    $resp->is_success or error "Fetching $url failed: " . $resp->dump;
+    $resp->decoded_content =~ /(CPAN Testers Matrix|JavaScript Required)/ or error "Unexpected content on $url: " . $resp->decoded_content;
+    info "Fetching $url was successful: " . $resp->status_line;
+}
 
 __END__
