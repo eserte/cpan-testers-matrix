@@ -31,13 +31,15 @@ my $dry_run;
 my $debug;
 my $local_test_only;
 my $skip_ci_test;
+my $skip_pps_test;
 GetOptions(
 	   'debug' => \$debug,
 	   'n|dry-run' => \$dry_run,
 	   'local-test-only' => \$local_test_only,
 	   'skip-ci-test' => \$skip_ci_test,
+	   'skip-pps-test' => \$skip_pps_test,
 	  )
-    or die "usage: $0 [--dry-run] [--debug] [--skip-ci-test | --local-test-only]\n";
+    or die "usage: $0 [--dry-run] [--debug] [--skip-ci-test | --local-test-only] [--skip-pps-test]\n";
 
 local $ENV{LC_ALL} = $ENV{LANG} = 'C';
 
@@ -70,13 +72,15 @@ if ($local_test_only) {
 	check_ci 'eserte/cpan-testers-matrix';
     };
 }
-step "update-pps", sub {
-    successful_system 'make', 'update-pps-jessie';
-};
-manual_check_step "pps tests", "Please go to http://matrix.bbbike-pps-jessie and do some manual tests.";
-confirmed_step "update-live-beta", sub {
-    successful_system 'make', 'update-live-beta';
-};
+unless ($skip_pps_test) {
+    step "update-pps", sub {
+	successful_system 'make', 'update-pps-jessie';
+    };
+    manual_check_step "pps tests", "Please go to http://matrix.bbbike-pps-jessie and do some manual tests.";
+    confirmed_step "update-live-beta", sub {
+	successful_system 'make', 'update-live-beta';
+    };
+}
 manual_check_step "beta tests", "Please go to http://beta-matrix.cpantesters.org and do some manual tests.";
 confirmed_step "update-live-stable", sub {
     successful_system 'make', 'update-live-stable';
