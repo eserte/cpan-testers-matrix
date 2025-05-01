@@ -124,6 +124,8 @@ sub check_dest_system_hostname {
 
 return 1 if caller;
 
+$ENV{LC_ALL} = 'C.UTF-8'; # conservative choice, avoid locale warnings
+
 my $doit = Doit->init;
 $doit->add_component('git');
 $doit->add_component('deb');
