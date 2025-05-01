@@ -5,16 +5,41 @@ use if !$ENV{DOIT_IN_REMOTE}, lib => "$ENV{HOME}/src/Doit/lib";
 use Doit; # install from CPAN or do "git clone https://github.com/eserte/doit.git ~/src/Doit"
 use Doit::Log;
 use File::Basename qw(dirname);
+use Hash::Util 'lock_keys';
 
 my $dest_system = "analysis2022"; # requires an entry in /etc/hosts with the real IP address
 
+my %variant_info = (
+    fast2 => {
+	repo_localdir_base => 'CPAN-Testers-Matrix', # XXX should be CPAN-Testers-Matrix.fast2
+	repo_branch        => 'master',
+	conf_file_base     => 'cpantestersmatrix.yml',
+	conf_file_content  => <<"EOF",
+# PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
+cpan_home: $ENV{HOME}/.cpan
+plain_packages_file: /tmp/plain_packages_file
+static_dist_dir: /var/tmp/metabase-log/log-as-ndjson
+cache_root: /tmp/cpantesters_fast_cache
+serializer: Sereal
+filefmt_dist: ndjson
+ndjson_append_url: http://127.0.0.1:6081/matrixndjson
+#ndjson_append_url: http://127.0.0.1:3002/matrixndjson
+EOF
+	unit_name          => 'cpan-testers-matrix', # used also for description and pidfile name # in this caseshould be cpan-testers-matrix.fast2
+	port               => 5002,
+    },
+);
+
 sub unpriv_setup {
-    my $unpriv_doit = shift;
+    my($unpriv_doit, $variant) = @_;
+
+    my $variant_info = $variant_info{$variant} // error "No support for variant $variant";
+    lock_keys %$variant_info;
 
     Doit::Log::set_label("\@ $dest_system(unpriv)");
 
-    my $repo_localdir = "$ENV{HOME}/src/CPAN/CPAN-Testers-Matrix";
-    my $repo_branch = 'master';
+    my $repo_localdir = "$ENV{HOME}/src/CPAN/" . $variant_info->{repo_localdir_base};
+    my $repo_branch = $variant_info->{repo_branch};
 
     $unpriv_doit->make_path(dirname($repo_localdir));
 
@@ -33,19 +58,10 @@ sub unpriv_setup {
     # XXX Verzeichnisse überprüfen, evtl. cache_root verlegen? (wobei: dieses Verzeichnis könnte von Zeit zu Zeit aufgeräumt werden, und solange es unterhalb von /tmp liegt, passiert das zumindest bei einem Reboot)
     ## Usually no restart needed, as it is still running as a CGI script.
     ##$unit_restart++ if
-    $unpriv_doit->write_binary("$repo_localdir/cgi-bin/cpantestersmatrix.yml", <<"EOF");
-# PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
-cpan_home: $ENV{HOME}/.cpan
-plain_packages_file: /tmp/plain_packages_file
-static_dist_dir: /var/tmp/metabase-log/log-as-ndjson
-cache_root: /tmp/cpantesters_fast_cache
-serializer: Sereal
-filefmt_dist: ndjson
-ndjson_append_url: http://127.0.0.1:6081/matrixndjson
-#ndjson_append_url: http://127.0.0.1:3002/matrixndjson
-EOF
-
-    $unpriv_doit->make_path('/var/tmp/metabase-log/log-as-ndjson');
+    $unpriv_doit->write_binary("$repo_localdir/cgi-bin/" . $variant_info->{conf_file_base}, $variant_info->{conf_file_content});
+    if ($variant eq 'fast2') { # XXX maybe this needs also be done via config; what about other variants?
+	$unpriv_doit->make_path('/var/tmp/metabase-log/log-as-ndjson');
+    }
 
     return {
 	    repo_localdir => $repo_localdir,
@@ -54,7 +70,10 @@ EOF
 }
 
 sub priv_setup {
-    my($priv_doit, $info) = @_;
+    my($priv_doit, $variant, $info) = @_;
+
+    my $variant_info = $variant_info{$variant} // error "No support for variant $variant";
+    lock_keys %$variant_info;
 
     Doit::Log::set_label("\@ $dest_system(priv)");
 
@@ -91,11 +110,11 @@ EOF
 
     my $unit_contents = <<"EOF";
 [Unit]
-Description=cpan-testers-matrix
+Description=$variant_info->{unit_name}
 After=syslog.target
 
 [Service]
-ExecStart=/usr/bin/starman -l :5002 --pid /var/run/starman_cpan-testers-matrix.pid $repo_localdir/cpan-testers-matrix.psgi
+ExecStart=/usr/bin/starman -l :$variant_info->{port} --pid /var/run/starman_$variant_info->{unit_name}.pid $repo_localdir/cpan-testers-matrix.psgi
 Environment="BOTCHECKER_JS_ENABLED=1"
 Restart=always
 
@@ -104,12 +123,12 @@ WantedBy=multi-user.target
 EOF
 
     $unit_restart++
-	if $priv_doit->write_binary("/etc/systemd/system/starman_cpan-testers-matrix.service", $unit_contents);
+	if $priv_doit->write_binary("/etc/systemd/system/starman_$variant_info->{unit_name}.service", $unit_contents);
 
     if ($unit_restart) {
 	$priv_doit->system(qw(systemctl daemon-reload));
-	$priv_doit->system(qw(systemctl enable starman_cpan-testers-matrix.service));
-	$priv_doit->system(qw(systemctl restart starman_cpan-testers-matrix.service));
+	$priv_doit->system(qw(systemctl enable),"starman_$variant_info->{unit_name}.service");
+	$priv_doit->system(qw(systemctl restart), "starman_$variant_info->{unit_name}.service");
     }
 }
 
@@ -124,25 +143,33 @@ sub check_dest_system_hostname {
 
 return 1 if caller;
 
+require Getopt::Long;
+
 $ENV{LC_ALL} = 'C.UTF-8'; # conservative choice, avoid locale warnings
 
 my $doit = Doit->init;
 $doit->add_component('git');
 $doit->add_component('deb');
 
+my $variant = 'fast2';
+Getopt::Long::GetOptions("variant" => \$variant)
+    or error "usage: $0 [--dry-run] [--variant std|fast|fast2]\n";
+my $variant_info = $variant_info{$variant}
+    or error "unsupported variant, use: " . join(", ", sort keys %variant_info);
+
 check_dest_system_hostname();
 
 my $unpriv_doit = $doit->do_ssh_connect($dest_system);
-my $info = $unpriv_doit->call_with_runner('unpriv_setup');
+my $info = $unpriv_doit->call_with_runner('unpriv_setup', $variant);
 
 my $priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
-$priv_doit->call_with_runner('priv_setup', $info);
+$priv_doit->call_with_runner('priv_setup', $variant, $info);
 
 # simple ping test
 require LWP::UserAgent;
 my $ua = LWP::UserAgent->new;
 $ua->timeout(10);
-my $url = "http://$dest_system:5002";
+my $url = "http://$dest_system:$variant_info->{port}";
 my $resp = $ua->get($url);
 $resp->is_success or error "Fetching $url failed: " . $resp->dump;
 $resp->decoded_content =~ /(CPAN Testers Matrix|JavaScript Required)/ or error "Unexpected content on $url: " . $resp->decoded_content;
