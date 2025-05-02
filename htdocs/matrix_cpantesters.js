@@ -171,3 +171,14 @@ function shift_reload_alternative() {
        elem.innerHTML = elem.innerHTML + ' or click <a href="javascript:window.location.reload(true)">here</a>';
     }
 }
+
+//////////////////////////////////////////////////////////////////////
+
+function add_json_download_link(dist) {
+    var u = "https://www.cpantesters.org";
+    u += "/show";
+    u += "/";
+    u += dist;
+    u += ".json";
+    document.write('<a class="sml" href="' + u + '">raw JSON data</a>');
+}

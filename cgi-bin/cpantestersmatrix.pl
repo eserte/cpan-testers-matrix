@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.63';
+$VERSION = '2.64';
 
 use vars qw($UA);
 
@@ -561,7 +561,7 @@ print qq{  var js_debug = } . (JS_DEBUG ? 'true' : 'false') . ";\n";
 print <<EOF;
   // End script hiding -->
   </script>
-  <script type="text/javascript" src="matrix_cpantesters.js?v=20150419"></script>
+  <script type="text/javascript" src="matrix_cpantesters.js?v=20250502"></script>
 EOF
 if ($reports && USE_JQUERY_TABLESORTER) {
     print <<'EOF';
@@ -1890,6 +1890,11 @@ EOF
     if ($app_mode != APP_MODE_NDJSONAPI) {
 	print <<EOF;
 <li><a class="sml" href="https://fast2-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via ndjson API ("fast2")</a> <!--<span class="sml">(temporary!)</span>-->
+EOF
+    }
+    if (1) {
+	print <<EOF;
+<li><script type="text/javascript">add_json_download_link("$dist")</script> <!--<span class="sml">(temporary!)</span>-->
 EOF
     }
     print <<EOF;
