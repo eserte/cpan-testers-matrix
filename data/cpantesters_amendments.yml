@@ -570,3 +570,22 @@ amendments:
     action: INVALID
     id:
       - 64781504
+  - comment: "TRIAL versions which will never get stable"
+    action: REMOVE
+    distver:
+      - DBIx-Class-0.08901-TRIAL
+      - DBIx-Class-0.082899_15
+      - DBIx-Class-0.082899_14
+      - DBIx-Class-0.082899_13
+      - DBIx-Class-0.082899_12
+      - DBIx-Class-0.082899_11
+      - DBIx-Class-0.082899_10
+      - DBIx-Class-0.082899_09
+      - DBIx-Class-0.082899_08
+      - DBIx-Class-0.082899_07
+      - DBIx-Class-0.082899_06
+      - DBIx-Class-0.082899_05
+      - DBIx-Class-0.082899_04
+      - DBIx-Class-0.082899_03
+      - DBIx-Class-0.082899_02
+      - DBIx-Class-0.082899_01
