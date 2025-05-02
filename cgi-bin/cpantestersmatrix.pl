@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.64';
+$VERSION = '2.65';
 
 use vars qw($UA);
 
@@ -155,7 +155,7 @@ if (!-e $amendments_yml) {
     }
 }
 (my $amendments_st = $amendments_yml) =~ s{\.yml$}{};
-$amendments_st .= "." . $<;
+$amendments_st .= "_v2." . $<;
 $amendments_st = add_serializer_suffix($amendments_st);
 my $amendments;
 
@@ -1927,7 +1927,8 @@ EOF
 }
 
 sub get_amendments {
-    my $amendments = {};
+    my $amendments = { by_id => {}, by_distver => {} };
+    my $amendments_by_distver = {};
     eval {
 	if (-r $amendments_st && -s $amendments_st && -M $amendments_st < -M $amendments_yml) {
 	    $amendments = cache_retrieve $amendments_st;
@@ -1935,8 +1936,14 @@ sub get_amendments {
 	    require_yaml;
 	    my $raw_amendments = yaml_load_file($amendments_yml);
 	    for my $amendment (@{ $raw_amendments->{amendments} }) {
-		for my $id (@{ $amendment->{id} }) {
-		    $amendments->{$id} = $amendment;
+		if ($amendment->{id}) {
+		    for my $id (@{ $amendment->{id} }) {
+			$amendments->{by_id}{$id} = $amendment;
+		    }
+		} elsif ($amendment->{distver}) {
+		    for my $distver (@{ $amendment->{distver} }) {
+			$amendments->{by_distver}{$distver} = $amendment;
+		    }
 		}
 	    }
 	    cache_store $amendments, $amendments_st;
@@ -1978,14 +1985,25 @@ sub amend_result {
     $result->{fulldate} =~ s{^(....)(..)(..)(..)(..)$}{$1-$2-$3 $4:$5} if exists $result->{fulldate};
     $result->{tester} = obfuscate_from $result->{tester};
 
-    my $id = $result->{id};
     my $action_comment;
     $amendments ||= get_amendments();
-    if (defined $id && $amendments && exists $amendments->{$id}) {
-	if (my $new_action = $amendments->{$id}->{action}) {
-	    $result->{action} = $new_action;
+    if ($amendments) {
+	my $amendment;
+	my $id = $result->{id};
+	if (defined $id && exists $amendments->{by_id}{$id}) {
+	    $amendment = $amendments->{by_id}{$id};
+	} else {
+	    my $distver = defined $result->{dist} && defined $result->{version} ? $result->{dist} . '-' . $result->{version} : undef;
+	    if (defined $distver && exists $amendments->{by_distver}{$distver}) {
+		$amendment = $amendments->{by_distver}{$distver};
+	    }
 	}
-	$result->{action_comment} = $amendments->{$id}->{comment};
+	if ($amendment) {
+	    if (my $new_action = $amendment->{action}) {
+		$result->{action} = $new_action;
+	    }
+	    $result->{action_comment} = $amendment->{comment};
+	}
     }
 }
 
