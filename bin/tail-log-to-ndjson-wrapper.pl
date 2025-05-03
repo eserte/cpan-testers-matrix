@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2023 Slaven Rezic. All rights reserved.
+# Copyright (C) 2023,2025 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -21,7 +21,7 @@ my $output_file = "/tmp/ndjson-log.txt";
 system('curl', '-L', '--silent', '--compressed', '--output', "$output_file~", $fetch_url);
 die "Getting ${output_file}~ failed" if $? != 0;
 rename "$output_file~", $output_file or die $!;
-system("$FindBin::RealBin/tail-log-to-ndjson.pl", "--ndjson-dir", "/var/tmp/metabase-log/log-as-ndjson", "--json-dir", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/ndjson-log.log", "-statusfile", "/tmp/ndjson-statusfile", $output_file);
+system("$FindBin::RealBin/tail-log-to-ndjson.pl", "--ndjson-dir", "/var/tmp/metabase-log/tail-log-as-ndjson", "--json-dir", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/ndjson-log.log", "-statusfile", "/tmp/ndjson-statusfile", $output_file);
 die if $? != 0;
 
 __END__
@@ -30,7 +30,7 @@ __END__
 
 Create directory:
 
-    mkdir -p /var/tmp/metabase-log/log-as-ndjson
+    mkdir -p /var/tmp/metabase-log/tail-log-as-ndjson
 
 Setup cron job:
 
@@ -45,7 +45,7 @@ everything to F</dev/null>)
 Create a cgi-bin/cpantestersmatrix.yml in the CPAN-Testers-Matrix
 directory with the following content:
 
-    static_dist_dir: /var/tmp/metabase-log/log-as-ndjson
+    static_dist_dir: /var/tmp/metabase-log/tail-log-as-ndjson
     cache_root: /tmp/cpantesters_fast_cache
     serializer: Sereal
     filefmt_dist: ndjson
