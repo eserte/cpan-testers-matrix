@@ -893,7 +893,7 @@ print <<EOF;
    by <a href="https://metacpan.org/author/SREZIC">Slaven Rezi&#x0107;</a>
   </div>
 @{[ defined &Botchecker::zdjela_meda ? Botchecker::zdjela_meda() : '' ]}
-@{[ 0 && $ENV{BOTCHECKER_JS_ENABLED} && defined &Botchecker_js::remove_r_snippet ? Botchecker_js::remove_r_snippet() : '' ]}
+@{[ $ENV{BOTCHECKER_JS_ENABLED} && defined &Botchecker_js::remove_r_snippet ? Botchecker_js::remove_r_snippet() : '' ]}
  </body>
 </html>
 EOF
