@@ -2,7 +2,9 @@
 # -*- perl -*-
 
 use if !$ENV{DOIT_IN_REMOTE}, lib => "$ENV{HOME}/src/Doit/lib";
+use if !$ENV{DOIT_IN_REMOTE}, lib => "$ENV{HOME}/src/Doit-Experiments/lib";
 use Doit; # install from CPAN or do "git clone https://github.com/eserte/doit.git ~/src/Doit"
+          # also                    "git clone https://github.com/eserte/Doit-Experiments.git ~/src/Doit-Experiments"
 use Doit::Log;
 use File::Basename qw(dirname);
 use Hash::Util 'lock_keys';
@@ -13,7 +15,6 @@ my %variant_info = (
     fast2 => {
 	repo_localdir_base => 'CPAN-Testers-Matrix', # XXX should be CPAN-Testers-Matrix.fast2
 	repo_branch        => 'master',
-	conf_file_base     => 'cpantestersmatrix.yml',
 	conf_file_content  => <<"EOF",
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
 cpan_home: $ENV{HOME}/.cpan
@@ -27,7 +28,37 @@ ndjson_append_url: http://127.0.0.1:6081/matrixndjson
 EOF
 	unit_name          => 'cpan-testers-matrix', # used also for description and pidfile name # in this caseshould be cpan-testers-matrix.fast2
 	port               => 5002,
+        listen_host        => '',
 	external_url       => 'https://fast2-matrix.cpantesters.org', # used for ping test
+    },
+    fast => {
+	repo_localdir_base => 'CPAN-Testers-Matrix.fast',
+	repo_branch        => 'master',
+	conf_file_content  => <<"EOF",
+cpan_home: $ENV{HOME}/.cpan
+plain_packages_file: /tmp/plain_packages_file.fast
+static_dist_dir: /var/tmp/metabase-log/log-as-ndjson.fast
+cache_root: /tmp/cpantesters_cache.fast
+serializer: Sereal
+EOF
+	unit_name          => 'cpan-testers-matrix.std',
+	port               => 5003,
+        listen_host        => '127.0.0.1',
+	#external_url       => 'https://fast-matrix.cpantesters.org', # enable after moving site
+    },
+    std => {
+	repo_localdir_base => 'CPAN-Testers-Matrix.std',
+	repo_branch        => 'master',
+	conf_file_content  => <<"EOF",
+cpan_home: $ENV{HOME}/.cpan
+plain_packages_file: /tmp/plain_packages_file.std
+cache_root: /var/tmp/cpantesters_cache.std
+serializer: Sereal
+EOF
+	unit_name          => 'cpan-testers-matrix.std',
+	port               => 5004,
+        listen_host        => '127.0.0.1',
+	#external_url       => 'https://matrix.cpantesters.org', # enable after moving site
     },
 );
 
@@ -59,9 +90,9 @@ sub unpriv_setup {
     # XXX Verzeichnisse überprüfen, evtl. cache_root verlegen? (wobei: dieses Verzeichnis könnte von Zeit zu Zeit aufgeräumt werden, und solange es unterhalb von /tmp liegt, passiert das zumindest bei einem Reboot)
     ## Usually no restart needed, as it is still running as a CGI script.
     ##$unit_restart++ if
-    $unpriv_doit->write_binary("$repo_localdir/cgi-bin/" . $variant_info->{conf_file_base}, $variant_info->{conf_file_content});
-    if ($variant eq 'fast2') { # XXX maybe this needs also be done via config; what about other variants?
-	$unpriv_doit->make_path('/var/tmp/metabase-log/log-as-ndjson');
+    $unpriv_doit->write_binary("$repo_localdir/cgi-bin/cpantestersmatrix.yml", $variant_info->{conf_file_content});
+    if ($variant_info->{conf_file_content} =~ /^static_dist_dir:\s*(\S+)$/m) { # XXX actually would be better to do YAML parsing, but maybe we don't have YAML available
+	$unpriv_doit->make_path($1);
     }
 
     return {
@@ -104,10 +135,27 @@ sub priv_setup {
 	       libplack-perl
 	  ));
 
-    my $cron_contents = <<'EOF';
+    {
+	my $cron_contents = <<"EOF" . <<'EOF';
+# PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
+EOF
 30 * * * * eserte perl -MCPAN -e '$CPAN::Be_Silent = 1; CPAN::Index->reload'
 EOF
-    $priv_doit->write_binary('/etc/cron.d/cpan-update', $cron_contents);
+	$priv_doit->write_binary('/etc/cron.d/cpan-update', $cron_contents);
+    }
+
+    if ($variant eq 'fast') {
+	my $cron_wrapper = '/home/eserte/bin/sh/cron-wrapper';
+	if (!$priv_doit->ft_exists($cron_wrapper)) {
+	    error "Please make sure that $cron_wrapper exists (i.e. checking out eserte's bin/sh"; # XXX should be a public repo!
+	}
+	my $cron_contents = <<"EOF";
+# PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
+2,7,12,17,22,27,32,37,42,47,52,57 * * * * eserte $cron_wrapper nice ionice -n7 $repo_localdir/bin/tail-log-to-ndjson-wrapper.pl
+EOF
+	## XXX currently disabled, as tail-log-to-ndjson-wrapper.pl needs more work
+	#$priv_doit->write_binary('/etc/cron.d/fast-matrix', $cron_contents);
+    }
 
     my $unit_contents = <<"EOF";
 [Unit]
@@ -115,7 +163,7 @@ Description=$variant_info->{unit_name}
 After=syslog.target
 
 [Service]
-ExecStart=/usr/bin/starman -l :$variant_info->{port} --pid /var/run/starman_$variant_info->{unit_name}.pid $repo_localdir/cpan-testers-matrix.psgi
+ExecStart=/usr/bin/starman -l $variant_info->{listen_host}:$variant_info->{port} --pid /var/run/starman_$variant_info->{unit_name}.pid $repo_localdir/cpan-testers-matrix.psgi
 Environment="BOTCHECKER_JS_ENABLED=1"
 Restart=always
 
@@ -142,6 +190,19 @@ sub check_dest_system_hostname {
     }
 }
 
+sub ping_test {
+    my($doit, $url) = @_;
+    require LWP::UserAgent;
+    require Sys::Hostname;
+    my $msg_prefix = "Fetching $url from " . Sys::Hostname::hostname();
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+    my $resp = $ua->get($url);
+    $resp->is_success or error "$msg_prefix failed: " . $resp->dump;
+    $resp->decoded_content =~ /(CPAN Testers Matrix|JavaScript Required)/ or error "$msg_prefix, but unexpected content: " . $resp->decoded_content;
+    info "$msg_prefix was successful: " . $resp->status_line;
+}
+
 return 1 if caller;
 
 require Getopt::Long;
@@ -151,12 +212,13 @@ $ENV{LC_ALL} = 'C.UTF-8'; # conservative choice, avoid locale warnings
 my $doit = Doit->init;
 $doit->add_component('git');
 $doit->add_component('deb');
+$doit->add_component('DoitX::Ft');
 
 my $variant = 'fast2';
-Getopt::Long::GetOptions("variant" => \$variant)
+Getopt::Long::GetOptions("variant=s" => \$variant)
     or error "usage: $0 [--dry-run] [--variant std|fast|fast2]\n";
 my $variant_info = $variant_info{$variant}
-    or error "unsupported variant, use: " . join(", ", sort keys %variant_info);
+    or error "unsupported variant '$variant', use: " . join(", ", sort keys %variant_info);
 
 check_dest_system_hostname();
 
@@ -166,18 +228,14 @@ my $info = $unpriv_doit->call_with_runner('unpriv_setup', $variant);
 my $priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
 $priv_doit->call_with_runner('priv_setup', $variant, $info);
 
-# simple ping test
-require LWP::UserAgent;
-my $ua = LWP::UserAgent->new;
-$ua->timeout(10);
-for my $url (
-    "http://$dest_system:$variant_info->{port}",
-    ($variant_info->{external_url} ? $variant_info->{external_url} : ()),
-) {
-    my $resp = $ua->get($url);
-    $resp->is_success or error "Fetching $url failed: " . $resp->dump;
-    $resp->decoded_content =~ /(CPAN Testers Matrix|JavaScript Required)/ or error "Unexpected content on $url: " . $resp->decoded_content;
-    info "Fetching $url was successful: " . $resp->status_line;
+# ping test(s)
+if ($variant_info->{listen_host} =~ m{^(|0\.0\.0\.0)$}) {
+    $doit->call_with_runner('ping_test', "http://$dest_system:$variant_info->{port}");
+} else {
+    $unpriv_doit->call_with_runner('ping_test', "http://127.0.0.1:$variant_info->{port}");
+}
+if ($variant_info->{external_url}) {
+    $doit->call_with_runner('ping_test', $variant_info->{external_url});
 }
 
 __END__
