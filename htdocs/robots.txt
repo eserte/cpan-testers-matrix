@@ -50,3 +50,6 @@ Disallow: /
 
 User-agent: Bytespider
 Disallow: /
+
+User-agent: SemanticScholarBot
+Disallow: /
