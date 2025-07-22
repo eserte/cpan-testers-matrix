@@ -1,10 +1,5 @@
 cpan_home: /home/e/eserte/.cpan
 plain_packages_file: /tmp/plain_packages_file
-#static_dist_dir: /var/tmp/metabase-log/log-as-json
-static_dist_dir: /var/tmp/metabase-log/log-as-ndjson
+static_dist_dir: /var/tmp/metabase-log/log-as-json
 cache_root: /tmp/cpantesters_fast_cache
-#static_dist_dir: /var/tmp/metabase-beta-log/log-as-json
-#cache_root: /tmp/cpantesters_beta_fast_cache
 serializer: Sereal
-filefmt_dist: ndjson
-ndjson_append_url: http://analysis2022:6081/matrixndjson
