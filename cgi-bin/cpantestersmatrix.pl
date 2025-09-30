@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.66';
+$VERSION = '2.67';
 
 use vars qw($UA);
 
@@ -1890,6 +1890,15 @@ EOF
     if ($app_mode != APP_MODE_NDJSONAPI) {
 	print <<EOF;
 <li><a class="sml" href="https://fast2-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via ndjson API ("fast2")</a> <!--<span class="sml">(temporary!)</span>-->
+EOF
+    }
+    if (1) {
+	my $dist_version_part = '';
+	if (defined $dist_version) {
+	    $dist_version_part = '/' . CGI::escapeHTML($dist_version);
+	}
+	print <<EOF;
+<li><a class="sml" href="https://matrix.perl-magpie.org/dist/$dist_html$dist_version_part">Matrix at perl-magpie</a>
 EOF
     }
     if (1) {
