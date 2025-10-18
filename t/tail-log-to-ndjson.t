@@ -58,24 +58,40 @@ my @cmd = (
 );
 
 {
-    open my $ofh, '>', $logtxt;
-    print $ofh <<'EOF';
+    {
+	open my $ofh, '>', $logtxt;
+	print $ofh <<'EOF';
 The last 1000 reports as of 2025-10-18T08:00:04Z:
 [2025-10-18T07:59:49Z] [Carlos Guevara] [pass] [JKEENAN/IPC-System-Simple-1.30.tar.gz] [i86pc-solaris-thread-multi-64] [perl-v5.43.4] [6bad3778-abf8-11f0-8c1e-b80f595f57ba] [2025-10-18T07:59:49Z]
 [2025-10-18T07:59:43Z] [Carlos Guevara] [unknown] [JDHEDDEN/threads-2.21.tar.gz] [amd64-netbsd-thread-multi] [perl-v5.43.4] [67e088d4-abf8-11f0-97a1-bb460411313d] [2025-10-18T07:59:43Z]
 [2025-10-18T07:54:07Z] [Chris Williams (BINGOS)] [pass] [/] [x86_64-linux] [perl-v5.18.2] [a018b394-abf7-11f0-a3bc-a055f9c4ba34] [2025-10-18T07:54:07Z]
 [2025-10-18T07:40:24Z] [Carlos Guevara] [pass] [ARISTOTLE/Text-Tabs+Wrap-2024.001.tar.gz] [i86pc-solaris-thread-multi-64] [perl-v5.43.4] [b50809d2-abf5-11f0-ab63-d1797d8a4f3d] [2025-10-18T07:40:24Z]
+[2025-10-18T07:29:02Z] [Carlos Guevara] [pass] [TINITA/Test-YAML-1.07.tar.gz] [amd64-netbsd-thread-multi] [perl-v5.43.4] [1e9545e2-abf4-11f0-8398-beaf3347c81e] [2025-10-18T07:29:02Z]
 EOF
-    close $ofh;
+	close $ofh;
+    }
 
-    my $exptected_IPC_System_Simple_ndjson_contents = <<'EOF';
+    {
+	open my $ofh , '>', "$json_dir/Test-YAML.json";
+	print $ofh <<'EOF';
+[{"archname":"x86_64-linux-multi","fulldate":"201610080752","distribution":"Test-YAML","osname":"linux","version":"1.06","status":"UNKNOWN","perl":"5.25.5","guid":"34e0a544-8d2c-11e6-8a2d-a149d3687cca","tester":"Serguei Trouchelle (STRO)"}]
+EOF
+	close $ofh;
+    }
+
+    my $expected_IPC_System_Simple_ndjson_contents = <<'EOF';
 {"archname":"i86pc-solaris-thread-multi-64","distribution":"IPC-System-Simple","fulldate":"202510180759","guid":"6bad3778-abf8-11f0-8c1e-b80f595f57ba","osname":"solaris","perl":"5.43.4","status":"PASS","tester":"Carlos Guevara","version":"1.30"}
 EOF
-    my $exptected_threads_ndjson_contents = <<'EOF';
+    my $expected_threads_ndjson_contents = <<'EOF';
 {"archname":"amd64-netbsd-thread-multi","distribution":"threads","fulldate":"202510180759","guid":"67e088d4-abf8-11f0-97a1-bb460411313d","osname":"netbsd","perl":"5.43.4","status":"UNKNOWN","tester":"Carlos Guevara","version":"2.21"}
 EOF
     my $expected_Text_Tabs_Wrap_ndjson_contents = <<'EOF';
 {"archname":"i86pc-solaris-thread-multi-64","distribution":"Text-Tabs+Wrap","fulldate":"202510180740","guid":"b50809d2-abf5-11f0-ab63-d1797d8a4f3d","osname":"solaris","perl":"5.43.4","status":"PASS","tester":"Carlos Guevara","version":"2024.001"}
+EOF
+
+    my $expected_Test_YAML_ndjson_contents = <<'EOF';
+{"archname":"x86_64-linux-multi","distribution":"Test-YAML","fulldate":"201610080752","guid":"34e0a544-8d2c-11e6-8a2d-a149d3687cca","osname":"linux","perl":"5.25.5","status":"UNKNOWN","tester":"Serguei Trouchelle (STRO)","version":"1.06"}
+{"archname":"amd64-netbsd-thread-multi","distribution":"Test-YAML","fulldate":"202510180729","guid":"1e9545e2-abf4-11f0-8398-beaf3347c81e","osname":"netbsd","perl":"5.43.4","status":"PASS","tester":"Carlos Guevara","version":"1.07"}
 EOF
 
     for my $pass (1..2) {
@@ -85,16 +101,43 @@ EOF
 	    like $err, qr{\QIPC-System-Simple.ndjson... (first-time creation) (no existing \E.*/log-as-json/IPC-System-Simple.json\Q...) (writing data...)}, "expected diagnostics for IPC-System-Simple (pass $pass)";
 	    like $err, qr{\Qthreads.ndjson... (first-time creation) (no existing \E.*/log-as-json/threads.json\Q...) (writing data...)}, "expected diagnostics for threads (pass $pass)";
 	    like $err, qr{\QText-Tabs+Wrap.ndjson... (first-time creation) (no existing \E.*/log-as-json/Text-Tabs\+Wrap.json\Q...) (writing data...)}, "expected diagnostics for Text-Tabs+Wrap (pass $pass)";
+	    like $err, qr{\QTest-YAML.ndjson... (first-time creation) (use data from existing \E.*/log-as-json/Test-YAML.json\Q...) (writing data...)}, "expected diagnostics for Test-YAML (pass $pass)";
 	} else {
 	    like $err, qr{\QIPC-System-Simple.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for IPC-System-Simple (pass $pass)";
 	    like $err, qr{\Qthreads.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for threads (pass $pass)";
 	    like $err, qr{\QText-Tabs+Wrap.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for Text-Tabs+Wrap (pass $pass)";
+	    like $err, qr{\QTest-YAML.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for Test-YAML (pass $pass)";
 	}
 	like $err, qr{\QCannot parse dist '/' in line '[2025-10-18T07:54:07Z] [Chris Williams (BINGOS)] [pass] [/] [x86_64-linux] [perl-v5.18.2] [a018b394-abf7-11f0-a3bc-a055f9c4ba34] [2025-10-18T07:54:07Z]'}, 'unparsable dist';
-	is slurp("$ndjson_dir/IPC-System-Simple.ndjson"), $exptected_IPC_System_Simple_ndjson_contents, 'IPC-System-Simple.ndjson contents OK';
-	is slurp("$ndjson_dir/threads.ndjson"), $exptected_threads_ndjson_contents, 'threads.ndjson contents OK';
+	is slurp("$ndjson_dir/IPC-System-Simple.ndjson"), $expected_IPC_System_Simple_ndjson_contents, 'IPC-System-Simple.ndjson contents OK';
+	is slurp("$ndjson_dir/threads.ndjson"), $expected_threads_ndjson_contents, 'threads.ndjson contents OK';
+	is slurp("$ndjson_dir/Text-Tabs+Wrap.ndjson"), $expected_Text_Tabs_Wrap_ndjson_contents, 'Text-Tabs+Wrap.ndjson contents OK';
+	is slurp("$ndjson_dir/Test-YAML.ndjson"), $expected_Test_YAML_ndjson_contents, 'Test-YAML.ndjson contents OK';
 	my @ndjson_files = <$ndjson_dir/*>;
-	is scalar(@ndjson_files), 3, 'expected number of files';
+	is scalar(@ndjson_files), 4, 'expected number of files';
+    }
+
+    {
+	# overwrite, simulating new contents
+	open my $ofh, '>', $logtxt;
+	print $ofh <<'EOF';
+The last 1000 reports as of 2025-10-18T08:00:04Z:
+[2025-10-18T07:47:59Z] [Carlos Guevara] [pass] [TINITA/Test-YAML-1.07.tar.gz] [i86pc-solaris-thread-multi-64] [perl-v5.43.4] [c4b21958-abf6-11f0-9c1b-c4a53ce7e222] [2025-10-18T07:47:59Z]
+[2025-10-18T07:29:02Z] [Carlos Guevara] [pass] [TINITA/Test-YAML-1.07.tar.gz] [amd64-netbsd-thread-multi] [perl-v5.43.4] [1e9545e2-abf4-11f0-8398-beaf3347c81e] [2025-10-18T07:29:02Z]
+EOF
+	close $ofh;
+    }
+
+    my $expected_Test_YAML_ndjson_contents_2 = $expected_Test_YAML_ndjson_contents . <<'EOF';
+{"archname":"i86pc-solaris-thread-multi-64","distribution":"Test-YAML","fulldate":"202510180747","guid":"c4b21958-abf6-11f0-9c1b-c4a53ce7e222","osname":"solaris","perl":"5.43.4","status":"PASS","tester":"Carlos Guevara","version":"1.07"}
+EOF
+    {
+	run(\@cmd, '2>', \my $err) or fail "@cmd failed";
+	diag "command: @cmd\nstderr:\n$err" if $debug;
+	like $err, qr{\QTest-YAML.ndjson... (append to existing ndjson file...) (found last guid...) (appending data...)}, "expected diagnostics for Test-YAML (appending data)";
+	is slurp("$ndjson_dir/Test-YAML.ndjson"), $expected_Test_YAML_ndjson_contents_2, 'Test-YAML.ndjson contents OK';
+	my @ndjson_files = <$ndjson_dir/*>;
+	is scalar(@ndjson_files), 4, 'expected number of files';
     }
 }
 
