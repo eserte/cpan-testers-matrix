@@ -168,6 +168,9 @@ while(my($dist,$v) = each %distinfo) {
 		    my $old_v_serialized = do { open my $fh, $json_file or mydie "Could not open '$json_file': $!"; local $/; <$fh>};
 		    my $old_v = $jsoner->decode($old_v_serialized);
 		    @out_v = (@$old_v,@$v);
+		} else {
+		    print STDERR "(no existing $json_file...) ";
+		    @out_v = @$v;
 		}
 	    }
 	    my %guid_seen;
