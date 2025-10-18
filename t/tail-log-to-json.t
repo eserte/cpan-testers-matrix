@@ -128,10 +128,7 @@ EOF
 	run(\@cmd_without_seek, '2>', \my $err) or fail "@cmd_without_seek failed";
 	diag "command: @cmd_without_seek\nstderr:\n$err" if $debug;
 	like $err, qr{\QCrypt-URandom.json...\E$}m, "expected diagnostics for Crypt-URandom (appending data)";
-	{
-	    local $TODO = "unexpected order";
-	    eq_json slurp("$json_dir/Crypt-URandom.json"), $expected_Crypt_URandom_json_contents, 'Crypt-URandom.json contents OK';
-	}
+	eq_json slurp("$json_dir/Crypt-URandom.json"), $expected_Crypt_URandom_json_contents, 'Crypt-URandom.json contents OK';
 	my @json_files = <$json_dir/*>;
 	is scalar(@json_files), 5, 'expected number of files';
     }

@@ -127,7 +127,7 @@ while(<$fh>) {
 	# example: AVENJ/MooX-Role-Pluggable-0.01.tar.gz
 	# XXX use DistnameInfo or so?
 	if (my($dist, $version) = $distpath =~ m{^.+/(.*)-v?(\d.*)\.(?:tar\.gz|zip|tar\.bz2|tgz)$}) {
-	    push @{ $distinfo{$dist} }, {
+	    unshift @{ $distinfo{$dist} }, {
 					 status => uc($status),
 					 osname => $osname,
 					 ## XXX There are two GUIDs: the GUIDs defined in log.txt
