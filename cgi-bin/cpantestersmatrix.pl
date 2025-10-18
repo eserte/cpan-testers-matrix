@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.67';
+$VERSION = '2.68';
 
 use vars qw($UA);
 
@@ -1049,7 +1049,9 @@ EOF
 			    die "Unexpected: No guid defined in '$last_line' in '$ndjson_file'";
 			}
 		    }
-		    my $url = $ndjson_append_url . "?dist=$dist";
+		    my $qq = CGI->new("");
+		    $qq->param(dist => $dist);
+		    my $url = $ndjson_append_url . "?" . $qq->query_string;
 		    if ($last_guid) {
 			$url .= "&after=$last_guid";
 		    }
@@ -1069,7 +1071,6 @@ EOF
 			die "Fetching '$url' failed: " . $resp->dump;
 		    }
 		}
-
 		my $resp = $ua->get($url);
 		$resp;
 	    };
