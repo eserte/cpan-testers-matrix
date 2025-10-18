@@ -153,7 +153,7 @@ mylog "Info[$$]: $count new record(s) read";
 close $fh;
 
 while(my($dist,$v) = each %distinfo) {
-    if ($dist !~ m{^[a-zA-Z0-9_-]+$}) {
+    if ($dist !~ m{^[a-zA-Z0-9_+-]+$}) {
 	warn "Skipping possibly problematic filename '$dist'...\n";
     } else {
 	my $ndjson_file = $ndjson_dir . "/$dist.ndjson";
