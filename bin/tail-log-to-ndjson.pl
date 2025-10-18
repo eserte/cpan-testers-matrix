@@ -171,12 +171,8 @@ while(my($dist,$v) = each %distinfo) {
 		}
 	    }
 	    my %guid_seen;
-	    for my $i (0..$#out_v) {
-		my $rec = $out_v[$i];
-		if ($guid_seen{$rec->{guid}}++) {
-		    splice @out_v, $i, 1;
-		}
-	    }
+	    my @unique = grep { !$guid_seen{$_->{guid}}++ } @out_v;
+	    @out_v = @unique;
 	    print STDERR "(writing data...)";
 	    open my $ofh, ">", $ndjson_file
 		or mydie "Can't write to '$ndjson_file': $!";
