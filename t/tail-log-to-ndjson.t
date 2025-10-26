@@ -131,13 +131,64 @@ EOF
     my $expected_Test_YAML_ndjson_contents_2 = $expected_Test_YAML_ndjson_contents . <<'EOF';
 {"archname":"i86pc-solaris-thread-multi-64","distribution":"Test-YAML","fulldate":"202510180747","guid":"c4b21958-abf6-11f0-9c1b-c4a53ce7e222","osname":"solaris","perl":"5.43.4","status":"PASS","tester":"Carlos Guevara","version":"1.07"}
 EOF
+
+    my @ndjson_files;
     {
 	run(\@cmd, '2>', \my $err) or fail "@cmd failed";
 	diag "command: @cmd\nstderr:\n$err" if $debug;
 	like $err, qr{\QTest-YAML.ndjson... (append to existing ndjson file...) (found last guid...) (appending data...)}, "expected diagnostics for Test-YAML (appending data)";
 	is slurp("$ndjson_dir/Test-YAML.ndjson"), $expected_Test_YAML_ndjson_contents_2, 'Test-YAML.ndjson contents OK';
-	my @ndjson_files = <$ndjson_dir/*>;
+	@ndjson_files = <$ndjson_dir/*>;
 	is scalar(@ndjson_files), 4, 'expected number of files';
+    }
+
+    # cleanup for subsequent tests
+    unlink @ndjson_files;
+}
+
+{
+    # Sometimes new log records may be inserted *in between*.
+    {
+	open my $ofh, '>', $logtxt;
+	print $ofh <<'EOF';
+The last 1000 reports as of 2025-10-20T21:50:08Z:
+[2025-10-20T21:50:04Z] [Andreas J. K&ouml;nig (ANDK)] [pass] [OALDERS/LWP-Protocol-https-6.14.tar.gz] [x86_64-linux-thread-multi-ld] [perl-v5.40.3] [bc86756c-adfe-11f0-8a55-991598add7fd] [2025-10-20T21:50:04Z]
+[2025-10-20T21:48:38Z] [Chris Williams (BINGOS)] [pass] [OALDERS/LWP-Protocol-https-6.14.tar.gz] [x86_64-linux-ld] [perl-v5.28.2] [89265ad4-adfe-11f0-a3bc-a055f9c4ba34] [2025-10-20T21:48:38Z]
+EOF
+	close $ofh;
+
+	my $expected_ndjson_contents = <<'EOF';
+{"archname":"x86_64-linux-ld","distribution":"LWP-Protocol-https","fulldate":"202510202148","guid":"89265ad4-adfe-11f0-a3bc-a055f9c4ba34","osname":"linux","perl":"5.28.2","status":"PASS","tester":"Chris Williams (BINGOS)","version":"6.14"}
+{"archname":"x86_64-linux-thread-multi-ld","distribution":"LWP-Protocol-https","fulldate":"202510202150","guid":"bc86756c-adfe-11f0-8a55-991598add7fd","osname":"linux","perl":"5.40.3","status":"PASS","tester":"Andreas J. K&ouml;nig (ANDK)","version":"6.14"}
+EOF
+
+	run(\@cmd, '2>', \my $err) or fail "@cmd failed";
+	diag "command: @cmd\nstderr:\n$err" if $debug;
+	like $err, qr{\QLWP-Protocol-https.ndjson... (first-time creation) (no existing \E.*/log-as-json/LWP-Protocol-https.json\Q...) (writing data...)}, "expected diagnostics for LWP-Protocol-https (first-time creation)";
+	is slurp("$ndjson_dir/LWP-Protocol-https.ndjson"), $expected_ndjson_contents, 'LWP-Protocol-https.ndjson contents OK';
+    }
+
+    {
+	open my $ofh, '>', $logtxt;
+	print $ofh <<'EOF';
+The last 1000 reports as of 2025-10-20T21:55:04Z:
+[2025-10-20T21:50:04Z] [Andreas J. K&ouml;nig (ANDK)] [pass] [OALDERS/LWP-Protocol-https-6.14.tar.gz] [x86_64-linux-thread-multi-ld] [perl-v5.40.3] [bc86756c-adfe-11f0-8a55-991598add7fd] [2025-10-20T21:50:04Z]
+[2025-10-20T21:48:40Z] [Chris Williams (BINGOS)] [pass] [OALDERS/LWP-Protocol-https-6.14.tar.gz] [x86_64-linux-ld] [perl-v5.28.3] [8ac3d3ee-adfe-11f0-a3bc-a055f9c4ba34] [2025-10-20T21:48:40Z]
+[2025-10-20T21:48:38Z] [Chris Williams (BINGOS)] [pass] [OALDERS/LWP-Protocol-https-6.14.tar.gz] [x86_64-linux-ld] [perl-v5.28.2] [89265ad4-adfe-11f0-a3bc-a055f9c4ba34] [2025-10-20T21:48:38Z]
+EOF
+	close $ofh;
+
+	my $expected_ndjson_contents = <<'EOF';
+{"archname":"x86_64-linux-ld","distribution":"LWP-Protocol-https","fulldate":"202510202148","guid":"89265ad4-adfe-11f0-a3bc-a055f9c4ba34","osname":"linux","perl":"5.28.2","status":"PASS","tester":"Chris Williams (BINGOS)","version":"6.14"}
+{"archname":"x86_64-linux-ld","distribution":"LWP-Protocol-https","fulldate":"202510202148","guid":"8ac3d3ee-adfe-11f0-a3bc-a055f9c4ba34","osname":"linux","perl":"5.28.3","status":"PASS","tester":"Chris Williams (BINGOS)","version":"6.14"}
+{"archname":"x86_64-linux-thread-multi-ld","distribution":"LWP-Protocol-https","fulldate":"202510202150","guid":"bc86756c-adfe-11f0-8a55-991598add7fd","osname":"linux","perl":"5.40.3","status":"PASS","tester":"Andreas J. K&ouml;nig (ANDK)","version":"6.14"}
+EOF
+
+	run(\@cmd, '2>', \my $err) or fail "@cmd failed";
+	diag "command: @cmd\nstderr:\n$err" if $debug;
+	local $TODO = "this is not correctly implemented";
+	like $err, qr{\QLWP-Protocol-https.ndjson... (append to existing ndjson file...) (found last guid...) (appending data...)}, "expected diagnostics for LWP-Protocol-https (appending data)";
+	is slurp("$ndjson_dir/LWP-Protocol-https.ndjson"), $expected_ndjson_contents, 'LWP-Protocol-https.ndjson contents OK';
     }
 }
 
