@@ -136,13 +136,6 @@ sub priv_setup {
     my $repo_localdir = $info->{repo_localdir} // error "Missing information: repo_localdir";
     my $unit_restart = $info->{unit_restart} // error "Missing information:: unit_restart";
 
-    require YAML::Syck;
-    my $conf_data = YAML::Syck::Load($variant_info->{conf_file_content});
-    if ($conf_data->{static_dist_dir}) {
-	$priv_doit->make_path($conf_data->{static_dist_dir});
-	$priv_doit->chown('www-data', -1, $conf_data->{static_dist_dir});
-    }
-
     $priv_doit->make_path('/opt/cpan');
 
     $priv_doit->chown(-1, 'www-data', "$repo_localdir/data");
@@ -170,6 +163,14 @@ sub priv_setup {
 	       libsereal-encoder-perl
 	       libplack-perl
 	  ));
+
+    # At this point libyaml-syck-perl is already available, see deb_install_packages call above
+    require YAML::Syck;
+    my $conf_data = YAML::Syck::Load($variant_info->{conf_file_content});
+    if ($conf_data->{static_dist_dir}) {
+	$priv_doit->make_path($conf_data->{static_dist_dir});
+	$priv_doit->chown('www-data', -1, $conf_data->{static_dist_dir});
+    }
 
     {
 	my $cron_contents = <<"EOF" . <<'EOF';
