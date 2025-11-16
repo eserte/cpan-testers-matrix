@@ -10,6 +10,8 @@ use File::Basename qw(dirname);
 use Hash::Util 'lock_keys';
 
 my $dest_system = "analysis2022"; # requires an entry in /etc/hosts with the real IP address
+my $service_user  = 'www-data';
+my $service_group = 'www-data';
 
 my %variant_info = (
     fast2 => {
@@ -138,7 +140,7 @@ sub priv_setup {
 
     $priv_doit->make_path('/opt/cpan');
 
-    $priv_doit->chown(-1, 'www-data', "$repo_localdir/data");
+    $priv_doit->chown(-1, $service_group, "$repo_localdir/data");
     $priv_doit->chmod(0775, "$repo_localdir/data");
 
     if (!eval { $priv_doit->info_qx({quiet=>1}, 'grep', '-sqr', '^[^#].*ppa.launchpad.net/eserte/bbbike', '/etc/apt/sources.list.d'); 1 }) {
@@ -169,7 +171,7 @@ sub priv_setup {
     my $conf_data = YAML::Syck::Load($variant_info->{conf_file_content});
     if ($conf_data->{static_dist_dir}) {
 	$priv_doit->make_path($conf_data->{static_dist_dir});
-	$priv_doit->chown('www-data', -1, $conf_data->{static_dist_dir});
+	$priv_doit->chown($service_user, -1, $conf_data->{static_dist_dir});
     }
 
     {
@@ -203,8 +205,8 @@ Description=$variant_info->{unit_name}
 After=syslog.target
 
 [Service]
-User=www-data
-Group=www-data
+User=$service_user
+Group=$service_group
 
 RuntimeDirectory=starman_$variant_info->{unit_name}
 PIDFile=/run/starman_$variant_info->{unit_name}/starman.pid
