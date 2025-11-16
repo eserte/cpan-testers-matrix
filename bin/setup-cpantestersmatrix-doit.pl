@@ -13,6 +13,7 @@ my $dest_system = "analysis2022"; # requires an entry in /etc/hosts with the rea
 
 my %variant_info = (
     fast2 => {
+	install_root       => undef, # XXX will be filled later using $HOME
 	repo_localdir_base => 'CPAN-Testers-Matrix', # XXX should be CPAN-Testers-Matrix.fast2
 	repo_branch        => 'master',
 	conf_file_content  => <<"EOF",
@@ -32,10 +33,12 @@ EOF
 	external_url       => 'https://fast2-matrix.cpantesters.org', # used for ping test
     },
     fast => {
+	install_root       => '/srv/www',
 	repo_localdir_base => 'CPAN-Testers-Matrix.fast',
 	repo_branch        => 'master',
 	conf_file_content  => <<"EOF",
-cpan_home: $ENV{HOME}/.cpan
+# PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
+cpan_home: /opt/cpan/.cpan
 plain_packages_file: /tmp/plain_packages_file.fast
 static_dist_dir: /var/tmp/metabase-log/log-as-ndjson.fast
 cache_root: /tmp/cpantesters_cache.fast
@@ -47,10 +50,12 @@ EOF
 	#external_url       => 'https://fast-matrix.cpantesters.org', # enable after moving site
     },
     std => {
+	install_root       => '/srv/www',
 	repo_localdir_base => 'CPAN-Testers-Matrix.std',
 	repo_branch        => 'master',
 	conf_file_content  => <<"EOF",
-cpan_home: $ENV{HOME}/.cpan
+# PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
+cpan_home: /opt/cpan/.cpan
 plain_packages_file: /tmp/plain_packages_file.std
 cache_root: /var/tmp/cpantesters_cache.std
 serializer: Sereal
@@ -60,26 +65,44 @@ EOF
         listen_host        => '127.0.0.1',
 	#external_url       => 'https://matrix.cpantesters.org', # enable after moving site
     },
+    beta => {
+	install_root       => '/srv/www',
+	repo_localdir_base => 'CPAN-Testers-Matrix.beta',
+	repo_branch        => 'master',
+	conf_file_content  => <<"EOF",
+# PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
+cpan_home: /opt/cpan/.cpan
+plain_packages_file: /tmp/plain_packages_file.beta
+cache_root: /var/tmp/cpantesters_cache.beta
+serializer: Sereal
+EOF
+	unit_name          => 'cpan-testers-matrix.beta',
+	port               => 5005,
+        listen_host        => '127.0.0.1',
+	#external_url       => 'https://beta-matrix.cpantesters.org', # enable after moving site
+    },
 );
 
-sub unpriv_setup {
-    my($unpriv_doit, $variant) = @_;
+sub git_setup {
+    my($doit, $variant) = @_;
 
     my $variant_info = $variant_info{$variant} // error "No support for variant $variant";
     lock_keys %$variant_info;
 
-    Doit::Log::set_label("\@ $dest_system(unpriv)");
+    my $uname = (getpwuid($<))[0];
+    Doit::Log::set_label("\@ $dest_system($uname)");
 
-    my $repo_localdir = "$ENV{HOME}/src/CPAN/" . $variant_info->{repo_localdir_base};
+    my $install_root = $variant_info->{install_root} // "$ENV{HOME}/src/CPAN";
+    my $repo_localdir = $install_root . '/' . $variant_info->{repo_localdir_base};
     my $repo_branch = $variant_info->{repo_branch};
 
-    $unpriv_doit->make_path(dirname($repo_localdir));
+    $doit->make_path(dirname($repo_localdir));
 
     my $unit_restart = 0;
 
     ## Usually no restart needed, as it is still running as a CGI script.
     #$unit_restart++ if
-    $unpriv_doit->git_repo_update
+    $doit->git_repo_update
 	(
 	 repository => 'https://github.com/eserte/cpan-testers-matrix.git',
 	 directory => $repo_localdir,
@@ -90,9 +113,9 @@ sub unpriv_setup {
     # XXX Verzeichnisse überprüfen, evtl. cache_root verlegen? (wobei: dieses Verzeichnis könnte von Zeit zu Zeit aufgeräumt werden, und solange es unterhalb von /tmp liegt, passiert das zumindest bei einem Reboot)
     ## Usually no restart needed, as it is still running as a CGI script.
     ##$unit_restart++ if
-    $unpriv_doit->write_binary("$repo_localdir/cgi-bin/cpantestersmatrix.yml", $variant_info->{conf_file_content});
+    $doit->write_binary("$repo_localdir/cgi-bin/cpantestersmatrix.yml", $variant_info->{conf_file_content});
     if ($variant_info->{conf_file_content} =~ /^static_dist_dir:\s*(\S+)$/m) { # XXX actually would be better to do YAML parsing, but maybe we don't have YAML available
-	$unpriv_doit->make_path($1);
+	$doit->make_path($1);
     }
 
     return {
@@ -107,10 +130,16 @@ sub priv_setup {
     my $variant_info = $variant_info{$variant} // error "No support for variant $variant";
     lock_keys %$variant_info;
 
-    Doit::Log::set_label("\@ $dest_system(priv)");
+    my $uname = (getpwuid($<))[0];
+    Doit::Log::set_label("\@ $dest_system($uname)");
 
     my $repo_localdir = $info->{repo_localdir} // error "Missing information: repo_localdir";
     my $unit_restart = $info->{unit_restart} // error "Missing information:: unit_restart";
+
+    $priv_doit->make_path('/opt/cpan');
+
+    $priv_doit->chown(-1, 'www-data', "$repo_localdir/data");
+    $priv_doit->chmod(0775, "$repo_localdir/data");
 
     if (!eval { $priv_doit->info_qx({quiet=>1}, 'grep', '-sqr', '^[^#].*ppa.launchpad.net/eserte/bbbike', '/etc/apt/sources.list.d'); 1 }) {
 	$priv_doit->system(qw(add-apt-repository ppa:eserte/bbbike));
@@ -139,7 +168,10 @@ sub priv_setup {
 	my $cron_contents = <<"EOF" . <<'EOF';
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
 EOF
+# for variant fast2-matrix (until migrated to /srv/www)
 30 * * * * eserte perl -MCPAN -e '$CPAN::Be_Silent = 1; CPAN::Index->reload'
+# for all other variants
+33 * * * * root   env HOME=/opt/cpan perl -MCPAN -e '$CPAN::Be_Silent = 1; CPAN::Index->reload'
 EOF
 	$priv_doit->write_binary('/etc/cron.d/cpan-update', $cron_contents);
     }
@@ -198,7 +230,13 @@ sub ping_test {
     my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
     my $resp = $ua->get($url);
-    $resp->is_success or error "$msg_prefix failed: " . $resp->dump;
+    $resp->is_success or do {
+	error "$msg_prefix failed: " . $resp->dump . <<EOF;
+Diagnostics help:
+- check 'systemctl status starman_....service' for error messages
+- make sure that botchecker is deployed if BOTCHECKER_JS_ENABLED=1 is set
+EOF
+    };
     $resp->decoded_content =~ /(CPAN Testers Matrix|JavaScript Required)/ or error "$msg_prefix, but unexpected content: " . $resp->decoded_content;
     info "$msg_prefix was successful: " . $resp->status_line;
 }
@@ -216,23 +254,29 @@ $doit->add_component('DoitX::Ft');
 
 my $variant = 'fast2';
 Getopt::Long::GetOptions("variant=s" => \$variant)
-    or error "usage: $0 [--dry-run] [--variant std|fast|fast2]\n";
+    or error "usage: $0 [--dry-run] [--variant std|beta|fast|fast2]\n";
 my $variant_info = $variant_info{$variant}
     or error "unsupported variant '$variant', use: " . join(", ", sort keys %variant_info);
 
 check_dest_system_hostname();
 
-my $unpriv_doit = $doit->do_ssh_connect($dest_system);
-my $info = $unpriv_doit->call_with_runner('unpriv_setup', $variant);
+my $remote_priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
 
-my $priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
-$priv_doit->call_with_runner('priv_setup', $variant, $info);
+my $remote_git_doit;
+if ($variant eq 'fast2') { # XXX this will change once everything runs in /srv/www
+    $remote_git_doit = $doit->do_ssh_connect($dest_system);
+} else {
+    $remote_git_doit = $remote_priv_doit;
+}
+my $info = $remote_git_doit->call_with_runner('git_setup', $variant);
+
+$remote_priv_doit->call_with_runner('priv_setup', $variant, $info);
 
 # ping test(s)
 if ($variant_info->{listen_host} =~ m{^(|0\.0\.0\.0)$}) {
     $doit->call_with_runner('ping_test', "http://$dest_system:$variant_info->{port}");
 } else {
-    $unpriv_doit->call_with_runner('ping_test', "http://127.0.0.1:$variant_info->{port}");
+    $remote_git_doit->call_with_runner('ping_test', "http://127.0.0.1:$variant_info->{port}");
 }
 if ($variant_info->{external_url}) {
     $doit->call_with_runner('ping_test', $variant_info->{external_url});
