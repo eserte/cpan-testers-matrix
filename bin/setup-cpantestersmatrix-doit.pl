@@ -189,13 +189,23 @@ EOF
 	#$priv_doit->write_binary('/etc/cron.d/fast-matrix', $cron_contents);
     }
 
+    my $tmpfiles_path = "/etc/tmpfiles.d/starman_cpan-testers-matrix.conf";
+    my $tmpfiles_contents = <<"EOF";
+d /run/starman_cpan-testers-matrix 0755 www-data www-data -
+EOF
+    if ($priv_doit->write_binary($tmpfiles_path, $tmpfiles_contents)) {
+	$priv_doit->system('systemd-tmpfiles', '--create', $tmpfiles_path);
+    }
+
     my $unit_contents = <<"EOF";
 [Unit]
 Description=$variant_info->{unit_name}
 After=syslog.target
 
 [Service]
-ExecStart=/usr/bin/starman -l $variant_info->{listen_host}:$variant_info->{port} --pid /var/run/starman_$variant_info->{unit_name}.pid $repo_localdir/cpan-testers-matrix.psgi
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/starman -l $variant_info->{listen_host}:$variant_info->{port} --pid /run/starman_cpan-testers-matrix/$variant_info->{unit_name}.pid $repo_localdir/cpan-testers-matrix.psgi
 Environment="BOTCHECKER_JS_ENABLED=1"
 Restart=always
 
@@ -229,7 +239,14 @@ sub ping_test {
     my $msg_prefix = "Fetching $url from " . Sys::Hostname::hostname();
     my $ua = LWP::UserAgent->new;
     $ua->timeout(10);
-    my $resp = $ua->get($url);
+    my $resp;
+    my $max_try = 3;
+ TRY: for my $try (1..$max_try) {
+	$resp = $ua->get($url);
+	last TRY if $resp->is_success;
+	warning "Try $try/$max_try not successful (" . $resp->status_line . ")";
+	sleep 1 if $try < $max_try;
+    }
     $resp->is_success or do {
 	error "$msg_prefix failed: " . $resp->dump . <<EOF;
 Diagnostics help:
