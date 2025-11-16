@@ -29,7 +29,7 @@ ndjson_append_url: http://127.0.0.1:6081/matrixndjson
 EOF
 	unit_name          => 'cpan-testers-matrix', # used also for description and pidfile name # in this caseshould be cpan-testers-matrix.fast2
 	port               => 5002,
-        listen_host        => '',
+        listen_host        => '127.0.0.1',
 	external_url       => 'https://fast2-matrix.cpantesters.org', # used for ping test
     },
     fast => {
