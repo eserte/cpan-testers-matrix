@@ -197,14 +197,6 @@ EOF
 	#$priv_doit->write_binary('/etc/cron.d/fast-matrix', $cron_contents);
     }
 
-    my $tmpfiles_path = "/etc/tmpfiles.d/starman_cpan-testers-matrix.conf";
-    my $tmpfiles_contents = <<"EOF";
-d /run/starman_cpan-testers-matrix 0755 www-data www-data -
-EOF
-    if ($priv_doit->write_binary($tmpfiles_path, $tmpfiles_contents)) {
-	$priv_doit->system('systemd-tmpfiles', '--create', $tmpfiles_path);
-    }
-
     my $unit_contents = <<"EOF";
 [Unit]
 Description=$variant_info->{unit_name}
@@ -213,7 +205,11 @@ After=syslog.target
 [Service]
 User=www-data
 Group=www-data
-ExecStart=/usr/bin/starman -l $variant_info->{listen_host}:$variant_info->{port} --pid /run/starman_cpan-testers-matrix/$variant_info->{unit_name}.pid $repo_localdir/cpan-testers-matrix.psgi
+
+RuntimeDirectory=starman_$variant_info->{unit_name}
+PIDFile=/run/starman_$variant_info->{unit_name}/starman.pid
+
+ExecStart=/usr/bin/starman -l $variant_info->{listen_host}:$variant_info->{port} --pid /run/starman_$variant_info->{unit_name}/starman.pid $repo_localdir/cpan-testers-matrix.psgi
 Environment="BOTCHECKER_JS_ENABLED=1"
 Restart=always
 
