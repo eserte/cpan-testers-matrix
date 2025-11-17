@@ -56,3 +56,6 @@ Disallow: /
 
 User-agent: Applebot
 Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
