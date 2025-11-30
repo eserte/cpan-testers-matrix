@@ -46,7 +46,7 @@ static_dist_dir: /var/tmp/metabase-log/tail-log-as-ndjson
 cache_root: /tmp/cpantesters_cache.fast
 serializer: Sereal
 EOF
-	unit_name          => 'cpan-testers-matrix.std',
+	unit_name          => 'cpan-testers-matrix.fast',
 	port               => 5003,
         listen_host        => '127.0.0.1',
 	#external_url       => 'https://fast-matrix.cpantesters.org', # enable after moving site
