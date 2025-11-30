@@ -103,10 +103,10 @@ EOF
 	    like $err, qr{\QText-Tabs+Wrap.ndjson... (first-time creation) (no existing \E.*/log-as-json/Text-Tabs\+Wrap.json\Q...) (writing data...)}, "expected diagnostics for Text-Tabs+Wrap (pass $pass)";
 	    like $err, qr{\QTest-YAML.ndjson... (first-time creation) (use data from existing \E.*/log-as-json/Test-YAML.json\Q...) (writing data...)}, "expected diagnostics for Test-YAML (pass $pass)";
 	} else {
-	    like $err, qr{\QIPC-System-Simple.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for IPC-System-Simple (pass $pass)";
-	    like $err, qr{\Qthreads.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for threads (pass $pass)";
-	    like $err, qr{\QText-Tabs+Wrap.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for Text-Tabs+Wrap (pass $pass)";
-	    like $err, qr{\QTest-YAML.ndjson... (append to existing ndjson file...) (found last guid...) (no new data found...)}, "expected diagnostics for Test-YAML (pass $pass)";
+	    like $err, qr{\QIPC-System-Simple.ndjson... (no new data found...)}, "expected diagnostics for IPC-System-Simple (pass $pass)";
+	    like $err, qr{\Qthreads.ndjson... (no new data found...)}, "expected diagnostics for threads (pass $pass)";
+	    like $err, qr{\QText-Tabs+Wrap.ndjson... (no new data found...)}, "expected diagnostics for Text-Tabs+Wrap (pass $pass)";
+	    like $err, qr{\QTest-YAML.ndjson... (no new data found...)}, "expected diagnostics for Test-YAML (pass $pass)";
 	}
 	like $err, qr{\QCannot parse dist '/' in line '[2025-10-18T07:54:07Z] [Chris Williams (BINGOS)] [pass] [/] [x86_64-linux] [perl-v5.18.2] [a018b394-abf7-11f0-a3bc-a055f9c4ba34] [2025-10-18T07:54:07Z]'}, 'unparsable dist';
 	is slurp("$ndjson_dir/IPC-System-Simple.ndjson"), $expected_IPC_System_Simple_ndjson_contents, 'IPC-System-Simple.ndjson contents OK';
@@ -136,7 +136,7 @@ EOF
     {
 	run(\@cmd, '2>', \my $err) or fail "@cmd failed";
 	diag "command: @cmd\nstderr:\n$err" if $debug;
-	like $err, qr{\QTest-YAML.ndjson... (append to existing ndjson file...) (found last guid...) (appending data...)}, "expected diagnostics for Test-YAML (appending data)";
+	like $err, qr{\QTest-YAML.ndjson... (append to existing ndjson file...)}, "expected diagnostics for Test-YAML (appending data)";
 	is slurp("$ndjson_dir/Test-YAML.ndjson"), $expected_Test_YAML_ndjson_contents_2, 'Test-YAML.ndjson contents OK';
 	@ndjson_files = <$ndjson_dir/*>;
 	is scalar(@ndjson_files), 4, 'expected number of files';
@@ -186,8 +186,7 @@ EOF
 
 	run(\@cmd, '2>', \my $err) or fail "@cmd failed";
 	diag "command: @cmd\nstderr:\n$err" if $debug;
-	local $TODO = "this is not correctly implemented";
-	like $err, qr{\QLWP-Protocol-https.ndjson... (append to existing ndjson file...) (found last guid...) (appending data...)}, "expected diagnostics for LWP-Protocol-https (appending data)";
+	like $err, qr{\QLWP-Protocol-https.ndjson... (out-of-band inserts detected, need to truncate first...) (append to existing ndjson file...)}, "expected diagnostics for LWP-Protocol-https (appending data)";
 	is slurp("$ndjson_dir/LWP-Protocol-https.ndjson"), $expected_ndjson_contents, 'LWP-Protocol-https.ndjson contents OK';
     }
 }

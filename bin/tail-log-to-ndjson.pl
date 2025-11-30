@@ -169,7 +169,7 @@ while(my($dist,$v) = each %distinfo) {
 		    my $old_v = $jsoner->decode($old_v_serialized);
 		    @out_v = (@$old_v,@$v);
 		} else {
-		    print STDERR "(no existing $json_file...) ";
+		    print STDERR "(no existing " . (defined $json_file ? $json_file : "json file") . "...) ";
 		    @out_v = @$v;
 		}
 	    }
@@ -186,31 +186,67 @@ while(my($dist,$v) = each %distinfo) {
 		or mydie $!;
 	    print STDERR "\n";
 	} else {
-	    print STDERR "(append to existing ndjson file...) ";
 	    my $bw = File::ReadBackwards->new($ndjson_file)
 		or mydie "Can't read '$ndjson_file' using File::ReadBackwards: $!";
-	    my $last_line = $bw->readline;
-	    my $last_record = $jsoner->decode($last_line);
-	    my $last_guid = $last_record->{guid};
-	    my $start_index;
-	    for my $i (0 .. $#$v) {
-		if ($v->[$i]->{guid} eq $last_guid) {
-		    print STDERR "(found last guid...) ";
-		    $start_index = $i+1;
+	    my @old_records;
+	    my $start_pos;
+	    while(!$bw->eof) {
+		my $start_pos_before = $bw->tell;
+		my $line = $bw->readline;
+		$start_pos = $bw->tell;
+		my $record = $jsoner->decode($line);
+		if ($record->{guid} eq $v->[0]->{guid}) {
+		    unshift @old_records, $record;
+		    last;
+		} elsif ($record->{fulldate} lt $v->[0]->{fulldate}) {
+		    $start_pos = $start_pos_before;
 		    last;
 		}
+		unshift @old_records, $record;
 	    }
-	    if (!defined $start_index) {
-		print STDERR "(did not found last guid, append everything...) ";
-		$start_index = 0;
+
+	    my $out_of_band_detected;
+	    my $new_records_start_i;
+	    if (@old_records) {
+		# were there out-of-band inserts in the latest log.txt file?
+		my $old_i = my $new_i = 0;
+		while() {
+		    if ($old_records[$old_i]->{guid} ne $v->[$new_i]->{guid}) {
+			$out_of_band_detected = 1;
+			$new_records_start_i = 0;
+			last;
+		    }
+		    $old_i++;
+		    if ($old_i > $#old_records) {
+			$new_i++;
+			if ($new_i > $#$v) {
+			    undef $new_records_start_i; # keep undefined, nothing to add
+			} else {
+			    $new_records_start_i = $new_i;
+			}
+			last;
+		    }
+		    $new_i++;
+		    if ($new_i > $#$v) {
+			die "ERROR: Unexpected: maybe records vanished in the new log.txt? dist=$dist old_i=$old_i new_i=$new_i\n";
+		    }
+		}
+	    } else {
+		$new_records_start_i = 0;
 	    }
-	    if ($start_index > $#$v) {
+
+	    if ($out_of_band_detected) {
+		print STDERR "(out-of-band inserts detected, need to truncate first...) ";
+		truncate $ndjson_file, $start_pos
+		    or die "ERROR: truncate $ndjson_file, $start_pos failed: $!";
+	    }
+	    if (!defined $new_records_start_i) {
 		print STDERR "(no new data found...) ";
 	    } else {
-		print STDERR "(appending data...)";
+		print STDERR "(append to existing ndjson file...) ";
 		open my $ofh, ">>", $ndjson_file
 		    or mydie "Can't write to '$ndjson_file': $!";
-		for my $i ($start_index .. $#$v) {
+		for my $i ($new_records_start_i .. $#$v) {
 		    print $ofh $jsoner->encode($v->[$i]), "\n";
 		}
 		close $ofh
