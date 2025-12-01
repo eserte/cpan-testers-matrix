@@ -171,7 +171,11 @@ sub priv_setup {
     my $conf_data = YAML::Syck::Load($variant_info->{conf_file_content});
     if ($conf_data->{static_dist_dir}) {
 	$priv_doit->make_path($conf_data->{static_dist_dir});
-	$priv_doit->chown($service_user, -1, $conf_data->{static_dist_dir});
+	if ($variant eq 'fast') { # XXX controlled by cronjob, see below, user needs to match
+	    $priv_doit->chown('eserte', -1, $conf_data->{static_dist_dir});
+	} else {
+	    $priv_doit->chown($service_user, -1, $conf_data->{static_dist_dir});
+	}
     }
 
     {
@@ -191,12 +195,15 @@ EOF
 	if (!$priv_doit->ft_exists($cron_wrapper)) {
 	    error "Please make sure that $cron_wrapper exists (i.e. checking out eserte's bin/sh"; # XXX should be a public repo!
 	}
+	# XXX should not hardcode user
 	my $cron_contents = <<"EOF";
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
 2,7,12,17,22,27,32,37,42,47,52,57 * * * * eserte $cron_wrapper nice ionice -n7 $repo_localdir/bin/tail-log-to-ndjson-wrapper.pl
 EOF
 	## XXX currently disabled, as tail-log-to-ndjson-wrapper.pl needs more work
-	#$priv_doit->write_binary('/etc/cron.d/fast-matrix', $cron_contents);
+	#warning "Setup of /etc/cron.d/fast-matrix currently disabled";
+	#priv_doit->unlink('/etc/cron.d/fast-matrix');
+	$priv_doit->write_binary('/etc/cron.d/fast-matrix', $cron_contents);
     }
 
     my $unit_contents = <<"EOF";
