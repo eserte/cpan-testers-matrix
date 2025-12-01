@@ -45,6 +45,7 @@ plain_packages_file: /tmp/plain_packages_file.fast
 static_dist_dir: /var/tmp/metabase-log/tail-log-as-ndjson
 cache_root: /tmp/cpantesters_cache.fast
 serializer: Sereal
+filefmt_dist: ndjson
 EOF
 	unit_name          => 'cpan-testers-matrix.fast',
 	port               => 5003,
