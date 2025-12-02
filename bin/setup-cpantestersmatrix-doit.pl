@@ -196,6 +196,9 @@ EOF
 	if (!$priv_doit->ft_exists($cron_wrapper)) {
 	    error "Please make sure that $cron_wrapper exists (i.e. checking out eserte's bin/sh"; # XXX should be a public repo!
 	}
+	if (!$priv_doit->which('logger')) {
+	    error "Please make sure that 'logger' is available";
+	}
 	# XXX should not hardcode user
 	my $cron_contents = <<"EOF";
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
