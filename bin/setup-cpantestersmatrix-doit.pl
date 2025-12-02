@@ -199,7 +199,7 @@ EOF
 	# XXX should not hardcode user
 	my $cron_contents = <<"EOF";
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
-2,7,12,17,22,27,32,37,42,47,52,57 * * * * eserte $cron_wrapper nice ionice -n7 $repo_localdir/bin/tail-log-to-ndjson-wrapper.pl
+2,7,12,17,22,27,32,37,42,47,52,57 * * * * eserte ($cron_wrapper nice ionice -n7 $repo_localdir/bin/tail-log-to-ndjson-wrapper.pl) 2>&1 | logger -t fast-matrix-cron
 EOF
 	## XXX currently disabled, as tail-log-to-ndjson-wrapper.pl needs more work
 	#warning "Setup of /etc/cron.d/fast-matrix currently disabled";
