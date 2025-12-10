@@ -97,6 +97,8 @@ if (!$ENV{CPANTESTERSMATRIX_CONFIG_FILE}) {
 }
 my $config_yml = "$realbin/$cpantestersmatrix_config_file";
 
+return 1 if caller;
+
 my $filefmt_author = get_config('filefmt_author') || 'json'; # json, ndson, yaml
 my $filefmt_dist   = get_config('filefmt_dist')   || 'json'; # json, ndson, yaml
 
@@ -2145,7 +2147,7 @@ sub beta_html () {
     q{<span style="font-size:5pt; font-family: sans-serif; border:1px solid red; padding:0px 2px 0px 2px; background-color:yellow; color:black;">BETA</span>};
 }
 
-# Taken CPAN/Blame/Model/Solved.pm from git://repo.or.cz/andk-cpan-tools.git
+# Originally taken from CPAN/Blame/Model/Solved.pm from git://repo.or.cz/andk-cpan-tools.git (and tweaked a little bit)
 sub obfuscate_from ($) {
     my $from = shift;
     my $obfuscated_from = $from;
@@ -2154,6 +2156,7 @@ sub obfuscate_from ($) {
 	return $from_to_obfuscated{$from} if exists $from_to_obfuscated{$from};
 
 	for ($obfuscated_from) {
+	    s/^""\s+<(.*)>/$1/; # handle empty name, something like: "" <user@domain>
 	    s/\s+\(\(root|Charlie &\)\)$//; # "root" is meaningless, strip it
 	    s/.+\(([^\)]+)\).*/$1/;
 	    last if s/.*\(\"([^"]+)\"\)/$1/;
