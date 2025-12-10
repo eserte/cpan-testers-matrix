@@ -15,8 +15,8 @@ my $service_group = 'www-data';
 
 my %variant_info = (
     fast2 => {
-	install_root       => undef, # XXX will be filled later using $HOME
-	repo_localdir_base => 'CPAN-Testers-Matrix', # XXX should be CPAN-Testers-Matrix.fast2
+	install_root       => '/srv/www',
+	repo_localdir_base => 'CPAN-Testers-Matrix.fast2',
 	repo_branch        => 'master',
 	conf_file_content  => <<"EOF",
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
@@ -95,7 +95,7 @@ sub git_setup {
     my $uname = (getpwuid($<))[0];
     Doit::Log::set_label("\@ $dest_system($uname)");
 
-    my $install_root = $variant_info->{install_root} // "$ENV{HOME}/src/CPAN";
+    my $install_root = $variant_info->{install_root} // error "install_root not specified";
     my $repo_localdir = $install_root . '/' . $variant_info->{repo_localdir_base};
     my $repo_branch = $variant_info->{repo_branch};
 
@@ -296,12 +296,7 @@ check_dest_system_hostname();
 
 my $remote_priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
 
-my $remote_git_doit;
-if ($variant eq 'fast2') { # XXX this will change once everything runs in /srv/www
-    $remote_git_doit = $doit->do_ssh_connect($dest_system);
-} else {
-    $remote_git_doit = $remote_priv_doit;
-}
+my $remote_git_doit = $remote_priv_doit;
 my $info = $remote_git_doit->call_with_runner('git_setup', $variant);
 
 $remote_priv_doit->call_with_runner('priv_setup', $variant, $info);
