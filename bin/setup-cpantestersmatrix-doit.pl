@@ -20,7 +20,7 @@ my %variant_info = (
 	repo_branch        => 'master',
 	conf_file_content  => <<"EOF",
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
-cpan_home: $ENV{HOME}/.cpan
+cpan_home: /opt/cpan/.cpan
 plain_packages_file: /tmp/plain_packages_file
 static_dist_dir: /var/tmp/metabase-log/log-as-ndjson
 cache_root: /tmp/cpantesters_fast_cache
@@ -188,9 +188,6 @@ sub priv_setup {
 	my $cron_contents = <<"EOF" . <<'EOF';
 # PLEASE DO NOT EDIT (source is @{[ __FILE__ ]} line @{[ __LINE__ ]})
 EOF
-# for variant fast2-matrix (until migrated to /srv/www)
-30 * * * * eserte perl -MCPAN -e '$CPAN::Be_Silent = 1; CPAN::Index->reload'
-# for all other variants
 33 * * * * root   env HOME=/opt/cpan perl -MCPAN -e '$CPAN::Be_Silent = 1; CPAN::Index->reload'
 EOF
 	$priv_doit->write_binary('/etc/cron.d/cpan-update', $cron_contents);
