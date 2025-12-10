@@ -121,6 +121,11 @@ sub git_setup {
 	$doit->make_path($1);
     }
 
+    my $botchecker_js_path = "$repo_localdir/cgi-bin/Botchecker_js.pm";
+    if (!$doit->ft_r($botchecker_js_path)) {
+	error "Make sure that $botchecker_js_path is already installed (check the other private doit script)";
+    }
+
     return {
 	    repo_localdir => $repo_localdir,
 	    unit_restart => $unit_restart,
