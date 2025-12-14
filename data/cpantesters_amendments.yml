@@ -592,10 +592,10 @@ amendments:
   - comment: "DEVEL versions which will never get stable"
     action: REMOVE
     distver:
-      - Test-Simple 2.00_07
-      - Test-Simple 2.00_06
-      - Test-Simple 2.00_05
-      - Test-Simple 2.00_04
-      - Test-Simple 2.00_03
-      - Test-Simple 2.00_02
-      - Test-Simple 2.00_01
+      - Test-Simple-2.00_07
+      - Test-Simple-2.00_06
+      - Test-Simple-2.00_05
+      - Test-Simple-2.00_04
+      - Test-Simple-2.00_03
+      - Test-Simple-2.00_02
+      - Test-Simple-2.00_01
