@@ -589,3 +589,13 @@ amendments:
       - DBIx-Class-0.082899_03
       - DBIx-Class-0.082899_02
       - DBIx-Class-0.082899_01
+  - comment: "DEVEL versions which will never get stable"
+    action: REMOVE
+    distver:
+      - Test-Simple 2.00_07
+      - Test-Simple 2.00_06
+      - Test-Simple 2.00_05
+      - Test-Simple 2.00_04
+      - Test-Simple 2.00_03
+      - Test-Simple 2.00_02
+      - Test-Simple 2.00_01
