@@ -1,5 +1,6 @@
 cpan_home: /home/e/eserte/.cpan
 plain_packages_file: /tmp/plain_packages_file
-static_dist_dir: /var/tmp/metabase-log/log-as-json
+static_dist_dir: /var/tmp/metabase-log/tail-log-as-ndjson
 cache_root: /tmp/cpantesters_fast_cache
 serializer: Sereal
+filefmt_dist: ndjson
