@@ -50,10 +50,8 @@ jobs:
         include:
           - dist:    debian
             distver: jessie
-          - dist:    ubuntu
-            distver: 14.04 # It seems that 14.04 is the oldest Ubuntu possible to run in a github actions container
-          - dist:    ubuntu
-            distver: 20.04
+          - dist:    debian
+            distver: bookworm
     steps:
     - name: apt hacks for older Debian
       if: matrix.distver == 'jessie'
