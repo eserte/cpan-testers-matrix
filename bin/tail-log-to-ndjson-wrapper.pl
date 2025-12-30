@@ -17,7 +17,7 @@ use FindBin;
 my $fetch_url = "http://metabase.cpantesters.org/tail/log.txt?" . time;
 my $output_file = "/tmp/ndjson-log.txt";
 #system("wget", "-O", "$output_file~", $fetch_url);
-system('curl', '-L', '--silent', '--compressed', '--fail', '--output', "$output_file~", $fetch_url);
+system('curl', '--retry', 5, '--retry-delay', 15, '-L', '--silent', '--compressed', '--fail', '--output', "$output_file~", $fetch_url);
 die "Getting ${output_file}~ failed" if $? != 0;
 rename "$output_file~", $output_file or die $!;
 system("$FindBin::RealBin/tail-log-to-ndjson.pl", "--ndjson-dir", "/var/tmp/metabase-log/tail-log-as-ndjson", "--json-dir", "/var/tmp/metabase-log/log-as-json", "-logfile", "/tmp/ndjson-log.log", "-statusfile", "/tmp/ndjson-statusfile", $output_file);
