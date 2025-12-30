@@ -35,8 +35,12 @@ Setup cron job:
 
     2,7,12,17,22,27,32,37,42,47,52,57 * * * * $HOME/bin/sh/cron-wrapper $HOME/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-ndjson-wrapper.pl
 
-(L<http://metabase.cpantesters.org/tail/log.txt> is currently modified
-about 80s after minute 0,5,10,...)
+or
+
+    2,7,12,17,22,27,32,37,42,47,52,57 * * * * ($HOME/bin/sh/cron-wrapper nice ionice -n7 $HOME/src/CPAN/CPAN-Testers-Matrix/bin/tail-log-to-ndjson-wrapper.pl) 2>&1 | logger -t fast-matrix-cron
+
+(L<https://metabase.cpantesters.org/tail/log.txt> is currently modified
+about 10-20s after minute 0,5,10,...)
 
 (If you don't have C<cron-wrapper>, then just run without and redirect
 everything to F</dev/null>)
