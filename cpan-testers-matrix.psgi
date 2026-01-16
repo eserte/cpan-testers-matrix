@@ -44,6 +44,9 @@ use Time::Local ();
     }
 }
 
+use constant PLACK_BEHIND_REVERSE_PROXY => $ENV{PLACK_BEHIND_REVERSE_PROXY};
+use if PLACK_BEHIND_REVERSE_PROXY, 'Plack::Middleware::ReverseProxy';
+
 my $root = $FindBin::RealBin;
 
 my $favicon = Plack::App::File->new(
@@ -76,6 +79,10 @@ my $cgi_app_or_404 = sub {
 };
 
 builder {
+    if (PLACK_BEHIND_REVERSE_PROXY) {
+	enable 'ReverseProxy', trusted => [ '127.0.0.1' ];
+    }
+
     mount '/favicon.ico' => $favicon;
     mount '/cpantesters_favicon.ico' => $favicon;
 
