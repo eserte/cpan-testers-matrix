@@ -227,7 +227,7 @@ PIDFile=/run/starman_$variant_info->{unit_name}/starman.pid
 
 ExecStart=/usr/bin/starman -l $variant_info->{listen_host}:$variant_info->{port} --pid /run/starman_$variant_info->{unit_name}/starman.pid $repo_localdir/cpan-testers-matrix.psgi
 Environment="BOTCHECKER_JS_ENABLED=1"
-#Environment="BOTCHECKER_JS_USERQUESTION=1"
+Environment="BOTCHECKER_JS_USERQUESTION=1"
 Environment="PLACK_BEHIND_REVERSE_PROXY=1"
 Restart=always
 
