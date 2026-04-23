@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.69';
+$VERSION = '2.70';
 
 use vars qw($UA);
 
@@ -412,7 +412,7 @@ if ((defined $dist   && $dist   =~ /[<>&]/) ||
 	}
 	$table->setSectionColHead('tbody', 0, 1, 1);
 	$dist_title = ": $dist $dist_version";
-	$ct_link = "http://$ct_domain/show/$dist.html#$dist-$dist_version";
+	$ct_link = "https://$ct_domain/show/$dist.html#$dist-$dist_version";
     };
     $error = $@ if $@;
 } elsif ($author) {
@@ -652,7 +652,7 @@ print qq{<body onload="} .
 
 if ($app_mode == APP_MODE_LOGTXT) {
     print <<EOF;
-<div class="warn">NOTE: This is the <a href="http://metabase.cpantesters.org/tail/log.txt">log.txt</a> view <span class="sml">(<a href="http://www.nntp.perl.org/group/perl.cpan.testers.discuss/2012/11/msg2906.html">What's this?</a>)</span></div><br/>
+<div class="warn">NOTE: This is the <a href="https://metabase.cpantesters.org/tail/log.txt">log.txt</a> view <span class="sml">(<a href="https://www.nntp.perl.org/group/perl.cpan.testers.discuss/2012/11/msg2906.html">What's this?</a>)</span></div><br/>
 EOF
 }
 
@@ -890,7 +890,7 @@ print <<EOF;
    <span class="sml"><a href="?prefs=1">Change Preferences</a></span>
   </div>
   <div>
-   <a href="http://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
+   <a href="https://github.com/eserte/cpan-testers-matrix">cpantestersmatrix.pl</a> $VERSION
    <span class="sml">(mode @{[ $app_mode == APP_MODE_LOGTXT ? "log.txt" : $app_mode == APP_MODE_NDJSONAPI ? "ndjson API" : "regular" ]})</span>
    by <a href="https://metacpan.org/author/SREZIC">Slaven Rezi&#x0107;</a>
   </div>
@@ -1419,7 +1419,7 @@ sub build_success_table ($$$) {
     }
 
     my $title = "$dist $dist_version";
-    my $ct_link = "http://$ct_domain/show/$dist.html#$dist-$dist_version";
+    my $ct_link = "https://$ct_domain/show/$dist.html#$dist-$dist_version";
 
     return { table => $table,
 	     title => "$dist $dist_version",
@@ -1530,7 +1530,7 @@ sub build_maxver_table ($$) {
 
     return { table => $table,
 	     title => "$dist (max version with a PASS)",
-	     ct_link => "http://$ct_domain/show/$dist.html",
+	     ct_link => "https://$ct_domain/show/$dist.html",
 	   };
 }
 
@@ -1550,7 +1550,7 @@ sub build_author_table ($$) {
     }
     return { tables => \@tables,
 	     title => $author,
-	     ct_link => "http://$ct_domain/author/$author.html",
+	     ct_link => "https://$ct_domain/author/$author.html",
 	   };
 }
 
@@ -1664,7 +1664,7 @@ EOF
 	    $msg = <<EOF;
 Cannot fetch data from $ct_domain (site is currently in maintenance)
 As a fallback you can try the alternative
-<http://fast-matrix.cpantesters.org/?@{[ $q->query_string ]}>
+<https://fast-matrix.cpantesters.org/?@{[ $q->query_string ]}>
 EOF
 	} else {
 	    my $first_line;
@@ -1865,7 +1865,7 @@ sub dist_links {
 <li><a href="http://deps.cpantesters.org/?module=@{[ CGI::escapeHTML($faked_module) ]}">CPAN Dependencies</a>
 <li><a href="http://deps.cpantesters.org/depended-on-by.pl?dist=$dist_html">Reverse deps</a>
 <li><a href="$ct_link">CPAN Testers</a>
-<li><a href="https://metacpan.org/release/$dist_html">metacpan.org</a> (<a href="http://search.cpan.org/dist/$dist_html/">alternative</a>)
+<li><a href="https://metacpan.org/release/$dist_html">metacpan.org</a> (<a href="https://search.cpan.org/dist/$dist_html/">alternative</a>)
 <li><a href="@{[ CGI::escapeHTML($dist_bugtracker_url) ]}">Bugtracker</a>
 EOF
     if (SHOW_ANALYSIS_LINK && defined $dist_version) {
