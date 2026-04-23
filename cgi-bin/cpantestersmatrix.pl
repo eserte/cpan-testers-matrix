@@ -4,7 +4,7 @@
 #
 # Author: Slaven Rezic
 #
-# Copyright (C) 2007-2025 Slaven Rezic. All rights reserved.
+# Copyright (C) 2007-2026 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.68';
+$VERSION = '2.69';
 
 use vars qw($UA);
 
@@ -1882,12 +1882,12 @@ EOF
     }
     if ($app_mode != APP_MODE_REGULAR) {
 	print <<EOF;
-<li><a class="sml" href="http://matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Regular matrix</a> <span class="sml"></span>
+<li><a class="sml" href="https://matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Regular matrix</a> <span class="sml"></span>
 EOF
     }
     if ($app_mode != APP_MODE_LOGTXT) {
 	print <<EOF;
-<li><a class="sml" href="http://fast-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via log.txt ("fast")</a> <!--<span class="sml">(temporary!)</span>-->
+<li><a class="sml" href="https://fast-matrix.cpantesters.org/?@{[ CGI::escapeHTML($q->query_string) ]}">Matrix via log.txt ("fast")</a> <!--<span class="sml">(temporary!)</span>-->
 EOF
     }
     if ($app_mode != APP_MODE_NDJSONAPI) {
@@ -2351,7 +2351,7 @@ Contributions by: Florian Ragwitz and Sebastien Aperghis-Tramoni
 
 =head1 SEE ALSO
 
-L<http://deps.cpantesters.org/>,
-L<http://www.cpantesters.org/>
+L<https://deps.cpantesters.org/>,
+L<https://www.cpantesters.org/>
 
 =cut
