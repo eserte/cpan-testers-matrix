@@ -50,7 +50,7 @@ EOF
 	unit_name          => 'cpan-testers-matrix.fast',
 	port               => 5003,
         listen_host        => '127.0.0.1',
-	#external_url       => 'https://fast-matrix.cpantesters.org', # enable after moving site
+	external_url       => 'https://fast-matrix.cpantesters.org', # enable after moving site
     },
     std => {
 	install_root       => '/srv/www',
@@ -66,7 +66,7 @@ EOF
 	unit_name          => 'cpan-testers-matrix.std',
 	port               => 5004,
         listen_host        => '127.0.0.1',
-	#external_url       => 'https://matrix.cpantesters.org', # enable after moving site
+	external_url       => 'https://matrix.cpantesters.org', # enable after moving site
     },
     beta => {
 	install_root       => '/srv/www',
@@ -82,7 +82,7 @@ EOF
 	unit_name          => 'cpan-testers-matrix.beta',
 	port               => 5005,
         listen_host        => '127.0.0.1',
-	#external_url       => 'https://beta-matrix.cpantesters.org', # enable after moving site
+	external_url       => 'https://beta-matrix.cpantesters.org', # enable after moving site
     },
 );
 
@@ -291,29 +291,40 @@ $doit->add_component('git');
 $doit->add_component('deb');
 $doit->add_component('DoitX::Ft');
 
-my $variant = 'fast2';
-Getopt::Long::GetOptions("variant=s" => \$variant)
-    or error "usage: $0 [--dry-run] [--variant std|beta|fast|fast2]\n";
-my $variant_info = $variant_info{$variant}
-    or error "unsupported variant '$variant', use: " . join(", ", sort keys %variant_info);
+my @variants = 'beta';
+Getopt::Long::GetOptions(
+    "variant=s" => sub { @variants = $_[1] },
+    "all-variants" => sub {
+	@variants = qw(beta std fast fast2); # begin with beta, end with the site linked on MetaCPAN
+    },
+)
+    or error "usage: $0 [--dry-run] [--all-variants | --variant std|beta|fast|fast2]\n";
 
 check_dest_system_hostname();
 
-my $remote_priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
+for my $variant (@variants) {
+    my $variant_info = $variant_info{$variant}
+	or error "unsupported variant '$variant', use: " . join(", ", sort keys %variant_info);
 
-my $remote_git_doit = $remote_priv_doit;
-my $info = $remote_git_doit->call_with_runner('git_setup', $variant);
+    my $remote_priv_doit = $doit->do_ssh_connect($dest_system, as => 'root');
 
-$remote_priv_doit->call_with_runner('priv_setup', $variant, $info);
+    my $remote_git_doit = $remote_priv_doit;
+    my $info = $remote_git_doit->call_with_runner('git_setup', $variant);
 
-# ping test(s)
-if ($variant_info->{listen_host} =~ m{^(|0\.0\.0\.0)$}) {
-    $doit->call_with_runner('ping_test', "http://$dest_system:$variant_info->{port}");
-} else {
-    $remote_git_doit->call_with_runner('ping_test', "http://127.0.0.1:$variant_info->{port}");
-}
-if ($variant_info->{external_url}) {
-    $doit->call_with_runner('ping_test', $variant_info->{external_url});
+    $remote_priv_doit->call_with_runner('priv_setup', $variant, $info);
+
+    # ping test(s)
+    if ($variant_info->{listen_host} =~ m{^(|0\.0\.0\.0)$}) {
+	$doit->call_with_runner('ping_test', "http://$dest_system:$variant_info->{port}");
+    } else {
+	$remote_git_doit->call_with_runner('ping_test', "http://127.0.0.1:$variant_info->{port}");
+    }
+    if ($variant_info->{external_url}) {
+	$doit->call_with_runner('ping_test', $variant_info->{external_url});
+	if ((my $http_url = $variant_info->{external_url}) =~ s/^https:/http:/) {
+	    $doit->call_with_runner('ping_test', $http_url);
+	}
+    }
 }
 
 __END__
