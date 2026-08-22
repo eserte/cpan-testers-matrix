@@ -18,7 +18,7 @@ use 5.010; # defined-or
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '2.70';
+$VERSION = '2.71';
 
 use vars qw($UA);
 
@@ -78,7 +78,7 @@ sub _reusing_cache_msg ($);
 my $cache_days = 1/8;
 my $ua_timeout = 30;
 
-my $current_stable_perl = "5.42.0"; # please always end with ".0"
+my $current_stable_perl = "5.44.0"; # please always end with ".0"
 
 use constant USE_JQUERY_TABLESORTER => 1;
 
